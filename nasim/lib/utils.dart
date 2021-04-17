@@ -6,4 +6,8 @@ class Utils {
     final snackBar = SnackBar(content: Text(message));
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
+
+  static void setTimeOut(int duration, Function() function) {
+    Future<void>.delayed(new Duration(seconds: duration), function);
+  }
 }
