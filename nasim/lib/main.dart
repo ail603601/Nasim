@@ -1,21 +1,42 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:nasim/page/AppIntroductionScreen.dart';
+import 'package:nasim/page/BarCodeScanPage.dart';
+import 'package:nasim/page/DeviceMainPage.dart';
+import 'package:nasim/page/DevicesListConnect.dart';
+import 'package:nasim/page/SearchDevices.dart';
 import 'package:nasim/provider/FirstTimeUsageChangeNotifier.dart';
+import 'package:nasim/provider/ConnectionManager.dart';
+import 'package:nasim/provider/SavedevicesChangeNofiter.dart';
+import 'Model/menu_info.dart';
+import 'enums.dart';
 import 'provider/ThemeChangeNotifer.dart';
 import 'localizations/L10n.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
-void main() => runApp(RootView());
+void main() {
+  runApp(RootView());
+}
 
 class RootView extends StatelessWidget {
   @override
   Widget build(BuildContext context) => MultiProvider(
         providers: [
-          ChangeNotifierProvider<ThemeChangeNotifer>(
-              create: (context) => ThemeChangeNotifer()),
-          ChangeNotifierProvider<FirstTimeUsageChangeNotifier>(
-              create: (context) => FirstTimeUsageChangeNotifier())
+          ChangeNotifierProvider<ThemeChangeNotifer>(create: (context) => ThemeChangeNotifer()),
+          ChangeNotifierProvider<FirstTimeUsageChangeNotifier>(create: (context) => FirstTimeUsageChangeNotifier()),
+          ChangeNotifierProvider<MenuInfo>(create: (context) => MenuInfo(MenuType.Licenses, title: "Licenses")),
+          ChangeNotifierProvider<ConnectionManager>(
+            create: (context) => ConnectionManager(),
+            lazy: false,
+          ),
+          ChangeNotifierProvider<SavedDevicesChangeNotifier>(
+            create: (context) => SavedDevicesChangeNotifier(),
+            lazy: false,
+          )
           // Provider<SomethingElse>(create: (_) => SomethingElse()),
           // Provider<AnotherThing>(create: (_) => AnotherThing()),
         ],
@@ -27,7 +48,10 @@ class MyApp extends StatelessWidget {
   static final String title = 'Nasim';
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
+  Widget build(BuildContext context) {
+    // SystemChrome.setEnabledSystemUIOverlays([]);
+
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: title,
       theme: Provider.of<ThemeChangeNotifer>(context, listen: true).current,
@@ -38,34 +62,60 @@ class MyApp extends StatelessWidget {
         GlobalCupertinoLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
       ],
-      home: sample());
+      // home: sample(),,
+      initialRoute: '/',
+      // routes: {
+      //   // When navigating to the "/" route, build the FirstScreen widget.
+      //   '/': (context) => sample(),
+      //   // When navigating to the "/second" route, build the SecondScreen widget.
+      //   '/search_devices': (context) => SearchDevices(),
+      //   '/scan_barcode': (context) => BarcodeScanPage(),
+      //   '/main_device': (context) => DeivceMainPage(),
+      // },
+      onGenerateRoute: (settings) {
+        if (settings.name == "/search_devices") {
+          return CupertinoPageRoute(builder: (context) => SearchDevices());
+        }
+        if (settings.name == "/scan_barcode") {
+          return CupertinoPageRoute(builder: (context) => BarcodeScanPage());
+        }
+        if (settings.name == "/main_device") {
+          return CupertinoPageRoute(builder: (context) => DeivceMainPage());
+        }
+        // unknown route
+        return CupertinoPageRoute(builder: (context) => sample());
+      },
+    );
+  }
 }
 
 class sample extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        // body: Center(child: Text(AppLocalizations.of(context)!.language)),
-        body: FutureBuilder<bool>(
-      future: Provider.of<FirstTimeUsageChangeNotifier>(context)
-          .isFirstTime(), // a Future<String> or null
+    return FutureBuilder<bool>(
+      future: Provider.of<FirstTimeUsageChangeNotifier>(context).isFirstTime(), // a Future<String> or null
       builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
         switch (snapshot.connectionState) {
           case ConnectionState.none:
-            return new Text('Press button to start');
+            return new Container();
           case ConnectionState.waiting:
-            return new Text('Awaiting result...');
+            // return new SpinKitDualRing(
+            //   color: Theme.of(context).accentColor,
+            //   size: 300,
+            // );
+            return Center();
           default:
             if (snapshot.hasError)
               return new Text('Error: ${snapshot.error}');
             else {
-              // Provider.of<FirstTimeUsageChangeNotifier>(context, listen: false)
-              //     .firstTimeEnded();
-              return new Center(
-                  child: Text('Result: ${snapshot.data == true ? "y" : "F"}'));
+              if (snapshot.data == true) {
+                return AppIntroductionScreen();
+              } else {
+                return DevicesListConnect();
+              }
             }
         }
       },
-    ));
+    );
   }
 }

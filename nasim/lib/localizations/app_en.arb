@@ -7,6 +7,56 @@
     "@helloWorld": {
       "description": "A programmer greeting"
     },
+    "done": "Done",
+    "@done": {
+      "description": "simple done word"
+    },
+    "skip": "Skip",
+    "@skip": {
+      "description": "simple skip word"
+    },
+    "introPage1Title": "Page 1",
+    "@introPage1Title": {
+      "description": "introduction screen page1 title"
+    },
+    "introPage1body": "Thanks for visiting The Crossword Solver.\nWe've listed any clues from our database that match your search. There will also be a list of synonyms for your answer. The synonyms have been arranged depending on the number of charachters so that they're easy to find.\nIf a particular answer is generating a lot of interest on the site today, it may be highlighted in orange.\n If your word has any anagrams, they'll be listed too along with a definition for the word if we have one.\nWe hope that you find the site useful.\nRegards, The Crossword Solver Team",
+    "@introPage1body": {
+      "description": "introduction screen page1 body"
+    },
+    "introPage2Title": "Page 2",
+    "@introPage2Title": {
+      "description": "introduction screen page2 title"
+    },
+    "introPage2body": "Thanks for visiting The Crossword Solver.\nWe've listed any clues from our database that match your search. There will also be a list of synonyms for your answer. The synonyms have been arranged depending on the number of charachters so that they're easy to find.\nIf a particular answer is generating a lot of interest on the site today, it may be highlighted in orange.\n If your word has any anagrams, they'll be listed too along with a definition for the word if we have one.\nWe hope that you find the site useful.\nRegards, The Crossword Solver Team",
+    "@introPage2body": {
+      "description": "introduction screen page2 body"
+    },
+    "introPage3Title": "Page 3",
+    "@introPage3Title": {
+      "description": "introduction screen page3 title"
+    },
+    "introPage3body": "Thanks for visiting The Crossword Solver.\nWe've listed any clues from our database that match your search. There will also be a list of synonyms for your answer. The synonyms have been arranged depending on the number of charachters so that they're easy to find.\nIf a particular answer is generating a lot of interest on the site today, it may be highlighted in orange.\n If your word has any anagrams, they'll be listed too along with a definition for the word if we have one.\nWe hope that you find the site useful.\nRegards, The Crossword Solver Team",
+    "@introPage3body": {
+      "description": "introduction screen page3 body"
+    },
+    "devices": "Devices",
+    "closeConnectionTitle": "Close Connection",
+    "closeConnectionDescription": "directly connect to air condtioner Wifi and allows you full controll",
+    "internetConnectionTitle": "Internet Connection",
+    "internetConnectionDescription": "if you have pervoisly configured your device for online connection",
+    "searchingAvailableDevices": "Searching...",
+    "searchingUserHint":"in order to find your device, stand near it and make sure it is turned On; then open your wifi settings and connect to a wifi named 'Nasim Air Conditoner' ",
+    "searchingNothingFound":"nothing found yet..",
+    "scanQrCode":"Scan Bar Code",
+    "serialNumberRequired":"you need to provide device's serial number",
+    "enterSerialNumber":"Enter serial number",
+    "barCodeScanPageTitle":"Scan QR Code",
+    "users":"Users",
+    "controll":"Controll",
+    "settings":"Settings",
+    "licenses":"Licenses",
+    "usersPageDescription":"this page shows all mobile phones that can acceess this device",
+
     "hello": "Hello {username}",
     "@hello": {
       "description": "A welcome message",
