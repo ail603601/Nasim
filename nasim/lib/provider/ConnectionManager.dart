@@ -50,59 +50,59 @@ class ConnectionManager extends ChangeNotifier {
     target = d;
   }
 
-  void ProccessReceiveCmd(String cmd) {
-    var splited_cmd = cmd.split("_");
-    if (splited_cmd[1] != "OK") {
-      int index = int.parse(splited_cmd[0]);
-      switch (index) {
-        case 21:
-          DeviceName = splited_cmd[1];
-          break;
-        case 22:
-          Device_Serial_Num = splited_cmd[1];
-          break;
-        case :
-        break;
-                case :
-        break;
-                case :
-        break;
-                case :
-        break;
-                case :
-        break;
-                case :
-        break;
-                case :
-        break;
-                case :
-        break;
-                case :
-        break;
-                case :
-        break;
-                case :
-        break;
-                case :
-        break;
-                case :
-        break;
-                case :
-        break;
-                case :
-        break;
-                case :
-        break;
-                case :
-        break;        case :
-        break;
-                case :
-        break;
-                case :
-        break;
-      }
-    }
-  }
+  // void ProccessReceiveCmd(String cmd) {
+  //   var splited_cmd = cmd.split("_");
+  //   if (splited_cmd[1] != "OK") {
+  //     int index = int.parse(splited_cmd[0]);
+  //     switch (index) {
+  //       case 21:
+  //         DeviceName = splited_cmd[1];
+  //         break;
+  //       case 22:
+  //         Device_Serial_Num = splited_cmd[1];
+  //         break;
+  //       case :
+  //       break;
+  //               case :
+  //       break;
+  //               case :
+  //       break;
+  //               case :
+  //       break;
+  //               case :
+  //       break;
+  //               case :
+  //       break;
+  //               case :
+  //       break;
+  //               case :
+  //       break;
+  //               case :
+  //       break;
+  //               case :
+  //       break;
+  //               case :
+  //       break;
+  //               case :
+  //       break;
+  //               case :
+  //       break;
+  //               case :
+  //       break;
+  //               case :
+  //       break;
+  //               case :
+  //       break;
+  //               case :
+  //       break;        case :
+  //       break;
+  //               case :
+  //       break;
+  //               case :
+  //       break;
+  //     }
+  //   }
+  // }
 
   var DeviceName;
   var Device_Serial_Num;
