@@ -17,6 +17,8 @@ class SearchDevices extends StatefulWidget {
 
 class _SearchDevicesState extends State<SearchDevices> {
   late Timer search_timer;
+  int interval = 150;
+
   @override
   void initState() {
     super.initState();
@@ -25,6 +27,15 @@ class _SearchDevicesState extends State<SearchDevices> {
       send_signal();
       setState(() {});
     });
+    refresh();
+  }
+
+  refresh() {
+    Provider.of<ConnectionManager>(context, listen: false).found_devices.forEach((element) async {
+      element.ping = await Provider.of<ConnectionManager>(context, listen: false).pingDevice(element);
+      setState(() {});
+    });
+    if (mounted) Utils.setTimeOut(interval, refresh);
   }
 
   @override
@@ -106,10 +117,10 @@ class _SearchDevicesState extends State<SearchDevices> {
 
   @override
   Widget build(BuildContext context) {
-    Widget leading_icon = Column(
-      children: [Icon(Icons.network_check), Text("6 ms", style: Theme.of(context).textTheme.bodyText2!.copyWith(color: Colors.green[300]))],
-      crossAxisAlignment: CrossAxisAlignment.center,
-    );
+    Widget leading_icon(p) => Column(
+          children: [Icon(Icons.network_check), Text("$p  ms", style: Theme.of(context).textTheme.bodyText2!.copyWith(color: Colors.green[300]))],
+          crossAxisAlignment: CrossAxisAlignment.center,
+        );
 
     ConnectionManager cmg = Provider.of<ConnectionManager>(context);
     SavedDevicesChangeNotifier saved_devices = Provider.of<SavedDevicesChangeNotifier>(context, listen: false);
@@ -121,7 +132,7 @@ class _SearchDevicesState extends State<SearchDevices> {
                   onTap: () {
                     openBottomSheet(context, d);
                   },
-                  trailing: leading_icon,
+                  trailing: leading_icon(d.ping),
                 ))
             .toList());
 

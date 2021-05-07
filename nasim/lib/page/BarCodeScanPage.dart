@@ -109,9 +109,9 @@ class _BarcodeScanPageState extends State<BarcodeScanPage> {
     controller.scannedDataStream.listen((scanData) {
       if (scanData != null) {
         // Utils.setTimeOut(500, () {
-        controller?.dispose();
+        controller.dispose();
 
-        Navigator.pop(context, scanData!.code);
+        Navigator.pop(context, scanData.code);
       }
 
       // });

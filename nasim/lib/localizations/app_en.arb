@@ -45,7 +45,7 @@
     "internetConnectionTitle": "Internet Connection",
     "internetConnectionDescription": "if you have pervoisly configured your device for online connection",
     "searchingAvailableDevices": "Searching...",
-    "searchingUserHint":"in order to find your device, stand near it and make sure it is turned On; then open your wifi settings and connect to a wifi named 'Nasim Air Conditoner' ",
+    "searchingUserHint":"in order to find your device, stand near it and make sure it is turned On; then open your wifi settings and connect to a wifi named 'Nasim Air Conditoner' \n Note: turn off your mobile data if you coudnt find your device.",
     "searchingNothingFound":"nothing found yet..",
     "scanQrCode":"Scan Bar Code",
     "serialNumberRequired":"you need to provide device's serial number",

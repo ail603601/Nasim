@@ -74,7 +74,7 @@ class DeivceMainPage extends StatelessWidget {
         return FlatButton(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.only(topRight: Radius.circular(32))),
           padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 0),
-          color: currentMenuInfo.menuType == value.menuType ? Color(0xFF454545) : Colors.transparent,
+          color: currentMenuInfo.menuType == value.menuType ? Colors.white30 : Colors.transparent,
           onPressed: () {
             var menuInfo = Provider.of<MenuInfo>(context, listen: false);
             menuInfo.updateMenu(currentMenuInfo);

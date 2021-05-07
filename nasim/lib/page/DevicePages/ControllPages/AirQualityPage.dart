@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:day_night_switcher/day_night_switcher.dart';
 import 'package:flutter/material.dart';
+import 'package:nasim/provider/ConnectionManager.dart';
+import 'package:provider/provider.dart';
 
 class AirQualityPage extends StatefulWidget {
   @override
@@ -7,6 +11,26 @@ class AirQualityPage extends StatefulWidget {
 }
 
 class _AirQualityPageState extends State<AirQualityPage> {
+  late Timer refresher;
+  late ConnectionManager cmg;
+  refresh() async {
+    ConnectionManager.Max_Day_IAQ = await cmg.getRequest("get41");
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    cmg = Provider.of<ConnectionManager>(context, listen: false);
+
+    refresh();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   Widget build_settings_row({title, ValueChanged<String>? onChanged, String suffix = " °C"}) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(

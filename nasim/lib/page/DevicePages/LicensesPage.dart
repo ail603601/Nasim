@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:nasim/provider/ConnectionManager.dart';
+import 'package:provider/provider.dart';
 
 class LicensesPage extends StatefulWidget {
   @override
@@ -7,6 +9,20 @@ class LicensesPage extends StatefulWidget {
 }
 
 class _LicensesPageState extends State<LicensesPage> {
+  @override
+  void initState() {
+    super.initState();
+    init();
+  }
+
+  init() async {
+    // await Provider.of<ConnectionManager>(context, listen: false).getRequest("").then(print);
+    // await Provider.of<ConnectionManager>(context, listen: false).getRequest("").then(print);
+    // await Provider.of<ConnectionManager>(context, listen: false).getRequest("").then(print);
+    // await Provider.of<ConnectionManager>(context, listen: false).getRequest("").then(print);
+    // await Provider.of<ConnectionManager>(context, listen: false).getRequest("").then(print);
+  }
+
   List<Widget> build_license_row(title) {
     return [
       ListTile(

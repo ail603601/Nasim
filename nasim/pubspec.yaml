@@ -40,6 +40,7 @@ dependencies:
   dotted_border: ^1.0.5
   day_night_switcher: ^0.2.0+1
   intl_phone_number_input: ^0.7.0+1
+  uuid: ^3.0.4
 
  
 
@@ -62,6 +63,7 @@ flutter:
 
   assets:
     - assets/
+    - google_fonts/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

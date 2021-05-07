@@ -7,7 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nasim/utils.dart';
 
 class SavedDevicesChangeNotifier extends ChangeNotifier {
-  List<Device> saved_devices = [Device(name: "Nasim N4", ip: "192.168.1.110")];
+  // List<Device> saved_devices = [Device(name: "Nasim N4", ip: "192.168.1.110")];
+  List<Device> saved_devices = [];
 
   SavedDevicesChangeNotifier() {
     init();
@@ -36,7 +37,7 @@ class SavedDevicesChangeNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
-  Device? selected_device;
+  static Device? selected_device;
   setSelectedDevice(Device d) {
     selected_device = d;
   }

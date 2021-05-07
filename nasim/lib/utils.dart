@@ -15,30 +15,38 @@ class Utils {
     return Future<void>.delayed(new Duration(milliseconds: duration), () => {});
   }
 
-  static void alert(BuildContext context, title, msg) {
-    // set up the button
-    Widget okButton = FlatButton(
-      child: Text("OK", style: Theme.of(context).textTheme.headline6!),
-      onPressed: () {
-        Navigator.of(context).pop();
-      },
-    );
+  static void handleError(context) {
+    Utils.alert(context, "Error", "Commiunication Failed.");
+  }
 
-    // set up the AlertDialog
-    AlertDialog alert = AlertDialog(
-      title: Text(title, style: Theme.of(context).textTheme.headline6!),
-      content: Text(msg, style: Theme.of(context).textTheme.bodyText2!),
-      actions: [
-        okButton,
-      ],
-    );
+  static void alert(BuildContext mcontext, title, msg, [Function? andthen]) {
+    // set up the button
 
     // show the dialog
     showDialog(
-      context: context,
+      context: mcontext,
       builder: (BuildContext context) {
+        Widget okButton = FlatButton(
+          child: Text("OK", style: Theme.of(context).textTheme.headline6!),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        );
+
+        // set up the AlertDialog
+        AlertDialog alert = AlertDialog(
+          title: Text(title, style: Theme.of(context).textTheme.headline6!),
+          content: Text(msg, style: Theme.of(context).textTheme.bodyText2!),
+          actions: [
+            okButton,
+          ],
+        );
         return alert;
       },
-    );
+    ).then((value) {
+      if (andthen != null) {
+        andthen();
+      }
+    });
   }
 }
