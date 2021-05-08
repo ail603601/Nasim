@@ -33,20 +33,21 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
       minimum_negative_presure_fan_speed = (int.tryParse(ConnectionManager.Min_Valid_Output_Fan_Speed) ?? minimum_negative_presure_fan_speed).toDouble();
       maximum_negative_presure_fan_speed = (int.tryParse(ConnectionManager.Max_Valid_Output_Fan_Speed) ?? maximum_negative_presure_fan_speed).toDouble();
     });
-    if (mounted) Utils.setTimeOut(interval, refresh);
+    // if (mounted) Utils.setTimeOut(interval, refresh);
   }
 
   late ConnectionManager cmg;
   @override
   void initState() {
     super.initState();
-    Utils.setTimeOut(interval, refresh);
+    // Utils.setTimeOut(interval, refresh);
 
     _controller = AnimationController(vsync: this, duration: Duration(seconds: 2))..repeat();
     cmg = Provider.of<ConnectionManager>(context, listen: false);
 
     minimum_negative_presure_fan_speed = (int.tryParse(ConnectionManager.Min_Valid_Output_Fan_Speed) ?? 0.0).toDouble();
     maximum_negative_presure_fan_speed = (int.tryParse(ConnectionManager.Max_Valid_Output_Fan_Speed) ?? 0.0).toDouble();
+    refresh();
   }
 
   @override
@@ -121,6 +122,8 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
             });
           },
           onChangeEnd: (double newValue) async {
+            // if((newValue.round().toDouble()))
+
             minimum_negative_presure_fan_speed = newValue.round().toDouble();
             ConnectionManager.Min_Valid_Output_Fan_Speed = newValue.toInt().toString().padLeft(3, '0');
             if (!await cmg.set_request(13, ConnectionManager.Min_Valid_Output_Fan_Speed)) {
@@ -160,10 +163,12 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
                 onPressed: () async {
                   minimum_negative_presure_fan_speed = min(minimum_negative_presure_fan_speed.roundToDouble() + 1.0, 100);
                   ConnectionManager.Min_Valid_Output_Fan_Speed = minimum_negative_presure_fan_speed.toInt().toString().padLeft(3, '0');
+                  setState(() {});
+
                   if (!await cmg.set_request(13, ConnectionManager.Min_Valid_Output_Fan_Speed)) {
                     Utils.handleError(context);
+                    refresh();
                   }
-                  setState(() {});
                 },
               ),
             ),
@@ -183,10 +188,12 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
                 onPressed: () async {
                   minimum_negative_presure_fan_speed = max(minimum_negative_presure_fan_speed.roundToDouble() - 1.0, 0);
                   ConnectionManager.Min_Valid_Output_Fan_Speed = minimum_negative_presure_fan_speed.toInt().toString().padLeft(3, '0');
+                  setState(() {});
+
                   if (!await cmg.set_request(13, ConnectionManager.Min_Valid_Output_Fan_Speed)) {
                     Utils.handleError(context);
+                    refresh();
                   }
-                  setState(() {});
                 },
               ),
             ),
@@ -261,10 +268,12 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
                 onPressed: () async {
                   maximum_negative_presure_fan_speed = min(maximum_negative_presure_fan_speed.roundToDouble() + 1.0, 100);
                   ConnectionManager.Max_Valid_Output_Fan_Speed = maximum_negative_presure_fan_speed.toInt().toString().padLeft(3, '0');
+                  setState(() {});
+
                   if (!await cmg.set_request(14, ConnectionManager.Max_Valid_Output_Fan_Speed)) {
                     Utils.handleError(context);
+                    refresh();
                   }
-                  setState(() {});
                 },
               ),
             ),
@@ -284,10 +293,12 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
                 onPressed: () async {
                   maximum_negative_presure_fan_speed = max(maximum_negative_presure_fan_speed.roundToDouble() - 1.0, 0);
                   ConnectionManager.Max_Valid_Output_Fan_Speed = maximum_negative_presure_fan_speed.toInt().toString().padLeft(3, '0');
+                  setState(() {});
+
                   if (!await cmg.set_request(14, ConnectionManager.Max_Valid_Output_Fan_Speed)) {
                     Utils.handleError(context);
+                    refresh();
                   }
-                  setState(() {});
                 },
               ),
             ),

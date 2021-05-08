@@ -80,8 +80,9 @@ class _SearchDevicesState extends State<SearchDevices> {
                   onTap: () async {
                     var code_received = await Navigator.pushNamed(context, "/scan_barcode");
                     if (code_received == d.serial) {
-                      Provider.of<SavedDevicesChangeNotifier>(context, listen: false)..addDevice(d);
-                      Navigator.of(context).popUntil((route) => route.isFirst);
+                      Provider.of<SavedDevicesChangeNotifier>(context, listen: false).setSelectedDevice(d);
+
+                      _displayTextInputDialog(context, d);
                     } else if (code_received != null) {
                       Utils.alert(context, "Error", "serial number was wrong.");
                     }
@@ -100,8 +101,9 @@ class _SearchDevicesState extends State<SearchDevices> {
                       onPressed: () async {
                         var code_received = text_field_value;
                         if (code_received == d.serial) {
-                          Provider.of<SavedDevicesChangeNotifier>(context, listen: false)..addDevice(d);
-                          Navigator.of(context).popUntil((route) => route.isFirst);
+                          Provider.of<SavedDevicesChangeNotifier>(context, listen: false).setSelectedDevice(d);
+
+                          _displayTextInputDialog(context, d);
                         } else {
                           Utils.alert(context, "Error", "serial number was wrong.");
                         }
@@ -113,6 +115,52 @@ class _SearchDevicesState extends State<SearchDevices> {
                 ),
               ),
             ]));
+  }
+
+  String last_dialog_text = "Nasim N25";
+  Future<void> _displayTextInputDialog(BuildContext context, d) async {
+    await showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Set Device Name'),
+            content: TextField(
+              onChanged: (value) {
+                setState(() {
+                  last_dialog_text = value;
+                });
+              },
+              decoration: InputDecoration(hintText: "Nasim N25"),
+            ),
+            actions: <Widget>[
+              FlatButton(
+                color: Colors.red,
+                textColor: Colors.white,
+                child: Text('CANCEL'),
+                onPressed: () {
+                  setState(() {
+                    Navigator.pop(context);
+                  });
+                },
+              ),
+              FlatButton(
+                color: Colors.green,
+                textColor: Colors.white,
+                child: Text('OK'),
+                onPressed: () {
+                  SavedDevicesChangeNotifier.selected_device!.name = last_dialog_text;
+
+                  setState(() {
+                    Navigator.pop(context);
+                  });
+                },
+              ),
+            ],
+          );
+        });
+    Provider.of<SavedDevicesChangeNotifier>(context, listen: false)..addDevice(d);
+
+    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   @override

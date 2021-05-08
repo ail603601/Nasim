@@ -18,7 +18,7 @@ class TimedRequest {
   }
 
   start() {
-    Utils.setTimeOut(200, timedout);
+    Utils.setTimeOut(1000, timedout);
     return completer.future;
   }
 

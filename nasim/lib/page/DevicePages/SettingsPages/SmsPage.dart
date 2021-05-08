@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
+import 'package:nasim/provider/ConnectionManager.dart';
+import 'package:nasim/utils.dart';
+import 'package:provider/provider.dart';
 
 class SmsPage extends StatefulWidget {
   @override
@@ -9,6 +12,34 @@ class SmsPage extends StatefulWidget {
 class _SmsPageState extends State<SmsPage> {
   String initialCountry = 'IR';
   PhoneNumber number = PhoneNumber(isoCode: 'IR');
+  late ConnectionManager cmg;
+  @override
+  void initState() {
+    super.initState();
+
+    cmg = Provider.of<ConnectionManager>(context, listen: false);
+
+    refresh();
+  }
+
+  refresh() async {
+    var phonenum = await cmg.getRequest("get70");
+    ConnectionManager.GSM_SIM_Number = phonenum == "timeout" ? ConnectionManager.GSM_SIM_Number : phonenum;
+
+    var piror = await cmg.getRequest("get72");
+
+    ConnectionManager.SMS_Priorities_State = piror == "timeout" ? ConnectionManager.SMS_Priorities_State : piror;
+
+    setState(() {});
+  }
+
+  apply() async {
+    if (!await cmg.set_request(70, Utils.lim_0_100(ConnectionManager.GSM_SIM_Number))) {
+      Utils.handleError(context);
+      return;
+    }
+    await cmg.set_request(72, ConnectionManager.SMS_Priorities_State);
+  }
 
   Widget build_boxed_titlebox({required title, required child}) {
     // debugger();
@@ -20,9 +51,14 @@ class _SmsPageState extends State<SmsPage> {
             child: child));
   }
 
+  String replaceCharAt(String oldString, int index, String newChar) {
+    return oldString.substring(0, index) + newChar + oldString.substring(index + 1);
+  }
+
   Widget phone_number_input() => InternationalPhoneNumberInput(
         onInputChanged: (PhoneNumber number) {
           print(number.phoneNumber);
+          if (number.phoneNumber != null) ConnectionManager.GSM_SIM_Number = number.phoneNumber!;
         },
         onInputValidated: (bool value) {
           print(value);
@@ -92,7 +128,9 @@ class _SmsPageState extends State<SmsPage> {
           height: 50,
           padding: EdgeInsets.symmetric(horizontal: 8),
           child: OutlinedButton(
-            onPressed: () {},
+            onPressed: () {
+              apply();
+            },
             style: OutlinedButton.styleFrom(
                 padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
                 side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
@@ -119,14 +157,16 @@ class _SmsPageState extends State<SmsPage> {
         ),
       );
   bool sml = false;
-  List<Widget> buildonoffrow(title, icon) => [
+  List<Widget> buildonoffrow(title, icon, int index) => [
         SwitchListTile(
           secondary: Icon(icon),
           title: Text(title),
           onChanged: (value) {
+            ConnectionManager.SMS_Priorities_State = replaceCharAt(ConnectionManager.SMS_Priorities_State, index, value ? "1" : "0");
+            apply();
             setState(() {});
           },
-          value: sml,
+          value: ConnectionManager.SMS_Priorities_State[index] == "1",
         ),
         Divider(
           height: 2,
@@ -136,13 +176,13 @@ class _SmsPageState extends State<SmsPage> {
 
   build_reasons_list() => Column(
         children: [
-          ...buildonoffrow("Power On / Off", Icons.power),
-          ...buildonoffrow("Inlet Fan falut", Icons.error_outline),
-          ...buildonoffrow("Outlet Fan falut", Icons.error_outline),
-          ...buildonoffrow("Posibility of fire", Icons.local_fire_department),
-          ...buildonoffrow("Posibility of Asphyxia", Icons.night_shelter),
-          ...buildonoffrow("Over Presure", Icons.settings_overscan),
-          ...buildonoffrow("Sim Balance Low", Icons.money_off)
+          ...buildonoffrow("Power On / Off", Icons.power, 0),
+          ...buildonoffrow("Inlet Fan falut", Icons.error_outline, 1),
+          ...buildonoffrow("Outlet Fan falut", Icons.error_outline, 2),
+          ...buildonoffrow("Posibility of fire", Icons.local_fire_department, 3),
+          ...buildonoffrow("Posibility of Asphyxia", Icons.night_shelter, 4),
+          ...buildonoffrow("Over Presure", Icons.settings_overscan, 5),
+          ...buildonoffrow("Sim Balance Low", Icons.money_off, 6)
         ],
       );
 
@@ -153,6 +193,8 @@ class _SmsPageState extends State<SmsPage> {
       child: Scaffold(
         appBar: TabBar(
           labelStyle: Theme.of(context).textTheme.headline6,
+          labelColor: Theme.of(context).textTheme.headline6!.color,
+          // labelStyle: Theme.of(context).textTheme.headline6,
           tabs: [
             Tab(
               text: "Settings",

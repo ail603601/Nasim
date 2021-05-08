@@ -54,19 +54,21 @@ class _DevicesListConnectState extends State<DevicesListConnect> {
           ],
           crossAxisAlignment: CrossAxisAlignment.center,
         );
-    Widget generate_device_row(Device d) => ListTile(
+    Widget generate_device_row(Device d, deive_list_fab_chn) => ListTile(
           // leading: Icon(Icons.arrow_forward_ios),
           title: Text(d.name, style: Theme.of(context).textTheme.headline5!),
           subtitle: Text(d.ip, style: Theme.of(context).textTheme.bodyText2!),
           onTap: () async {
             Provider.of<SavedDevicesChangeNotifier>(context, listen: false).setSelectedDevice(d);
+
             if (!await Provider.of<ConnectionManager>(context, listen: false).getRequestAutoCheck("_DISCOVER", context)) {
               Utils.alert(context, "Error", "Sync failed,make sure you are connected to the 'Nasim Air Conditioner' Wifi", () {
                 // Navigator.of(context).pop();
               });
             }
             // else
-            Navigator.pushNamed(context, "/main_device");
+
+            deive_list_fab_chn.clicked();
           },
           trailing: leading_icon(d),
         );
@@ -81,11 +83,11 @@ class _DevicesListConnectState extends State<DevicesListConnect> {
             ),
             extendBody: true,
             body: Consumer<SavedDevicesChangeNotifier>(
-                builder: (context, value, child) => Column(children: value.saved_devices.map(generate_device_row).toList())),
+                builder: (context, value, child) => Column(children: value.saved_devices.map((e) => generate_device_row(e, deive_list_fab_chn)).toList())),
             bottomNavigationBar: TabBarMaterialWidget(),
             floatingActionButton: FloatingActionButton(
               child: Icon(Icons.add),
-              onPressed: () => deive_list_fab_chn.clicked(),
+              onPressed: () => Navigator.pushNamed(context, '/search_devices'),
             ),
             floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
           ),

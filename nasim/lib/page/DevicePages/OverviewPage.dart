@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
 import 'package:provider/provider.dart';
 
+import '../../utils.dart';
+
 class OverviePage extends StatefulWidget {
   @override
   _OverviePageState createState() => _OverviePageState();
@@ -17,28 +19,29 @@ class _OverviePageState extends State<OverviePage> {
   void initState() {
     super.initState();
     // runs every 1 second
-    refresher = Timer.periodic(new Duration(milliseconds: 100), (timer) {
+    refresher = Timer.periodic(new Duration(milliseconds: 500), (timer) {
       refresh();
     });
     cmg = Provider.of<ConnectionManager>(context, listen: false);
   }
 
   refresh() async {
-    ConnectionManager.Real_Room_Temp_9 = await cmg.getRequest("%P0??\n");
-    ConnectionManager.Real_Outdoor_Temp = await cmg.getRequest("%Q??\n");
-    ConnectionManager.Real_Negative_Pressure_ = await cmg.getRequest("%R??\n");
-    ConnectionManager.Real_Humidity = await cmg.getRequest("%S??\n");
-    ConnectionManager.Real_IAQ = await cmg.getRequest("%T??\n");
-    ConnectionManager.Real_CO2 = await cmg.getRequest("*A??\n");
-    ConnectionManager.Real_Light_Level = await cmg.getRequest("*B??\n");
-    ConnectionManager.Real_Input_Fan_Speed = await cmg.getRequest("*C??\n");
-    ConnectionManager.Input_Fan_Power = await cmg.getRequest("#B??\n");
-    ConnectionManager.Real_Output_Fan_Speed = await cmg.getRequest("*D??\n");
-    ConnectionManager.Real_Output_Fan_Power = await cmg.getRequest("!P??\n");
-    ConnectionManager.Cooler_Status = await cmg.getRequest("*E??\n");
-    ConnectionManager.Heater_Status = await cmg.getRequest("*F??\n");
-    ConnectionManager.Air_Purifier_Status = await cmg.getRequest("*G??\n");
-    ConnectionManager.Humidity_Controller_Status = await cmg.getRequest("*H??\n");
+    ConnectionManager.Real_Room_Temp_9 = Utils.int_str(await cmg.getRequest("get55"), ConnectionManager.Real_Room_Temp_9);
+    ConnectionManager.Real_Outdoor_Temp = Utils.int_str(await cmg.getRequest("get56"), ConnectionManager.Real_Outdoor_Temp);
+    ConnectionManager.Real_Negative_Pressure_ = Utils.int_str(await cmg.getRequest("get57"), ConnectionManager.Real_Negative_Pressure_);
+    ConnectionManager.Real_Humidity = Utils.int_str(await cmg.getRequest("get58"), ConnectionManager.Real_Humidity);
+    ConnectionManager.Real_IAQ = Utils.int_str(await cmg.getRequest("get59"), ConnectionManager.Real_IAQ);
+    ConnectionManager.Real_CO2 = Utils.int_str(await cmg.getRequest("get60"), ConnectionManager.Real_CO2);
+    ConnectionManager.Real_Light_Level = Utils.int_str(await cmg.getRequest("get61"), ConnectionManager.Real_Light_Level);
+    ConnectionManager.Real_Input_Fan_Speed = Utils.int_str(await cmg.getRequest("get62"), ConnectionManager.Real_Input_Fan_Speed);
+    ConnectionManager.Input_Fan_Power = Utils.int_str(await cmg.getRequest("get21"), ConnectionManager.Input_Fan_Power);
+    ConnectionManager.Real_Output_Fan_Speed = Utils.int_str(await cmg.getRequest("get63"), ConnectionManager.Real_Output_Fan_Speed);
+    ConnectionManager.Real_Output_Fan_Power = Utils.int_str(await cmg.getRequest("get15"), ConnectionManager.Real_Output_Fan_Power);
+    ConnectionManager.Cooler_Status = Utils.int_str(await cmg.getRequest("get64"), ConnectionManager.Cooler_Status) == "1" ? "on" : "off";
+    ConnectionManager.Heater_Status = Utils.int_str(await cmg.getRequest("get65"), ConnectionManager.Heater_Status) == "1" ? "on" : "off";
+    ConnectionManager.Air_Purifier_Status = Utils.int_str(await cmg.getRequest("get66"), ConnectionManager.Air_Purifier_Status) == "1" ? "on" : "off";
+    ConnectionManager.Humidity_Controller_Status =
+        Utils.int_str(await cmg.getRequest("get67"), ConnectionManager.Humidity_Controller_Status) == "1" ? "on" : "off";
 
     setState(() {});
   }

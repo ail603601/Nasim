@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nasim/Model/Device.dart';
 import 'package:nasim/Model/menu_info.dart';
+import 'package:nasim/provider/LicenseChangeNotifier.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../enums.dart';
@@ -36,11 +37,11 @@ class DeivceMainPage extends StatelessWidget {
               clipBehavior: Clip.hardEdge,
               child: Consumer<MenuInfo>(
                 builder: (BuildContext context, MenuInfo value, Widget? child) {
-                  if (value.menuType == MenuType.Overview)
+                  if (value.menuType == MenuType.Overview && LicenseChangeNotifier.power_box == true && LicenseChangeNotifier.room_temp == true)
                     return OverviePage();
-                  else if (value.menuType == MenuType.Controll)
+                  else if (value.menuType == MenuType.Controll && LicenseChangeNotifier.power_box == true && LicenseChangeNotifier.room_temp == true)
                     return ControllPage();
-                  else if (value.menuType == MenuType.Settings)
+                  else if (value.menuType == MenuType.Settings && LicenseChangeNotifier.power_box == true && LicenseChangeNotifier.room_temp == true)
                     return SettingsPage();
                   else if (value.menuType == MenuType.Licenses)
                     return LicensesPage();
@@ -74,10 +75,17 @@ class DeivceMainPage extends StatelessWidget {
         return FlatButton(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.only(topRight: Radius.circular(32))),
           padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 0),
-          color: currentMenuInfo.menuType == value.menuType ? Colors.white30 : Colors.transparent,
+          color: currentMenuInfo.menuType == value.menuType ? Colors.black26 : Colors.transparent,
           onPressed: () {
             var menuInfo = Provider.of<MenuInfo>(context, listen: false);
-            menuInfo.updateMenu(currentMenuInfo);
+
+            if (menuInfo.menuType != LicensesPage) {
+              if (LicenseChangeNotifier.power_box == true && LicenseChangeNotifier.room_temp == true) {
+                menuInfo.updateMenu(currentMenuInfo);
+              }
+            } else {
+              menuInfo.updateMenu(currentMenuInfo);
+            }
           },
           child: Column(
             children: <Widget>[

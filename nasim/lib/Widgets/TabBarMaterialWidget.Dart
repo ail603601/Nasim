@@ -28,7 +28,8 @@ class _TabBarMaterialWidgetState extends State<TabBarMaterialWidget> {
         SizedBox(height: 54),
         InkWell(
           onTap: () {
-            Navigator.pushNamed(context, '/search_devices');
+            // Navigator.pushNamed(context, '/search_devices');
+            Navigator.pushNamed(context, "/main_device");
           },
           child: Ink(
             color: Colors.blue[500],

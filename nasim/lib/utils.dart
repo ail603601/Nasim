@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -17,6 +19,26 @@ class Utils {
 
   static void handleError(context) {
     Utils.alert(context, "Error", "Commiunication Failed.");
+  }
+
+  static String lim_0_100(String input) {
+    int converted = int.tryParse(input) ?? -1;
+    if (converted == -1) {
+      return "0";
+    } else {
+      converted = min(100, converted);
+      converted = max(0, converted);
+      return converted.toString().padLeft(3, '0');
+    }
+  }
+
+  static String int_str(input, defalt) {
+    int converted = int.tryParse(input) ?? -1;
+    if (converted == -1) {
+      return defalt;
+    } else {
+      return converted.toString();
+    }
   }
 
   static void alert(BuildContext mcontext, title, msg, [Function? andthen]) {

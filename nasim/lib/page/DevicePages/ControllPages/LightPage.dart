@@ -1,5 +1,8 @@
 import 'package:day_night_switcher/day_night_switcher.dart';
 import 'package:flutter/material.dart';
+import 'package:nasim/provider/ConnectionManager.dart';
+import 'package:nasim/utils.dart';
+import 'package:provider/provider.dart';
 
 class LightPage extends StatefulWidget {
   @override
@@ -7,6 +10,33 @@ class LightPage extends StatefulWidget {
 }
 
 class _LightPageState extends State<LightPage> {
+  late ConnectionManager cmg;
+  refresh() async {
+    ConnectionManager.Min_Day_Lux = Utils.int_str(await cmg.getRequest("get50"), ConnectionManager.Min_Day_Lux);
+    ConnectionManager.Max_Night_Lux = Utils.int_str(await cmg.getRequest("get51"), ConnectionManager.Max_Night_Lux);
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    cmg = Provider.of<ConnectionManager>(context, listen: false);
+
+    refresh();
+  }
+
+  apply() async {
+    if (!await cmg.set_request(50, Utils.lim_0_100(ConnectionManager.Min_Day_Lux))) {
+      Utils.handleError(context);
+      return;
+    }
+
+    await cmg.set_request(51, Utils.lim_0_100(ConnectionManager.Max_Night_Lux));
+
+    refresh();
+  }
+
   build_apply_button() => Align(
         alignment: Alignment.bottomCenter,
         child: Container(
@@ -15,7 +45,9 @@ class _LightPageState extends State<LightPage> {
           height: 50,
           padding: EdgeInsets.symmetric(horizontal: 8),
           child: OutlinedButton(
-            onPressed: () {},
+            onPressed: () {
+              apply();
+            },
             style: OutlinedButton.styleFrom(
                 padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
                 side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
@@ -42,18 +74,40 @@ class _LightPageState extends State<LightPage> {
         ),
       );
 
-  Widget build_settings_row({title, ValueChanged<String>? onChanged, String suffix = " °C"}) => Padding(
+  Widget max_lux() => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
-            Expanded(child: Text(title)),
+            Expanded(child: Text("Max Light")),
             Expanded(
               child: TextField(
                 style: Theme.of(context).textTheme.bodyText1,
-                controller: TextEditingController()..text = '20',
-                onChanged: onChanged,
+                controller: TextEditingController()..text = ConnectionManager.Max_Night_Lux,
+                onChanged: (value) {
+                  ConnectionManager.Max_Night_Lux = value;
+                },
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(suffix: Text(suffix)),
+                decoration: InputDecoration(suffix: Text("Lux")),
+              ),
+            )
+          ],
+        ),
+      );
+
+  Widget min_lux() => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: Row(
+          children: [
+            Expanded(child: Text("Min Light")),
+            Expanded(
+              child: TextField(
+                style: Theme.of(context).textTheme.bodyText1,
+                controller: TextEditingController()..text = ConnectionManager.Min_Day_Lux,
+                onChanged: (value) {
+                  ConnectionManager.Min_Day_Lux = value;
+                },
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(suffix: Text("Lux")),
               ),
             )
           ],
@@ -73,18 +127,19 @@ class _LightPageState extends State<LightPage> {
   @override
   Widget build(BuildContext context) {
     return Container(
+        padding: EdgeInsets.only(top: 10),
         color: Theme.of(context).canvasColor,
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           build_boxed_titlebox(
               title: "Day",
               child: Center(
-                child: build_settings_row(title: "Min Light", suffix: "Lux"),
+                child: min_lux(),
               )),
           SizedBox(height: 16),
           build_boxed_titlebox(
               title: "Night",
               child: Center(
-                child: build_settings_row(title: "Max Light", suffix: "Lux"),
+                child: max_lux(),
               )),
           Expanded(
               child: Align(

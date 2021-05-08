@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
+import 'package:nasim/provider/SavedevicesChangeNofiter.dart';
 import 'package:provider/provider.dart';
+import 'package:nasim/provider/LicenseChangeNotifier.dart';
 
 class LicensesPage extends StatefulWidget {
   @override
@@ -57,7 +59,7 @@ class _LicensesPageState extends State<LicensesPage> {
           hintStyle: Theme.of(context).textTheme.bodyText1!,
         ),
       );
-  void openBottomSheet(context) {
+  void openBottomSheet(mcontext) {
     showModalBottomSheet(
         isScrollControlled: true,
         context: context,
@@ -69,8 +71,16 @@ class _LicensesPageState extends State<LicensesPage> {
               ListTile(
                   leading: Icon(Icons.qr_code),
                   title: Text(AppLocalizations.of(context)!.scanQrCode, style: Theme.of(context).textTheme.headline5!),
-                  onTap: () {
-                    Navigator.pushNamed(context, "/scan_barcode");
+                  onTap: () async {
+                    await Navigator.pushNamed(context, "/scan_barcode");
+                    if (!LicenseChangeNotifier.power_box) {
+                      Provider.of<LicenseChangeNotifier>(mcontext, listen: false).license_power_box();
+
+                      return;
+                    } else if (!LicenseChangeNotifier.room_temp) {
+                      Provider.of<LicenseChangeNotifier>(mcontext, listen: false).license_room_temp();
+                      return;
+                    }
                   }),
               Divider(
                 color: Theme.of(context).accentColor,
@@ -83,7 +93,16 @@ class _LicensesPageState extends State<LicensesPage> {
                     const SizedBox(width: 12),
                     FloatingActionButton(
                       backgroundColor: Theme.of(context).primaryColor,
-                      onPressed: () {},
+                      onPressed: () {
+                        if (!LicenseChangeNotifier.power_box) {
+                          Provider.of<LicenseChangeNotifier>(mcontext, listen: false).license_power_box();
+
+                          return;
+                        } else if (!LicenseChangeNotifier.room_temp) {
+                          Provider.of<LicenseChangeNotifier>(mcontext, listen: false).license_room_temp();
+                          return;
+                        }
+                      },
                       child: Icon(Icons.done, size: 30),
                       // onPressed: () => setState(() {}),
                     )
@@ -93,7 +112,7 @@ class _LicensesPageState extends State<LicensesPage> {
             ]));
   }
 
-  build_new_license_button() => Align(
+  build_new_license_button(mcontext) => Align(
         alignment: Alignment.bottomCenter,
         child: Container(
           width: double.infinity,
@@ -102,7 +121,7 @@ class _LicensesPageState extends State<LicensesPage> {
           padding: EdgeInsets.symmetric(horizontal: 8),
           child: OutlinedButton(
             onPressed: () {
-              openBottomSheet(context);
+              openBottomSheet(mcontext);
             },
             style: OutlinedButton.styleFrom(
                 padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
@@ -114,12 +133,27 @@ class _LicensesPageState extends State<LicensesPage> {
       );
   Widget build(BuildContext context) {
     return Container(
-        color: Theme.of(context).canvasColor,
-        child: SafeArea(
-            child: Column(mainAxisSize: MainAxisSize.max, children: [
-          ...build_license_row("Power Box"),
-          ...build_license_row("Room Temp sensor"),
-          Expanded(child: Align(alignment: Alignment.bottomCenter, child: build_new_license_button()))
-        ])));
+      child: ChangeNotifierProvider<LicenseChangeNotifier>(
+        create: (context) => LicenseChangeNotifier(SavedDevicesChangeNotifier.selected_device!.serial),
+        lazy: false,
+        child: Consumer<LicenseChangeNotifier>(builder: (BuildContext mcontext, LicenseChangeNotifier value, Widget? child) {
+          return Container(
+              color: Theme.of(context).canvasColor,
+              child: SafeArea(
+                  child: Column(mainAxisSize: MainAxisSize.max, children: [
+                ...LicenseChangeNotifier.power_box ? build_license_row("Power Box") : [],
+                ...LicenseChangeNotifier.room_temp ? build_license_row("Room Temp sensor") : [],
+                value.is_both_licensed()
+                    ? Text("")
+                    : Text(
+                        "You must provide the power box and room sensor temperature licenses in order to use this device.",
+                        style: Theme.of(context).textTheme.headline6,
+                      ),
+                // ...,
+                Expanded(child: Align(alignment: Alignment.bottomCenter, child: build_new_license_button(mcontext)))
+              ])));
+        }),
+      ),
+    );
   }
 }

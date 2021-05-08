@@ -206,7 +206,7 @@ class ConnectionManager extends ChangeNotifier {
   static String GSM_Signal_Power = "X";
   static String GSM_SIM_Number = "X";
   static String GSM_SIM_Balance = "X";
-  static String SMS_Priorities_State = "X";
+  static String SMS_Priorities_State = "0000000";
   static String Access_To_Internet_State = "X";
   static String Cooler_Controller_Day_Mode = "X";
   static String Cooler_Controller_Night_Mod = "X";

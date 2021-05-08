@@ -3,6 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nasim/Model/User.dart';
 import 'package:nasim/enums.dart';
+import 'package:nasim/provider/ConnectionManager.dart';
+import 'package:provider/provider.dart';
+
+import '../../../utils.dart';
 
 class UsersPage extends StatefulWidget {
   @override
@@ -10,6 +14,23 @@ class UsersPage extends StatefulWidget {
 }
 
 class _UsersPageState extends State<UsersPage> {
+  @override
+  void initState() {
+    super.initState();
+
+    cmg = Provider.of<ConnectionManager>(context, listen: false);
+    cs = 0;
+    refresh();
+  }
+
+  late ConnectionManager cmg;
+  var device_count = 1;
+  refresh() async {
+    device_count = int.parse(Utils.int_str(await cmg.getRequest("get82"), device_count));
+
+    Utils.setTimeOut(1000, refresh);
+  }
+
   Widget buildTitleBox(context) => Container(
         width: double.infinity,
         padding: EdgeInsets.symmetric(horizontal: 5),
@@ -21,38 +42,53 @@ class _UsersPageState extends State<UsersPage> {
 
   Widget buildUserPhoneListTile(User user) => SwitchListTile(
         secondary: Icon(Icons.phone_android),
-        title: Text(user.name),
-        subtitle: Text(user.mac),
+        title: Text(
+          user.name,
+          style: Theme.of(context).textTheme.bodyText1,
+        ),
+        subtitle: Text(
+          user.mac,
+        ),
         onChanged: (value) {
           setState(() {
-            user.access = value;
+            // user.access = value;
+            bools[1] = value;
           });
         },
-        value: user.access,
+        value: bools[1],
       );
 
-  final users_found = [
-    new User(name: "Galaxy s9", mac: "XX XX XX XX", connectionState: ConnectionStatus.connected_internet),
-    new User(name: "Galaxy s9", mac: "XX XX XX XX", connectionState: ConnectionStatus.connected_internet),
-  ];
+  var users_found = [];
+  var bools = [true, true, true, true, true, true];
+  int cs = 0;
+  Widget build_root_view() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.max,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          buildTitleBox(context),
+          Divider(
+            color: Theme.of(context).accentColor,
+          ),
+          SizedBox(height: 56),
+          ...users_found
+              .map((e) => buildUserPhoneListTile(
+                    e,
+                  ))
+              .toList()
+        ],
+      ),
+    );
+  }
 
-  Widget build_root_view() => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            buildTitleBox(context),
-            Divider(
-              color: Theme.of(context).accentColor,
-            ),
-            SizedBox(height: 56),
-            ...users_found.map((e) => buildUserPhoneListTile(e)).toList()
-          ],
-        ),
-      );
   @override
   Widget build(BuildContext context) {
+    users_found = [];
+    for (var i = 0; i < device_count; i++) {
+      users_found.add(User(name: "Device Name", mac: "XX XX XX XX", connectionState: ConnectionStatus.connected_internet));
+    }
     return Container(color: Theme.of(context).canvasColor, child: SafeArea(child: build_root_view()));
 
     // return SafeArea(

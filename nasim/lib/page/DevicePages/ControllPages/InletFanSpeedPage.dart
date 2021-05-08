@@ -56,9 +56,9 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
     _controller = AnimationController(vsync: this, duration: Duration(seconds: 2))..repeat();
 
     cmg = Provider.of<ConnectionManager>(context, listen: false);
-    refresher = Timer.periodic(new Duration(milliseconds: 500), (timer) {
-      refresh();
-    });
+    // refresher = Timer.periodic(new Duration(milliseconds: 500), (timer) {
+    //   refresh();
+    // });
 
     if (is_night) {
       minimum_inlet_fan_speed = double.tryParse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) ?? 0.0;
@@ -67,6 +67,7 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
       minimum_inlet_fan_speed = double.tryParse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) ?? 0.0;
       maximum_inlet_fan_speed = double.tryParse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) ?? 0.0;
     }
+    refresh();
   }
 
   @override
@@ -226,21 +227,23 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
                   icon: Icon(Icons.keyboard_arrow_up),
                   iconSize: 35,
                   color: Colors.white,
-                  onPressed: () {
-                    setState(() async {
-                      minimum_inlet_fan_speed = min(minimum_inlet_fan_speed.roundToDouble() + 1.0, 100);
-                      if (is_night) {
-                        ConnectionManager.Min_Valid_Input_Fan_Speed_Night = minimum_inlet_fan_speed.toInt().toString().padLeft(3, '0');
-                        if (!await cmg.set_request(18, ConnectionManager.Min_Valid_Input_Fan_Speed_Night)) {
-                          Utils.handleError(context);
-                        }
-                      } else {
-                        ConnectionManager.Min_Valid_Input_Fan_Speed_Day = minimum_inlet_fan_speed.toInt().toString().padLeft(3, '0');
-                        if (!await cmg.set_request(17, ConnectionManager.Min_Valid_Input_Fan_Speed_Day)) {
-                          Utils.handleError(context);
-                        }
+                  onPressed: () async {
+                    minimum_inlet_fan_speed = min(minimum_inlet_fan_speed.roundToDouble() + 1.0, 100);
+                    setState(() {});
+
+                    if (is_night) {
+                      ConnectionManager.Min_Valid_Input_Fan_Speed_Night = minimum_inlet_fan_speed.toInt().toString().padLeft(3, '0');
+                      if (!await cmg.set_request(18, ConnectionManager.Min_Valid_Input_Fan_Speed_Night)) {
+                        Utils.handleError(context);
+                        refresh();
                       }
-                    });
+                    } else {
+                      ConnectionManager.Min_Valid_Input_Fan_Speed_Day = minimum_inlet_fan_speed.toInt().toString().padLeft(3, '0');
+                      if (!await cmg.set_request(17, ConnectionManager.Min_Valid_Input_Fan_Speed_Day)) {
+                        Utils.handleError(context);
+                        refresh();
+                      }
+                    }
                   },
                 ),
               ),
@@ -257,22 +260,23 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
                   icon: Icon(Icons.keyboard_arrow_down),
                   iconSize: 35,
                   color: Colors.white,
-                  onPressed: () {
-                    setState(() async {
-                      minimum_inlet_fan_speed = max(minimum_inlet_fan_speed.roundToDouble() - 1.0, 0);
+                  onPressed: () async {
+                    minimum_inlet_fan_speed = max(minimum_inlet_fan_speed.roundToDouble() - 1.0, 0);
+                    setState(() {});
 
-                      if (is_night) {
-                        ConnectionManager.Min_Valid_Input_Fan_Speed_Night = minimum_inlet_fan_speed.toInt().toString().padLeft(3, '0');
-                        if (!await cmg.set_request(18, ConnectionManager.Min_Valid_Input_Fan_Speed_Night)) {
-                          Utils.handleError(context);
-                        }
-                      } else {
-                        ConnectionManager.Min_Valid_Input_Fan_Speed_Day = minimum_inlet_fan_speed.toInt().toString().padLeft(3, '0');
-                        if (!await cmg.set_request(17, ConnectionManager.Min_Valid_Input_Fan_Speed_Day)) {
-                          Utils.handleError(context);
-                        }
+                    if (is_night) {
+                      ConnectionManager.Min_Valid_Input_Fan_Speed_Night = minimum_inlet_fan_speed.toInt().toString().padLeft(3, '0');
+                      if (!await cmg.set_request(18, ConnectionManager.Min_Valid_Input_Fan_Speed_Night)) {
+                        Utils.handleError(context);
+                        refresh();
                       }
-                    });
+                    } else {
+                      ConnectionManager.Min_Valid_Input_Fan_Speed_Day = minimum_inlet_fan_speed.toInt().toString().padLeft(3, '0');
+                      if (!await cmg.set_request(17, ConnectionManager.Min_Valid_Input_Fan_Speed_Day)) {
+                        Utils.handleError(context);
+                        refresh();
+                      }
+                    }
                   },
                 ),
               ),
@@ -343,22 +347,24 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
                   icon: Icon(Icons.keyboard_arrow_up),
                   iconSize: 35,
                   color: Colors.white,
-                  onPressed: () {
-                    setState(() async {
-                      maximum_inlet_fan_speed = min(maximum_inlet_fan_speed.roundToDouble() + 1.0, 100);
+                  onPressed: () async {
+                    maximum_inlet_fan_speed = min(maximum_inlet_fan_speed.roundToDouble() + 1.0, 100);
 
-                      if (is_night) {
-                        ConnectionManager.Max_Valid_Input_Fan_Speed_Night = maximum_inlet_fan_speed.toInt().toString().padLeft(3, '0');
-                        if (!await cmg.set_request(20, ConnectionManager.Max_Valid_Input_Fan_Speed_Night)) {
-                          Utils.handleError(context);
-                        }
-                      } else {
-                        ConnectionManager.Max_Valid_Input_Fan_Speed_Day = maximum_inlet_fan_speed.toInt().toString().padLeft(3, '0');
-                        if (!await cmg.set_request(19, ConnectionManager.Max_Valid_Input_Fan_Speed_Day)) {
-                          Utils.handleError(context);
-                        }
+                    setState(() {});
+
+                    if (is_night) {
+                      ConnectionManager.Max_Valid_Input_Fan_Speed_Night = maximum_inlet_fan_speed.toInt().toString().padLeft(3, '0');
+                      if (!await cmg.set_request(20, ConnectionManager.Max_Valid_Input_Fan_Speed_Night)) {
+                        Utils.handleError(context);
+                        refresh();
                       }
-                    });
+                    } else {
+                      ConnectionManager.Max_Valid_Input_Fan_Speed_Day = maximum_inlet_fan_speed.toInt().toString().padLeft(3, '0');
+                      if (!await cmg.set_request(19, ConnectionManager.Max_Valid_Input_Fan_Speed_Day)) {
+                        Utils.handleError(context);
+                        refresh();
+                      }
+                    }
                   },
                 ),
               ),
@@ -375,22 +381,23 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
                   icon: Icon(Icons.keyboard_arrow_down),
                   iconSize: 35,
                   color: Colors.white,
-                  onPressed: () {
-                    setState(() async {
-                      maximum_inlet_fan_speed = min(maximum_inlet_fan_speed.roundToDouble() + 1.0, 100);
+                  onPressed: () async {
+                    maximum_inlet_fan_speed = min(maximum_inlet_fan_speed.roundToDouble() + 1.0, 100);
+                    setState(() {});
 
-                      if (is_night) {
-                        ConnectionManager.Max_Valid_Input_Fan_Speed_Night = maximum_inlet_fan_speed.toInt().toString().padLeft(3, '0');
-                        if (!await cmg.set_request(19, ConnectionManager.Max_Valid_Input_Fan_Speed_Night)) {
-                          Utils.handleError(context);
-                        }
-                      } else {
-                        ConnectionManager.Max_Valid_Input_Fan_Speed_Day = maximum_inlet_fan_speed.toInt().toString().padLeft(3, '0');
-                        if (!await cmg.set_request(20, ConnectionManager.Max_Valid_Input_Fan_Speed_Day)) {
-                          Utils.handleError(context);
-                        }
+                    if (is_night) {
+                      ConnectionManager.Max_Valid_Input_Fan_Speed_Night = maximum_inlet_fan_speed.toInt().toString().padLeft(3, '0');
+                      if (!await cmg.set_request(19, ConnectionManager.Max_Valid_Input_Fan_Speed_Night)) {
+                        Utils.handleError(context);
+                        refresh();
                       }
-                    });
+                    } else {
+                      ConnectionManager.Max_Valid_Input_Fan_Speed_Day = maximum_inlet_fan_speed.toInt().toString().padLeft(3, '0');
+                      if (!await cmg.set_request(20, ConnectionManager.Max_Valid_Input_Fan_Speed_Day)) {
+                        Utils.handleError(context);
+                        refresh();
+                      }
+                    }
                   },
                 ),
               ),
@@ -423,6 +430,7 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
               onStateChanged: (is_night) {
                 setState(() {
                   this.is_night = is_night;
+                  refresh();
                 });
               },
             )

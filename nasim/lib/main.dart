@@ -27,6 +27,7 @@ class RootView extends StatelessWidget {
   Widget build(BuildContext context) => MultiProvider(
         providers: [
           ChangeNotifierProvider<ThemeChangeNotifer>(create: (context) => ThemeChangeNotifer()),
+
           ChangeNotifierProvider<FirstTimeUsageChangeNotifier>(create: (context) => FirstTimeUsageChangeNotifier()),
           ChangeNotifierProvider<MenuInfo>(create: (context) => MenuInfo(MenuType.Licenses, title: "Licenses")),
           ChangeNotifierProvider<ConnectionManager>(
@@ -66,7 +67,7 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       // routes: {
       //   // When navigating to the "/" route, build the FirstScreen widget.
-      //   '/': (context) => sample(),
+      //   '/': (context) => sample(),+
       //   // When navigating to the "/second" route, build the SecondScreen widget.
       //   '/search_devices': (context) => SearchDevices(),
       //   '/scan_barcode': (context) => BarcodeScanPage(),

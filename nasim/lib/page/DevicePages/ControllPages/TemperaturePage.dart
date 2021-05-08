@@ -29,22 +29,44 @@ class _TemperaturePageState extends State<TemperaturePage> {
   }
 
   refresh() async {
-    ConnectionManager.Favourite_Room_Temp_Day_ = await cmg.getRequest("get23");
-    ConnectionManager.Favourite_Room_Temp_Night = await cmg.getRequest("get29");
-    ConnectionManager.Cooler_Start_Temp_Day = await cmg.getRequest("get25");
-    ConnectionManager.Cooler_Start_Temp_Night = await cmg.getRequest("get31");
-    ConnectionManager.Cooler_Stop_Temp_Day = await cmg.getRequest("get26");
-    ConnectionManager.Cooler_Stop_Temp_Night = await cmg.getRequest("get32");
-    ConnectionManager.Heater_Start_Temp_Day = await cmg.getRequest("get27");
-    ConnectionManager.Heater_Start_Temp_Night = await cmg.getRequest("get33");
-    ConnectionManager.Heater_Stop_Temp_Day = await cmg.getRequest("get28");
-    ConnectionManager.Heater_Stop_Temp_Night = await cmg.getRequest("get34");
-    ConnectionManager.Humidity_Controller_Day_Mode = await cmg.getRequest("get78");
-    ConnectionManager.Humidity_Controller_Night_Mode = await cmg.getRequest("get79");
-    ConnectionManager.Min_Day_Humidity = await cmg.getRequest("get37");
-    ConnectionManager.Min_Night_Humidity = await cmg.getRequest("get39");
-    ConnectionManager.Max_Day_Humidity = await cmg.getRequest("get36");
-    ConnectionManager.Max_Night_Humidity = await cmg.getRequest("get38");
+    setState(() {
+      if (is_night) {
+        room_temp = (int.tryParse(ConnectionManager.Favourite_Room_Temp_Night) ?? 0).toString();
+        cooler_start_temp = (int.tryParse(ConnectionManager.Cooler_Start_Temp_Night) ?? 0).toString();
+        cooler_stop_temp = (int.tryParse(ConnectionManager.Cooler_Stop_Temp_Night) ?? 0).toString();
+        heater_start_temp = (int.tryParse(ConnectionManager.Heater_Start_Temp_Night) ?? 0).toString();
+        heater_stop_temp = (int.tryParse(ConnectionManager.Heater_Stop_Temp_Night) ?? 0).toString();
+        humidity_controller_radio_gvalue = (int.tryParse(ConnectionManager.Humidity_Controller_Night_Mode) ?? 0);
+        humidity_min = (int.tryParse(ConnectionManager.Min_Night_Humidity) ?? 0).toString();
+        humidity_max = (int.tryParse(ConnectionManager.Max_Night_Humidity) ?? 0).toString();
+      } else {
+        room_temp = (int.tryParse(ConnectionManager.Favourite_Room_Temp_Day_) ?? 0).toString();
+        cooler_start_temp = (int.tryParse(ConnectionManager.Cooler_Start_Temp_Day) ?? 0).toString();
+        cooler_stop_temp = (int.tryParse(ConnectionManager.Cooler_Stop_Temp_Day) ?? 0).toString();
+        heater_start_temp = (int.tryParse(ConnectionManager.Heater_Start_Temp_Day) ?? 0).toString();
+        heater_stop_temp = (int.tryParse(ConnectionManager.Heater_Stop_Temp_Day) ?? 0).toString();
+        humidity_controller_radio_gvalue = (int.tryParse(ConnectionManager.Humidity_Controller_Day_Mode) ?? 0);
+        humidity_min = (int.tryParse(ConnectionManager.Min_Day_Humidity) ?? 0).toString();
+        humidity_max = (int.tryParse(ConnectionManager.Max_Day_Humidity) ?? 0).toString();
+      }
+    });
+
+    ConnectionManager.Favourite_Room_Temp_Day_ = Utils.int_str(await cmg.getRequest("get23"), ConnectionManager.Favourite_Room_Temp_Day_);
+    ConnectionManager.Favourite_Room_Temp_Night = Utils.int_str(await cmg.getRequest("get29"), ConnectionManager.Favourite_Room_Temp_Night);
+    ConnectionManager.Cooler_Start_Temp_Day = Utils.int_str(await cmg.getRequest("get25"), ConnectionManager.Cooler_Start_Temp_Day);
+    ConnectionManager.Cooler_Start_Temp_Night = Utils.int_str(await cmg.getRequest("get31"), ConnectionManager.Cooler_Start_Temp_Night);
+    ConnectionManager.Cooler_Stop_Temp_Day = Utils.int_str(await cmg.getRequest("get26"), ConnectionManager.Cooler_Stop_Temp_Day);
+    ConnectionManager.Cooler_Stop_Temp_Night = Utils.int_str(await cmg.getRequest("get32"), ConnectionManager.Cooler_Stop_Temp_Night);
+    ConnectionManager.Heater_Start_Temp_Day = Utils.int_str(await cmg.getRequest("get27"), ConnectionManager.Heater_Start_Temp_Day);
+    ConnectionManager.Heater_Start_Temp_Night = Utils.int_str(await cmg.getRequest("get33"), ConnectionManager.Heater_Start_Temp_Night);
+    ConnectionManager.Heater_Stop_Temp_Day = Utils.int_str(await cmg.getRequest("get28"), ConnectionManager.Heater_Stop_Temp_Day);
+    ConnectionManager.Heater_Stop_Temp_Night = Utils.int_str(await cmg.getRequest("get34"), ConnectionManager.Heater_Stop_Temp_Night);
+    ConnectionManager.Humidity_Controller_Day_Mode = Utils.int_str(await cmg.getRequest("get78"), ConnectionManager.Humidity_Controller_Day_Mode);
+    ConnectionManager.Humidity_Controller_Night_Mode = Utils.int_str(await cmg.getRequest("get79"), ConnectionManager.Humidity_Controller_Night_Mode);
+    ConnectionManager.Min_Day_Humidity = Utils.int_str(await cmg.getRequest("get37"), ConnectionManager.Min_Day_Humidity);
+    ConnectionManager.Min_Night_Humidity = Utils.int_str(await cmg.getRequest("get39"), ConnectionManager.Min_Night_Humidity);
+    ConnectionManager.Max_Day_Humidity = Utils.int_str(await cmg.getRequest("get36"), ConnectionManager.Max_Day_Humidity);
+    ConnectionManager.Max_Night_Humidity = Utils.int_str(await cmg.getRequest("get38"), ConnectionManager.Max_Night_Humidity);
 
     setState(() {
       if (is_night) {
@@ -70,30 +92,32 @@ class _TemperaturePageState extends State<TemperaturePage> {
   }
 
   apply_temp() async {
-    if (!await cmg.set_request(23, ConnectionManager.Favourite_Room_Temp_Day_)) {
+    if (!await cmg.set_request(23, Utils.lim_0_100(ConnectionManager.Favourite_Room_Temp_Day_))) {
       Utils.handleError(context);
       return;
     }
-    await cmg.set_request(29, ConnectionManager.Favourite_Room_Temp_Night);
-    await cmg.set_request(25, ConnectionManager.Cooler_Start_Temp_Day);
-    await cmg.set_request(31, ConnectionManager.Cooler_Start_Temp_Night);
-    await cmg.set_request(26, ConnectionManager.Cooler_Stop_Temp_Day);
-    await cmg.set_request(32, ConnectionManager.Cooler_Stop_Temp_Night);
-    await cmg.set_request(27, ConnectionManager.Heater_Start_Temp_Day);
-    await cmg.set_request(33, ConnectionManager.Heater_Start_Temp_Night);
+    await cmg.set_request(29, Utils.lim_0_100(ConnectionManager.Favourite_Room_Temp_Night));
+    await cmg.set_request(25, Utils.lim_0_100(ConnectionManager.Cooler_Start_Temp_Day));
+    await cmg.set_request(31, Utils.lim_0_100(ConnectionManager.Cooler_Start_Temp_Night));
+    await cmg.set_request(26, Utils.lim_0_100(ConnectionManager.Cooler_Stop_Temp_Day));
+    await cmg.set_request(32, Utils.lim_0_100(ConnectionManager.Cooler_Stop_Temp_Night));
+    await cmg.set_request(27, Utils.lim_0_100(ConnectionManager.Heater_Start_Temp_Day));
+    await cmg.set_request(33, Utils.lim_0_100(ConnectionManager.Heater_Start_Temp_Night));
+    refresh();
   }
 
   apply_humidity() async {
-    if (!await cmg.set_request(78, ConnectionManager.Humidity_Controller_Day_Mode)) {
+    if (!await cmg.set_request(78, Utils.lim_0_100(ConnectionManager.Humidity_Controller_Day_Mode))) {
       Utils.handleError(context);
       return;
     }
 
-    await cmg.set_request(79, ConnectionManager.Humidity_Controller_Night_Mode);
-    await cmg.set_request(37, ConnectionManager.Min_Day_Humidity);
-    await cmg.set_request(39, ConnectionManager.Min_Night_Humidity);
-    await cmg.set_request(36, ConnectionManager.Max_Day_Humidity);
-    await cmg.set_request(38, ConnectionManager.Max_Night_Humidity);
+    await cmg.set_request(79, Utils.lim_0_100(ConnectionManager.Humidity_Controller_Night_Mode));
+    await cmg.set_request(37, Utils.lim_0_100(ConnectionManager.Min_Day_Humidity));
+    await cmg.set_request(39, Utils.lim_0_100(ConnectionManager.Min_Night_Humidity));
+    await cmg.set_request(36, Utils.lim_0_100(ConnectionManager.Max_Day_Humidity));
+    await cmg.set_request(38, Utils.lim_0_100(ConnectionManager.Max_Night_Humidity));
+    refresh();
   }
 
   Widget build_boxed_titlebox({required title, required child}) {
@@ -186,11 +210,11 @@ class _TemperaturePageState extends State<TemperaturePage> {
                 style: Theme.of(context).textTheme.bodyText1,
                 controller: TextEditingController()..text = cooler_stop_temp,
                 onChanged: (value) {
-                  cooler_stop_temp = value;
+                  cooler_stop_temp = Utils.lim_0_100(value);
                   if (is_night) {
-                    ConnectionManager.Cooler_Stop_Temp_Night = int.parse(value).toString().padLeft(3, '0');
+                    ConnectionManager.Cooler_Stop_Temp_Night = int.parse(cooler_stop_temp).toString().padLeft(3, '0');
                   } else {
-                    ConnectionManager.Cooler_Stop_Temp_Day = int.parse(value).toString().padLeft(3, '0');
+                    ConnectionManager.Cooler_Stop_Temp_Day = int.parse(cooler_stop_temp).toString().padLeft(3, '0');
                   }
                 },
                 keyboardType: TextInputType.number,
@@ -211,11 +235,12 @@ class _TemperaturePageState extends State<TemperaturePage> {
                 style: Theme.of(context).textTheme.bodyText1,
                 controller: TextEditingController()..text = heater_start_temp,
                 onChanged: (value) {
-                  heater_start_temp = value;
+                  heater_start_temp = Utils.lim_0_100(value);
+                  ;
                   if (is_night) {
-                    ConnectionManager.Heater_Start_Temp_Night = int.parse(value).toString().padLeft(3, '0');
+                    ConnectionManager.Heater_Start_Temp_Night = int.parse(heater_start_temp).toString().padLeft(3, '0');
                   } else {
-                    ConnectionManager.Heater_Start_Temp_Day = int.parse(value).toString().padLeft(3, '0');
+                    ConnectionManager.Heater_Start_Temp_Day = int.parse(heater_start_temp).toString().padLeft(3, '0');
                   }
                 },
                 keyboardType: TextInputType.number,
@@ -236,7 +261,8 @@ class _TemperaturePageState extends State<TemperaturePage> {
                 style: Theme.of(context).textTheme.bodyText1,
                 controller: TextEditingController()..text = heater_stop_temp,
                 onChanged: (value) {
-                  heater_stop_temp = value;
+                  heater_stop_temp = Utils.lim_0_100(value);
+                  ;
                 },
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(suffix: Text(' °C')),
@@ -285,11 +311,11 @@ class _TemperaturePageState extends State<TemperaturePage> {
                 style: Theme.of(context).textTheme.bodyText1,
                 controller: TextEditingController()..text = humidity_min,
                 onChanged: (value) {
-                  humidity_min = value;
+                  humidity_min = Utils.lim_0_100(value);
                   if (is_night) {
-                    ConnectionManager.Min_Night_Humidity = int.parse(value).toString().padLeft(3, '0');
+                    ConnectionManager.Min_Night_Humidity = int.parse(humidity_min).toString().padLeft(3, '0');
                   } else {
-                    ConnectionManager.Min_Day_Humidity = int.parse(value).toString().padLeft(3, '0');
+                    ConnectionManager.Min_Day_Humidity = int.parse(humidity_min).toString().padLeft(3, '0');
                   }
                 },
                 keyboardType: TextInputType.number,
@@ -310,12 +336,11 @@ class _TemperaturePageState extends State<TemperaturePage> {
                 style: Theme.of(context).textTheme.bodyText1,
                 controller: TextEditingController()..text = humidity_max,
                 onChanged: (value) {
-                  humidity_max = value;
-                  humidity_min = value;
+                  humidity_max = Utils.lim_0_100(value);
                   if (is_night) {
-                    ConnectionManager.Max_Night_Humidity = int.parse(value).toString().padLeft(3, '0');
+                    ConnectionManager.Max_Night_Humidity = int.parse(humidity_max).toString().padLeft(3, '0');
                   } else {
-                    ConnectionManager.Max_Day_Humidity = int.parse(value).toString().padLeft(3, '0');
+                    ConnectionManager.Max_Day_Humidity = int.parse(humidity_max).toString().padLeft(3, '0');
                   }
                 },
                 keyboardType: TextInputType.number,
