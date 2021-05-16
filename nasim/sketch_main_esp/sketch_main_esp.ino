@@ -825,42 +825,42 @@ bool process_set_request(int table_id, char *val)
     }
     break;
   case 1:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("(B", val))
     {
       strcpy(Device_Serial_Num, val);
       return true;
     }
     break;
   case 2:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("(C", val))
     {
       strcpy(Device_Model, val);
       return true;
     }
     break;
   case 3:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("(D", val))
     {
       strcpy(Device_Fan_Power, val);
       return true;
     }
     break;
   case 4:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("(E", val))
     {
       strcpy(Power_Box_Serial_Num, val);
       return true;
     }
     break;
   case 5:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("(F", val))
     {
       strcpy(GSM_Modem_Serial_Num, val);
       return true;
     }
     break;
   case 6:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("(G0", val))
     {
       strcpy(Temp_Sensor_Serial_Num_0, val);
       return true;
@@ -868,7 +868,7 @@ bool process_set_request(int table_id, char *val)
 
     break;
   case 7:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("(G1", val))
     {
       strcpy(Temp_Sensor_Serial_Num_1, val);
       return true;
@@ -876,7 +876,7 @@ bool process_set_request(int table_id, char *val)
 
     break;
   case 8:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("(G2", val))
     {
       strcpy(Temp_Sensor_Serial_Num_2, val);
       return true;
@@ -884,7 +884,7 @@ bool process_set_request(int table_id, char *val)
 
     break;
   case 9:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("(G3", val))
     {
       strcpy(Temp_Sensor_Serial_Num_3, val);
       return true;
@@ -892,21 +892,21 @@ bool process_set_request(int table_id, char *val)
 
     break;
   case 10:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("(G4", val))
     {
       strcpy(Temp_Sensor_Serial_Num_4, val);
       return true;
     }
     break;
   case 11:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("(G5", val))
     {
       strcpy(Temp_Sensor_Serial_Num_5, val);
       return true;
     }
     break;
   case 12:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("(G6", val))
     {
       strcpy(Temp_Sensor_Serial_Num_6, val);
       return true;
@@ -914,7 +914,7 @@ bool process_set_request(int table_id, char *val)
 
     break;
   case 13:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("(G7", val))
     {
       strcpy(Temp_Sensor_Serial_Num_7, val);
       return true;
@@ -922,14 +922,14 @@ bool process_set_request(int table_id, char *val)
 
     break;
   case 14:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("(G8", val))
     {
       strcpy(Temp_Sensor_Serial_Num_8, val);
       return true;
     }
     break;
   case 15:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("G9", val))
     {
       strcpy(Temp_Sensor_Serial_Num_9, val);
       return true;
@@ -937,42 +937,42 @@ bool process_set_request(int table_id, char *val)
 
     break;
   case 16:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("(H0", val))
     {
       strcpy(Mobile_Name_0, val);
       return true;
     }
     break;
   case 17:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("(H1", val))
     {
       strcpy(Mobile_Name_1, val);
       return true;
     }
     break;
   case 18:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("(H2", val))
     {
       strcpy(Mobile_Name_2, val);
       return true;
     }
     break;
   case 19:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("(H3", val))
     {
       strcpy(Mobile_Name_3, val);
       return true;
     }
     break;
   case 20:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("(H4", val))
     {
       strcpy(Mobile_Name_4, val);
       return true;
     }
     break;
   case 21:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("H5", val))
     {
       strcpy(Mobile_Name_5, val);
       return true;
@@ -1024,14 +1024,14 @@ bool process_set_request(int table_id, char *val)
     strcpy(Pressure_change, val); //invalid set
     break;
   case 37:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("(N", val))
     {
       strcpy(Min_Valid_Output_Fan_Speed, val);
       return true;
     }
     break;
   case 38:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("(O", val))
     {
       strcpy(Max_Valid_Output_Fan_Speed, val);
       return true;
@@ -1044,28 +1044,28 @@ bool process_set_request(int table_id, char *val)
     strcpy(Output_Fan_Available_Flag, val); //invalid set
     break;
   case 41:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("(R", val))
     {
       strcpy(Min_Valid_Input_Fan_Speed_Day, val);
       return true;
     }
     break;
   case 42:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("(S", val))
     {
       strcpy(Min_Valid_Input_Fan_Speed_Night, val);
       return true;
     }
     break;
   case 43:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("(T", val))
     {
       strcpy(Max_Valid_Input_Fan_Speed_Day, val);
       return true;
     }
     break;
   case 44:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("@A", val))
     {
       strcpy(Max_Valid_Input_Fan_Speed_Night, val);
       return true;
@@ -1078,225 +1078,224 @@ bool process_set_request(int table_id, char *val)
     strcpy(Input_Fan_Available_Flag, val); //invalid set
     break;
   case 47:
-    if (micro_request_ok("(A", val)) //alamat dar
+    if (micro_request_ok("@D", val)) //alamat dar
     {
       strcpy(Favourite_Room_Temp_Day_, val);
       return true;
     }
     break;
   case 48:
-    if (micro_request_ok("(A", val)) //float
+    if (micro_request_ok("@E", val)) //float
     {
       strcpy(Room_Temp_Sensitivity_Day, val);
       return true;
     }
     break;
   case 49:
-    if (micro_request_ok("(A", val)) //alamat dar
+    if (micro_request_ok("@F", val)) //alamat dar
     {
       strcpy(Cooler_Start_Temp_Day, val);
       return true;
     }
     break;
   case 50:
-    if (micro_request_ok("(A", val)) //alamat dar
+    if (micro_request_ok("@G", val)) //alamat dar
     {
       strcpy(Cooler_Stop_Temp_Day, val);
       return true;
     }
     break;
   case 51:
-    if (micro_request_ok("(A", val)) //alamat dar
+    if (micro_request_ok("@H", val)) //alamat dar
     {
       strcpy(Heater_Start_Temp_Day, val);
       return true;
     }
     break;
   case 52:
-    if (micro_request_ok("(A", val)) //alamat dar
+    if (micro_request_ok("@I", val)) //alamat dar
     {
       strcpy(Heater_Stop_Temp_Day, val);
       return true;
     }
     break;
   case 53:
-    if (micro_request_ok("(A", val)) //alamat dar
+    if (micro_request_ok("@J", val)) //alamat dar
     {
       strcpy(Favourite_Room_Temp_Night, val);
       return true;
     }
     break;
   case 54:
-    if (micro_request_ok("(A", val)) //float
+    if (micro_request_ok("@K", val)) //float
     {
       strcpy(Room_Temp_Sensitivity_Night, val);
       return true;
     }
     break;
   case 55:
-    if (micro_request_ok("(A", val)) //alamat dar
+    if (micro_request_ok("@L", val)) //alamat dar
     {
       strcpy(Cooler_Start_Temp_Night, val);
       return true;
     }
     break;
   case 56:
-    if (micro_request_ok("(A", val)) //alamat dar
+    if (micro_request_ok("@M", val)) //alamat dar
     {
       strcpy(Cooler_Stop_Temp_Night, val);
       return true;
     }
     break;
   case 57:
-    if (micro_request_ok("(A", val)) //alamat dar
+    if (micro_request_ok("@N", val)) //alamat dar
     {
       strcpy(Heater_Start_Temp_Night, val);
       return true;
     }
     break;
   case 58:
-    if (micro_request_ok("(A", val)) //alamat dar
+    if (micro_request_ok("@O", val)) //alamat dar
     {
       strcpy(Heater_Stop_Temp_Night, val);
       return true;
     }
     break;
   case 59:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("@P", val))
     {
       strcpy(Humidity_Controller, val);
       return true;
     }
     break;
   case 60:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("@1", val))
     {
       strcpy(Max_Day_Humidity, val);
       return true;
     }
     break;
   case 61:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("@R", val))
     {
       strcpy(Min_Day_Humidity, val);
       return true;
     }
     break;
   case 62:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("@S", val))
     {
       strcpy(Max_Night_Humidity, val);
       return true;
     }
     break;
   case 63:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("@T", val))
     {
       strcpy(Min_Night_Humidity, val);
       return true;
     }
     break;
   case 64:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("$A", val))
     {
       strcpy(IAQ_Flag, val);
       return true;
     }
     break;
   case 65:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("$B", val))
     {
       strcpy(Max_Day_IAQ, val);
       return true;
     }
     break;
   case 66:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("$C", val))
     {
       strcpy(Min_Day_IAQ, val);
       return true;
     }
     break;
   case 67:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("$D", val))
     {
       strcpy(Max_Night_IAQ, val);
       return true;
     }
     break;
   case 68:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("$E", val))
     {
       strcpy(Min_Night_IAQ, val);
       return true;
     }
     break;
   case 69:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("$F", val))
     {
       strcpy(Min_Night_IAQ, val);
       return true;
     }
     break;
   case 70:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("$G", val))
     {
       strcpy(Max_Day_CO2, val);
       return true;
     }
     break;
   case 71:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("$H", val))
     {
       strcpy(Min_Day_CO2, val);
       return true;
     }
     break;
   case 72:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("$I", val))
     {
       strcpy(Max_Night_CO2, val);
       return true;
     }
     break;
   case 73:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("$J", val))
     {
       strcpy(Min_Night_CO2, val);
       return true;
     }
     break;
   case 74:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("$K", val))
     {
       strcpy(Min_Day_Lux, val);
       return true;
     }
     break;
   case 75:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("$L", val))
     {
       strcpy(Max_Night_Lux, val);
       return true;
     }
     break;
   case 76:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("$M", val))
     {
       strcpy(License_Type, val);
       return true;
     }
-    strcpy(, val);
     break;
   case 77:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("$N", val))
     {
       strcpy(Increase_Fan_Power_License, val);
       return true;
     }
     break;
   case 78:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("$O", val))
     {
       strcpy(Increase_Connected_Mobile_License, val);
       return true;
@@ -1369,42 +1368,42 @@ bool process_set_request(int table_id, char *val)
     strcpy(Humidity_Controller_Status, val); //invalid set
     break;
   case 101:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("&I0", val))
     {
       strcpy(Mobile_Number_0, val);
       return true;
     }
     break;
   case 102:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("&I1", val))
     {
       strcpy(Mobile_Number_1, val);
       return true;
     }
     break;
   case 103:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("&I2", val))
     {
       strcpy(Mobile_Number_2, val);
       return true;
     }
     break;
   case 104:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("&I3", val))
     {
       strcpy(Mobile_Number_3, val);
       return true;
     }
     break;
   case 105:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("&I4", val))
     {
       strcpy(Mobile_Number_4, val);
       return true;
     }
     break;
   case 106:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("&I5", val))
     {
       strcpy(Mobile_Number_5, val);
       return true;
@@ -1414,7 +1413,7 @@ bool process_set_request(int table_id, char *val)
     strcpy(GSM_Signal_Power, val);//invalid set
     break;
   case 108:
-   if (micro_request_ok("(A", val))
+   if (micro_request_ok("&K", val))
     {
       strcpy(GSM_SIM_Number, val);
       return true;
@@ -1424,81 +1423,81 @@ bool process_set_request(int table_id, char *val)
     strcpy(GSM_SIM_Balance, val;//invalid set
     break;
   case 110:
-    if (micro_request_ok("(A", val))
+    if (micro_request_ok("&M", val))
     {
       strcpy(SMS_Priorities_State, val);
       return true;
     }
     break;
   case 111:
-   if (micro_request_ok("(A", val))
+   if (micro_request_ok("&N", val))
     {
       strcpy(Access_To_Internet_State, val);
       return true;
     }
     break;
   case 112:
-  if (micro_request_ok("(A", val))
+  if (micro_request_ok("&O", val))
     {
       strcpy(Cooler_Controller_Day_Mode, val);
       return true;
     }
     break;
   case 113:
-  if (micro_request_ok("(A", val))
+  if (micro_request_ok("&P", val))
     {
       strcpy(Cooler_Controller_Night_Mod, val);
       return true;
     }
     break;
   case 114:
-  if (micro_request_ok("(A", val))
+  if (micro_request_ok("&Q", val))
     {
       strcpy(Heater_Controller_Day_Mode, val);
       return true;
     }
     break;
   case 115:
-  if (micro_request_ok("(A", val))
+  if (micro_request_ok("&R", val))
     {
       strcpy(Heater_Controller_Night_Mode, val);
       return true;
     }
     break;
   case 116:
-  if (micro_request_ok("(A", val))
+  if (micro_request_ok("&S", val))
     {
       strcpy(Humidity_Controller_Day_Mode, val);
       return true;
     }
     break;
   case 117:
-  if (micro_request_ok("(A", val))
+  if (micro_request_ok("&T", val))
     {
       strcpy(Humidity_Controller_Night_Mode, val);
       return true;
     }
     break;
   case 118:
-  if (micro_request_ok("(A", val))
+  if (micro_request_ok("&U", val))
     {
       strcpy(Air_Purifier_Controller_Day_Mode, val);
       return true;
     }
     break;
   case 119:
-   if (micro_request_ok("(A", val))
+   if (micro_request_ok("&V", val))
     {
       strcpy(Air_Purifier_Controller_Night_Mode, val);
       return true;
     }
     break;
   case 121:
-  if (micro_request_ok("(A", val))
-    {
+  // if (micro_request_ok("&", val))
+  //   {
       strcpy(device_initialized, val);
       return true;
-    }
+  //   }
     break;
 
   default:
