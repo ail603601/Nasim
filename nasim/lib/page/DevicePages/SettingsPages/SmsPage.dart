@@ -23,10 +23,10 @@ class _SmsPageState extends State<SmsPage> {
   }
 
   refresh() async {
-    var phonenum = await cmg.getRequest("get70");
+    var phonenum = await cmg.getRequest("get16");
     ConnectionManager.GSM_SIM_Number = phonenum == "timeout" ? ConnectionManager.GSM_SIM_Number : phonenum;
 
-    var piror = await cmg.getRequest("get72");
+    var piror = await cmg.getRequest("get110");
 
     ConnectionManager.SMS_Priorities_State = piror == "timeout" ? ConnectionManager.SMS_Priorities_State : piror;
 
@@ -34,11 +34,11 @@ class _SmsPageState extends State<SmsPage> {
   }
 
   apply() async {
-    if (!await cmg.set_request(70, Utils.lim_0_100(ConnectionManager.GSM_SIM_Number))) {
+    if (!await cmg.set_request(16, Utils.lim_0_100(ConnectionManager.GSM_SIM_Number))) {
       Utils.handleError(context);
       return;
     }
-    await cmg.set_request(72, ConnectionManager.SMS_Priorities_State);
+    await cmg.set_request(110, ConnectionManager.SMS_Priorities_State);
   }
 
   Widget build_boxed_titlebox({required title, required child}) {
@@ -47,7 +47,7 @@ class _SmsPageState extends State<SmsPage> {
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: new InputDecorator(
             decoration: InputDecoration(
-                labelText: title, labelStyle: Theme.of(context).textTheme.headline6, border: OutlineInputBorder(borderSide: BorderSide(color: Colors.yellow))),
+                labelText: title, labelStyle: Theme.of(context).textTheme.bodyText1, border: OutlineInputBorder(borderSide: BorderSide(color: Colors.yellow))),
             child: child));
   }
 
@@ -135,7 +135,7 @@ class _SmsPageState extends State<SmsPage> {
                 padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
                 side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
                 shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
-            child: Text("Apply", style: Theme.of(context).textTheme.headline6),
+            child: Text("Apply", style: Theme.of(context).textTheme.bodyText1),
           ),
         ),
       );
@@ -152,7 +152,7 @@ class _SmsPageState extends State<SmsPage> {
                 padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
                 side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
                 shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
-            child: Text("Restore Defaults", style: Theme.of(context).textTheme.headline6),
+            child: Text("Restore Defaults", style: Theme.of(context).textTheme.bodyText1),
           ),
         ),
       );
@@ -166,7 +166,7 @@ class _SmsPageState extends State<SmsPage> {
             apply();
             setState(() {});
           },
-          value: ConnectionManager.SMS_Priorities_State[index] == "1",
+          value: ConnectionManager.SMS_Priorities_State.characters.elementAt(index) == "1",
         ),
         Divider(
           height: 2,
@@ -192,9 +192,9 @@ class _SmsPageState extends State<SmsPage> {
       length: 2,
       child: Scaffold(
         appBar: TabBar(
-          labelStyle: Theme.of(context).textTheme.headline6,
-          labelColor: Theme.of(context).textTheme.headline6!.color,
-          // labelStyle: Theme.of(context).textTheme.headline6,
+          labelStyle: Theme.of(context).textTheme.bodyText1,
+          labelColor: Theme.of(context).textTheme.bodyText1!.color,
+          // labelStyle: Theme.of(context).textTheme.bodyText1,
           tabs: [
             Tab(
               text: "Settings",

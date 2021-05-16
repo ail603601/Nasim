@@ -9,23 +9,25 @@ import 'package:nasim/provider/SavedevicesChangeNofiter.dart';
 import 'package:provider/provider.dart';
 
 import '../../../utils.dart';
+import '../Wizardpage.dart';
 
-class UsersPage extends StatefulWidget {
+class wpage_users extends StatefulWidget {
   @override
-  _UsersPageState createState() => _UsersPageState();
+  _wpage_usersState createState() => _wpage_usersState();
 }
 
-class _UsersPageState extends State<UsersPage> {
+class _wpage_usersState extends State<wpage_users> {
   @override
   void initState() {
     super.initState();
+    WizardPage.can_next = false;
 
     cmg = Provider.of<ConnectionManager>(context, listen: false);
     cs = 0;
     refresh();
   }
 
-  add_device(context) async {
+  add_device() async {
     if (SavedDevicesChangeNotifier.selected_device!.username != "") {
       Utils.showSnackBar(context, "you can't add your phone again.");
       return;
@@ -61,6 +63,7 @@ class _UsersPageState extends State<UsersPage> {
 
                 await refresh();
                 Utils.showSnackBar(context, "Done.");
+                WizardPage.can_next = true;
               } else {
                 Utils.showSnackBar(context, "cummunication failed");
               }
@@ -89,7 +92,10 @@ class _UsersPageState extends State<UsersPage> {
     }
     if (!users_found.any((element) => "_" + element.name == SavedDevicesChangeNotifier.selected_device!.username)) {
       await Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelecteduser_name("");
-    } else {}
+      WizardPage.can_next = false;
+    } else {
+      WizardPage.can_next = true;
+    }
 
     setState(() {});
     return true;
@@ -164,9 +170,8 @@ class _UsersPageState extends State<UsersPage> {
             child: Text("Delete", style: Theme.of(context).textTheme.bodyText1!.copyWith(color: Colors.red)),
             onPressed: () async {
               if (SavedDevicesChangeNotifier.selected_device!.username == user.name) {
-                Utils.alert(context, "Attention", "cannot delete your device.");
-                return;
-                // await Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelecteduser_name("");
+                await Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelecteduser_name("");
+                WizardPage.can_next = false;
               }
               await cmg.set_request(user.id_table, "0");
               refresh();
@@ -176,7 +181,7 @@ class _UsersPageState extends State<UsersPage> {
       );
 
   int cs = 0;
-  Widget build_root_view(context) {
+  Widget build_root_view() {
     return Column(
       children: [
         Expanded(
@@ -206,9 +211,10 @@ class _UsersPageState extends State<UsersPage> {
           padding: EdgeInsets.symmetric(horizontal: 26),
           child: OutlinedButton(
             onPressed: () {
-              add_device(context);
+              add_device();
             },
             style: OutlinedButton.styleFrom(
+                padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
                 side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
                 shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
             child: Text("Add yourphone", style: Theme.of(context).textTheme.bodyText1),
@@ -223,10 +229,7 @@ class _UsersPageState extends State<UsersPage> {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<LicenseChangeNotifier>(
-        create: (context) => LicenseChangeNotifier(SavedDevicesChangeNotifier.selected_device!.serial),
-        lazy: false,
-        builder: (context, child) => Container(color: Theme.of(context).canvasColor, child: SafeArea(child: build_root_view(context))));
+    return Container(color: Theme.of(context).canvasColor, child: SafeArea(child: build_root_view()));
 
     // return SafeArea(
     //     child: Navigator(

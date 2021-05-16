@@ -1,26 +1,21 @@
 import 'dart:async';
-import 'dart:developer';
+import 'dart:math';
 
 import 'package:day_night_switcher/day_night_switcher.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:nasim/Model/Device.dart';
-import 'package:nasim/Model/menu_info.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
-import 'package:nasim/utils.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'dart:math';
-
 import 'package:shared_preferences/shared_preferences.dart';
 
-class InletFanSpeedPage extends StatefulWidget {
+import '../../../utils.dart';
+
+class wpage_inlet_fan extends StatefulWidget {
   @override
-  _InletFanSpeedPageState createState() => _InletFanSpeedPageState();
+  _wpage_inlet_fanState createState() => _wpage_inlet_fanState();
 }
 
-class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTickerProviderStateMixin {
-  AnimationController? _controller;
+class _wpage_inlet_fanState extends State<wpage_inlet_fan> {
   bool is_inlet_fan_available = false;
   bool dialog_show = false;
   late Timer refresher;
@@ -57,8 +52,6 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
   void initState() {
     super.initState();
 
-    _controller = AnimationController(vsync: this, duration: Duration(seconds: 2))..repeat();
-
     cmg = Provider.of<ConnectionManager>(context, listen: false);
     refresher = Timer.periodic(new Duration(milliseconds: 500), (timer) {
       refresh();
@@ -76,41 +69,9 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
 
   @override
   void dispose() {
-    _controller!.dispose();
     refresher.cancel();
 
     super.dispose();
-  }
-
-  Widget build_inlet_fan_speed_animated_card(context) =>
-      Container(width: 150, child: FittedBox(child: make_animated_icon("inlet_fan", "assets/fan_vector.png", Colors.blue[400])));
-
-  Widget make_animated_icon(tag, path, Color? color) => Hero(
-      tag: tag,
-      child: AnimatedBuilder(
-        animation: _controller!,
-        builder: (_, child) {
-          return Transform.rotate(
-            angle: _controller!.value * 2 * pi,
-            child: child,
-          );
-        },
-        child: Image.asset(
-          path,
-          color: color,
-        ),
-      ));
-  List<Widget> build_title(titile) {
-    return [
-      Container(
-        padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
-        alignment: Alignment.centerLeft,
-        child: Text(titile, style: Theme.of(context).textTheme.bodyText1),
-      ),
-      Divider(
-        color: Theme.of(context).accentColor,
-      )
-    ];
   }
 
   showAlertDialog(BuildContext context) async {
@@ -474,6 +435,7 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
           ],
         ),
       );
+
   @override
   Widget build(BuildContext context) {
     if (!dialog_show) {
@@ -482,14 +444,15 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
     }
     return is_inlet_fan_available
         ? Container(
+            padding: const EdgeInsets.only(bottom: 64),
             color: Theme.of(context).canvasColor,
             child: Column(mainAxisSize: MainAxisSize.min, children: [
-              build_inlet_fan_speed_animated_card(context),
-              ...build_title("Inlet Fan Speed"),
+              ...make_title("Inlet Fan Speed"),
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
+                      build_elevation_presure(),
                       build_day_night_switch(),
                       SizedBox(
                         height: 16,
@@ -515,7 +478,7 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
         : Container(
             color: Theme.of(context).canvasColor,
             alignment: Alignment.center,
-            child: Text("Inlet Fan is not available for this device.", style: Theme.of(context).textTheme.bodyText1),
+            child: Text("Inlet Fan is not available for this device."),
           );
   }
 }

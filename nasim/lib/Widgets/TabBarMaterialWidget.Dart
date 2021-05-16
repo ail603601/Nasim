@@ -15,12 +15,13 @@ class _TabBarMaterialWidgetState extends State<TabBarMaterialWidget> {
     final is_open = Provider.of<DeviceListFabChangeNotifier>(context).current_status;
 
     Future<bool> _onWillPop() async {
-      final is_open = Provider.of<DeviceListFabChangeNotifier>(context, listen: false).current_status;
-      if (is_open)
-        Provider.of<DeviceListFabChangeNotifier>(context, listen: false).clicked();
-      else
-        return true;
-      return false;
+      // final is_open = Provider.of<DeviceListFabChangeNotifier>(context, listen: false).current_status;
+      // if (is_open)
+      //   Provider.of<DeviceListFabChangeNotifier>(context, listen: false).clicked();
+      // else
+      //   return true;
+      // return false;
+      return true;
     }
 
     Widget choose_connection_way = Column(

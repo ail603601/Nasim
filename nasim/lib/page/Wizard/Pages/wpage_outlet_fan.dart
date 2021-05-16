@@ -1,25 +1,22 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:nasim/Model/Device.dart';
-import 'package:nasim/Model/menu_info.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
+import 'package:nasim/provider/LicenseChangeNotifier.dart';
 import 'package:nasim/utils.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'dart:math';
 
-class AirSpeedPage extends StatefulWidget {
+import '../Wizardpage.dart';
+
+class wpage_outlet_fan extends StatefulWidget {
   @override
-  _AirSpeedPageState createState() => _AirSpeedPageState();
+  _wpage_outlet_fanState createState() => _wpage_outlet_fanState();
 }
 
-class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderStateMixin {
-  AnimationController? _controller;
-  int interval = 500;
+class _wpage_outlet_fanState extends State<wpage_outlet_fan> {
   late Timer refresher;
-
   bool refresh_disable = false;
   late ConnectionManager cmg;
   late double minimum_negative_presure_fan_speed;
@@ -43,47 +40,6 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
       });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    // Utils.setTimeOut(interval, refresh);
-
-    _controller = AnimationController(vsync: this, duration: Duration(seconds: 2))..repeat();
-    cmg = Provider.of<ConnectionManager>(context, listen: false);
-    refresher = Timer.periodic(new Duration(milliseconds: 500), (timer) {
-      refresh();
-    });
-    minimum_negative_presure_fan_speed = (int.tryParse(ConnectionManager.Min_Valid_Output_Fan_Speed) ?? 0.0).toDouble();
-    maximum_negative_presure_fan_speed = (int.tryParse(ConnectionManager.Max_Valid_Output_Fan_Speed) ?? 0.0).toDouble();
-    refresh();
-  }
-
-  @override
-  void dispose() {
-    _controller!.dispose();
-    refresher.cancel();
-
-    super.dispose();
-  }
-
-  Widget build_air_speed_animated_card(context) =>
-      Container(width: 150, child: FittedBox(child: make_animated_icon("air_speed", "assets/fan_vector.png", Colors.blue[400])));
-
-  Widget make_animated_icon(tag, path, Color? color) => Hero(
-      tag: tag,
-      child: AnimatedBuilder(
-        animation: _controller!,
-        builder: (_, child) {
-          return Transform.rotate(
-            angle: _controller!.value * 2 * pi,
-            child: child,
-          );
-        },
-        child: Image.asset(
-          path,
-          color: color,
-        ),
-      ));
   List<Widget> make_title(titile) {
     return [
       Container(
@@ -106,6 +62,25 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
                 labelText: title, labelStyle: Theme.of(context).textTheme.bodyText1, border: OutlineInputBorder(borderSide: BorderSide(color: Colors.yellow))),
             child: child));
   }
+
+  Widget build_elevation_presure() => Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          children: [
+            Expanded(
+              child: build_boxed_titlebox(
+                title: "Elevatoin",
+                child: Center(child: Text((int.tryParse(ConnectionManager.Elevation) ?? 0).toString() + " m", style: Theme.of(context).textTheme.bodyText1)),
+              ),
+            ),
+            Expanded(
+                child: build_boxed_titlebox(
+                    title: "Pressure",
+                    child:
+                        Center(child: Text((int.tryParse(ConnectionManager.Pressure) ?? 0).toString() + " hpa", style: Theme.of(context).textTheme.bodyText1))))
+          ],
+        ),
+      );
 
   Future<bool> set_air_speed_min_negative_pressure(double value) async {
     if ((maximum_negative_presure_fan_speed - value) < 5) {
@@ -363,16 +338,36 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
         ),
       );
   @override
+  void initState() {
+    super.initState();
+
+    cmg = Provider.of<ConnectionManager>(context, listen: false);
+    refresher = Timer.periodic(new Duration(milliseconds: 500), (timer) {
+      refresh();
+    });
+    minimum_negative_presure_fan_speed = (int.tryParse(ConnectionManager.Min_Valid_Output_Fan_Speed) ?? 0.0).toDouble();
+    maximum_negative_presure_fan_speed = (int.tryParse(ConnectionManager.Max_Valid_Output_Fan_Speed) ?? 0.0).toDouble();
+    refresh();
+  }
+
+  @override
+  void dispose() {
+    refresher.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
+        padding: const EdgeInsets.only(bottom: 64),
         color: Theme.of(context).canvasColor,
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          build_air_speed_animated_card(context),
           ...make_title("Air Speed"),
           Expanded(
             child: SingleChildScrollView(
               child: Column(
                 children: [
+                  build_elevation_presure(),
                   build_air_speed_min_negative_pressure(),
                   SizedBox(
                     height: 16,

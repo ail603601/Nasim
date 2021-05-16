@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class Utils {
   static void showSnackBar(BuildContext context, String message) {
@@ -32,6 +33,17 @@ class Utils {
     }
   }
 
+  static String lim_0_9999(String input) {
+    int converted = int.tryParse(input) ?? -1;
+    if (converted == -1) {
+      return "0";
+    } else {
+      converted = min(9999, converted);
+      converted = max(0, converted);
+      return converted.toString().padLeft(4, '0');
+    }
+  }
+
   static String int_str(input, defalt) {
     int converted = int.tryParse(input) ?? -1;
     if (converted == -1) {
@@ -41,15 +53,15 @@ class Utils {
     }
   }
 
-  static void alert(BuildContext mcontext, title, msg, [Function? andthen]) {
+  static Future<void> alert(BuildContext mcontext, title, msg, [Function? andthen]) async {
     // set up the button
 
     // show the dialog
-    showDialog(
+    await showDialog(
       context: mcontext,
       builder: (BuildContext context) {
         Widget okButton = FlatButton(
-          child: Text("OK", style: Theme.of(context).textTheme.headline6!),
+          child: Text("OK", style: Theme.of(context).textTheme.bodyText1!),
           onPressed: () {
             Navigator.of(context).pop();
           },
@@ -57,7 +69,7 @@ class Utils {
 
         // set up the AlertDialog
         AlertDialog alert = AlertDialog(
-          title: Text(title, style: Theme.of(context).textTheme.headline6!),
+          title: Text(title, style: Theme.of(context).textTheme.bodyText1!),
           content: Text(msg, style: Theme.of(context).textTheme.bodyText2!),
           actions: [
             okButton,
@@ -65,10 +77,65 @@ class Utils {
         );
         return alert;
       },
-    ).then((value) {
-      if (andthen != null) {
-        andthen();
-      }
-    });
+    );
+    if (andthen != null) {
+      andthen();
+    }
+  }
+
+  static Future<String> ask_serial(String title, context) async {
+    String return_value = "";
+    Widget buildTextField(BuildContext context) => TextField(
+          style: Theme.of(context).textTheme.bodyText1!,
+          // controller: controller,
+          keyboardType: TextInputType.number,
+          onChanged: (value) {
+            return_value = value;
+          },
+
+          decoration: InputDecoration(
+            hintText: AppLocalizations.of(context)!.enterSerialNumber,
+            hintStyle: Theme.of(context).textTheme.bodyText1!,
+          ),
+        );
+
+    await showModalBottomSheet(
+        isScrollControlled: true,
+        context: context,
+        builder: (context) => Column(mainAxisSize: MainAxisSize.min, children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                child: Text(title, style: Theme.of(context).textTheme.bodyText1!),
+              ),
+              ListTile(
+                  leading: Icon(Icons.qr_code),
+                  title: Text(AppLocalizations.of(context)!.scanQrCode, style: Theme.of(context).textTheme.bodyText1!),
+                  onTap: () async {
+                    return_value = (await Navigator.pushNamed(context, "/scan_barcode")).toString();
+                    Navigator.pop(context);
+                  }),
+              Divider(
+                color: Theme.of(context).accentColor,
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 8, 60),
+                child: Row(
+                  children: [
+                    Expanded(child: buildTextField(context)),
+                    const SizedBox(width: 12),
+                    FloatingActionButton(
+                      backgroundColor: Theme.of(context).primaryColor,
+                      onPressed: () async {
+                        Navigator.pop(context);
+                      },
+                      child: Icon(Icons.done, size: 30),
+                      // onPressed: () => setState(() {}),
+                    )
+                  ],
+                ),
+              ),
+            ]));
+
+    return return_value;
   }
 }

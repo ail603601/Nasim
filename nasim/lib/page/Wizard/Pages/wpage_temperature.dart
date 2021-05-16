@@ -2,18 +2,20 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:day_night_switcher/day_night_switcher.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../utils.dart';
 
-class TemperaturePage extends StatefulWidget {
+class wpage_temperature extends StatefulWidget {
   @override
-  _TemperaturePageState createState() => _TemperaturePageState();
+  _wpage_temperatureState createState() => _wpage_temperatureState();
 }
 
-class _TemperaturePageState extends State<TemperaturePage> {
+class _wpage_temperatureState extends State<wpage_temperature> {
   late ConnectionManager cmg;
   @override
   void initState() {
@@ -43,23 +45,7 @@ class _TemperaturePageState extends State<TemperaturePage> {
     ConnectionManager.Heater_Stop_Temp_Day = Utils.int_str(await cmg.getRequest("get52"), ConnectionManager.Heater_Stop_Temp_Day);
     ConnectionManager.Heater_Stop_Temp_Night = Utils.int_str(await cmg.getRequest("get58"), ConnectionManager.Heater_Stop_Temp_Night);
 
-    ConnectionManager.Humidity_Controller = Utils.int_str(await cmg.getRequest("get59"), ConnectionManager.Humidity_Controller);
-    ConnectionManager.Min_Day_Humidity = Utils.int_str(await cmg.getRequest("get61"), ConnectionManager.Min_Day_Humidity);
-    ConnectionManager.Min_Night_Humidity = Utils.int_str(await cmg.getRequest("get63"), ConnectionManager.Min_Night_Humidity);
-    ConnectionManager.Max_Day_Humidity = Utils.int_str(await cmg.getRequest("get60"), ConnectionManager.Max_Day_Humidity);
-    ConnectionManager.Max_Night_Humidity = Utils.int_str(await cmg.getRequest("get62"), ConnectionManager.Max_Night_Humidity);
-
     setState(() {
-      humidity_controller_radio_gvalue = (int.tryParse(ConnectionManager.Humidity_Controller) ?? 0);
-
-      if (is_night) {
-        humidity_min = (int.tryParse(ConnectionManager.Min_Night_Humidity) ?? 0).toString();
-        humidity_max = (int.tryParse(ConnectionManager.Max_Night_Humidity) ?? 0).toString();
-      } else {
-        humidity_min = (int.tryParse(ConnectionManager.Min_Day_Humidity) ?? 0).toString();
-        humidity_max = (int.tryParse(ConnectionManager.Max_Day_Humidity) ?? 0).toString();
-      }
-
       if (is_night) {
         room_temp = (int.tryParse(ConnectionManager.Favourite_Room_Temp_Night) ?? 0).toString();
         room_temp_sensivity = ((double.tryParse(ConnectionManager.Room_Temp_Sensitivity_Night) ?? 5.0) / 10.0).toString();
@@ -120,38 +106,6 @@ class _TemperaturePageState extends State<TemperaturePage> {
     refresh();
   }
 
-  apply_humidity() async {
-    try {
-      if (int.parse(humidity_min) + 5 >= int.parse(humidity_max)) {
-        Utils.alert(context, "Error", "Humidity min and max must have more than 5 diffrentiate.");
-        return;
-      }
-
-      if (!await cmg.set_request(59, Utils.lim_0_100(ConnectionManager.Humidity_Controller))) {
-        Utils.handleError(context);
-        return;
-      }
-
-      await cmg.set_request(61, Utils.lim_0_100(ConnectionManager.Min_Day_Humidity));
-      await cmg.set_request(63, Utils.lim_0_100(ConnectionManager.Min_Night_Humidity));
-      await cmg.set_request(60, Utils.lim_0_100(ConnectionManager.Max_Day_Humidity));
-      await cmg.set_request(62, Utils.lim_0_100(ConnectionManager.Max_Night_Humidity));
-    } catch (e) {
-      Utils.alert(context, "Error", "please check your input and try again.");
-    }
-    refresh();
-  }
-
-  Widget build_boxed_titlebox({required title, required child}) {
-    // debugger();
-    return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: new InputDecorator(
-            decoration: InputDecoration(
-                labelText: title, labelStyle: Theme.of(context).textTheme.bodyText1, border: OutlineInputBorder(borderSide: BorderSide(color: Colors.yellow))),
-            child: child));
-  }
-
   bool is_night = true;
   build_day_night_switch() => Container(
         color: Color(0xff181818),
@@ -171,6 +125,7 @@ class _TemperaturePageState extends State<TemperaturePage> {
           ]),
         ),
       );
+
   String room_temp = "";
   Widget get row_room_temp => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -196,6 +151,7 @@ class _TemperaturePageState extends State<TemperaturePage> {
           ],
         ),
       );
+
   String room_temp_sensivity = "0.5";
   Widget get row_room_temp_sensivity => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -324,23 +280,11 @@ class _TemperaturePageState extends State<TemperaturePage> {
           ],
         ),
       );
-  List<Widget> make_title(titile) {
-    return [
-      Container(
-        padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
-        alignment: Alignment.centerLeft,
-        child: Text(titile, style: Theme.of(context).textTheme.bodyText1),
-      ),
-      Divider(
-        color: Theme.of(context).accentColor,
-      )
-    ];
-  }
-
   Widget temperature_fragment() =>
       // padding: const EdgeInsets.symmetric(horizontal: 8.0),
       Column(
         children: [
+          ...make_title("Temperature"),
           build_day_night_switch(),
           row_room_temp,
           row_room_temp_sensivity,
@@ -363,126 +307,7 @@ class _TemperaturePageState extends State<TemperaturePage> {
           ))
         ],
       );
-  int humidity_controller_radio_gvalue = 0;
 
-  String humidity_min = "";
-  Widget get row_humidity_min => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: Row(
-          children: [
-            Expanded(child: Text("Min: ")),
-            Expanded(
-              child: TextField(
-                style: Theme.of(context).textTheme.bodyText1,
-                controller: TextEditingController()..text = humidity_min,
-                onChanged: (value) {
-                  humidity_min = Utils.lim_0_100(value);
-                  if (is_night) {
-                    ConnectionManager.Min_Night_Humidity = int.parse(humidity_min).toString().padLeft(3, '0');
-                  } else {
-                    ConnectionManager.Min_Day_Humidity = int.parse(humidity_min).toString().padLeft(3, '0');
-                  }
-                },
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(suffix: Text(' %')),
-              ),
-            )
-          ],
-        ),
-      );
-  String humidity_max = "";
-  Widget get row_humidity_max => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: Row(
-          children: [
-            Expanded(child: Text("Max: ")),
-            Expanded(
-              child: TextField(
-                style: Theme.of(context).textTheme.bodyText1,
-                controller: TextEditingController()..text = humidity_max,
-                onChanged: (value) {
-                  humidity_max = Utils.lim_0_100(value);
-                  if (is_night) {
-                    ConnectionManager.Max_Night_Humidity = int.parse(humidity_max).toString().padLeft(3, '0');
-                  } else {
-                    ConnectionManager.Max_Day_Humidity = int.parse(humidity_max).toString().padLeft(3, '0');
-                  }
-                },
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(suffix: Text(' %')),
-              ),
-            )
-          ],
-        ),
-      );
-
-  Widget humidity_fragment() => Column(
-        children: [
-          build_day_night_switch(),
-          SizedBox(
-            height: 16,
-          ),
-          build_boxed_titlebox(
-              title: "Controller is",
-              child: Column(
-                children: [
-                  ListTile(
-                    title: Text('Humiditfire', style: Theme.of(context).textTheme.bodyText1),
-                    onTap: () {
-                      setState(() {
-                        ConnectionManager.Humidity_Controller = "0"; //means humidifer
-                        if (humidity_controller_radio_gvalue != 0) humidity_controller_radio_gvalue = 0;
-                      });
-                    },
-                    leading: Radio(
-                      value: 0,
-                      groupValue: humidity_controller_radio_gvalue,
-                      onChanged: (int? value) {
-                        setState(() {
-                          if (humidity_controller_radio_gvalue != value) humidity_controller_radio_gvalue = value!;
-                          ConnectionManager.Humidity_Controller = "0"; //means humidifer
-                        });
-                      },
-                    ),
-                  ),
-                  ListTile(
-                    title: Text('Dehumidifier', style: Theme.of(context).textTheme.bodyText1),
-                    onTap: () {
-                      setState(() {
-                        if (humidity_controller_radio_gvalue != 1) humidity_controller_radio_gvalue = 1;
-                        ConnectionManager.Humidity_Controller = "1"; //means Dehumidifer
-                      });
-                    },
-                    leading: Radio(
-                      value: 1,
-                      groupValue: humidity_controller_radio_gvalue,
-                      onChanged: (int? value) {
-                        setState(() {
-                          if (humidity_controller_radio_gvalue != value) humidity_controller_radio_gvalue = value!;
-                          ConnectionManager.Humidity_Controller = "1"; //means Dehumidifer
-                        });
-                      },
-                    ),
-                  ),
-                ],
-              )),
-          row_humidity_min,
-          row_humidity_max,
-          Expanded(
-              child: Align(
-            alignment: Alignment.bottomCenter,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                build_apply_button(() {
-                  apply_humidity();
-                }),
-                build_reset_button()
-              ],
-            ),
-          ))
-        ],
-      );
   build_apply_button(click) => Align(
         alignment: Alignment.bottomCenter,
         child: Container(
@@ -517,31 +342,24 @@ class _TemperaturePageState extends State<TemperaturePage> {
           ),
         ),
       );
+  List<Widget> make_title(titile) {
+    return [
+      Container(
+        padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
+        alignment: Alignment.centerLeft,
+        child: Text(titile, style: Theme.of(context).textTheme.bodyText1),
+      ),
+      Divider(
+        color: Theme.of(context).accentColor,
+      )
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: TabBar(
-          labelStyle: Theme.of(context).textTheme.bodyText1,
-          labelColor: Theme.of(context).textTheme.bodyText1!.color,
-          tabs: [
-            Tab(
-              text: "Temperature",
-            ),
-            Tab(
-              text: "Humidity",
-            ),
-          ],
-        ),
-        body: TabBarView(
-          children: [
-            temperature_fragment(),
-            humidity_fragment(),
-          ],
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 64),
+      child: temperature_fragment(),
     );
   }
 }

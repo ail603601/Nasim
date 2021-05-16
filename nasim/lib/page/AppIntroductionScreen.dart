@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:introduction_screen/introduction_screen.dart';
 import 'package:nasim/page/AppIntroductionScreenModules/page1.dart';
 import 'package:nasim/page/AppIntroductionScreenModules/page2.dart';
 import 'package:nasim/page/AppIntroductionScreenModules/page3.dart';
 import 'package:nasim/provider/FirstTimeUsageChangeNotifier.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:nasim/IntroductionScreen/model/page_decoration.dart';
+import 'package:nasim/IntroductionScreen/introduction_screen.dart';
 
 class AppIntroductionScreen extends StatelessWidget {
   @override
@@ -22,6 +23,7 @@ class AppIntroductionScreen extends StatelessWidget {
 
     return SafeArea(
         child: IntroductionScreen(
+      onNext: () => true,
       pages: [page1(context, _decoration), page2(context, _decoration), page3(context, _decoration)],
       next: Icon(Icons.arrow_forward),
       done: Text(

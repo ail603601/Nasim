@@ -37,11 +37,11 @@ class DeivceMainPage extends StatelessWidget {
               clipBehavior: Clip.hardEdge,
               child: Consumer<MenuInfo>(
                 builder: (BuildContext context, MenuInfo value, Widget? child) {
-                  if (value.menuType == MenuType.Overview && LicenseChangeNotifier.power_box == true && LicenseChangeNotifier.room_temp == true)
+                  if (value.menuType == MenuType.Overview)
                     return OverviePage();
-                  else if (value.menuType == MenuType.Controll && LicenseChangeNotifier.power_box == true && LicenseChangeNotifier.room_temp == true)
+                  else if (value.menuType == MenuType.Controll)
                     return ControllPage();
-                  else if (value.menuType == MenuType.Settings && LicenseChangeNotifier.power_box == true && LicenseChangeNotifier.room_temp == true)
+                  else if (value.menuType == MenuType.Settings)
                     return SettingsPage();
                   else if (value.menuType == MenuType.Licenses)
                     return LicensesPage();
@@ -79,13 +79,7 @@ class DeivceMainPage extends StatelessWidget {
           onPressed: () {
             var menuInfo = Provider.of<MenuInfo>(context, listen: false);
 
-            if (menuInfo.menuType != LicensesPage) {
-              if (LicenseChangeNotifier.power_box == true && LicenseChangeNotifier.room_temp == true) {
-                menuInfo.updateMenu(currentMenuInfo);
-              }
-            } else {
-              menuInfo.updateMenu(currentMenuInfo);
-            }
+            menuInfo.updateMenu(currentMenuInfo);
           },
           child: Column(
             children: <Widget>[
@@ -96,7 +90,7 @@ class DeivceMainPage extends StatelessWidget {
               SizedBox(height: 16),
               Text(
                 currentMenuInfo.title,
-                style: Theme.of(context).textTheme.headline6,
+                style: Theme.of(context).textTheme.bodyText1,
               ),
             ],
           ),

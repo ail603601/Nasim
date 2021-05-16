@@ -7,6 +7,7 @@ import 'package:nasim/page/BarCodeScanPage.dart';
 import 'package:nasim/page/DeviceMainPage.dart';
 import 'package:nasim/page/DevicesListConnect.dart';
 import 'package:nasim/page/SearchDevices.dart';
+import 'package:nasim/page/Wizard/Wizardpage.dart';
 import 'package:nasim/provider/FirstTimeUsageChangeNotifier.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
 import 'package:nasim/provider/SavedevicesChangeNofiter.dart';
@@ -17,9 +18,11 @@ import 'localizations/L10n.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'splash.dart';
 
 void main() {
   runApp(RootView());
+  // runApp(splash());
 }
 
 class RootView extends StatelessWidget {
@@ -46,7 +49,7 @@ class RootView extends StatelessWidget {
 }
 
 class MyApp extends StatelessWidget {
-  static final String title = 'Nasim';
+  static final String title = 'BREEZE';
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +67,7 @@ class MyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
       ],
       // home: sample(),,
-      initialRoute: '/',
+      initialRoute: '/splash',
       // routes: {
       //   // When navigating to the "/" route, build the FirstScreen widget.
       //   '/': (context) => sample(),+
@@ -82,6 +85,15 @@ class MyApp extends StatelessWidget {
         }
         if (settings.name == "/main_device") {
           return CupertinoPageRoute(builder: (context) => DeivceMainPage());
+        }
+        if (settings.name == "/wizard") {
+          return CupertinoPageRoute(builder: (context) => WizardPage());
+        }
+        if (settings.name == "/splash") {
+          return PageRouteBuilder(
+            pageBuilder: (context, animation1, animation2) => splash(),
+            transitionDuration: Duration(seconds: 0),
+          );
         }
         // unknown route
         return CupertinoPageRoute(builder: (context) => sample());
@@ -112,6 +124,7 @@ class sample extends StatelessWidget {
               if (snapshot.data == true) {
                 return AppIntroductionScreen();
               } else {
+                // return splash();
                 return DevicesListConnect();
               }
             }

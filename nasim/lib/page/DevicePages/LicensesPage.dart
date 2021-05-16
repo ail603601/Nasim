@@ -17,13 +17,7 @@ class _LicensesPageState extends State<LicensesPage> {
     init();
   }
 
-  init() async {
-    // await Provider.of<ConnectionManager>(context, listen: false).getRequest("").then(print);
-    // await Provider.of<ConnectionManager>(context, listen: false).getRequest("").then(print);
-    // await Provider.of<ConnectionManager>(context, listen: false).getRequest("").then(print);
-    // await Provider.of<ConnectionManager>(context, listen: false).getRequest("").then(print);
-    // await Provider.of<ConnectionManager>(context, listen: false).getRequest("").then(print);
-  }
+  init() async {}
 
   List<Widget> build_license_row(title) {
     return [
@@ -34,7 +28,7 @@ class _LicensesPageState extends State<LicensesPage> {
         ),
         title: Text(
           title,
-          style: Theme.of(context).textTheme.headline6,
+          style: Theme.of(context).textTheme.bodyText1,
         ),
         trailing: Icon(Icons.verified_outlined),
       ),
@@ -66,21 +60,21 @@ class _LicensesPageState extends State<LicensesPage> {
         builder: (context) => Column(mainAxisSize: MainAxisSize.min, children: [
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-                child: Text("you need to provice license serial number", style: Theme.of(context).textTheme.headline6!),
+                child: Text("you need to provice license serial number", style: Theme.of(context).textTheme.bodyText1!),
               ),
               ListTile(
                   leading: Icon(Icons.qr_code),
-                  title: Text(AppLocalizations.of(context)!.scanQrCode, style: Theme.of(context).textTheme.headline5!),
+                  title: Text(AppLocalizations.of(context)!.scanQrCode, style: Theme.of(context).textTheme.bodyText1!),
                   onTap: () async {
                     await Navigator.pushNamed(context, "/scan_barcode");
-                    if (!LicenseChangeNotifier.power_box) {
-                      Provider.of<LicenseChangeNotifier>(mcontext, listen: false).license_power_box();
+                    // if (!LicenseChangeNotifier.power_box) {
+                    //   Provider.of<LicenseChangeNotifier>(mcontext, listen: false).license_power_box();
 
-                      return;
-                    } else if (!LicenseChangeNotifier.room_temp) {
-                      Provider.of<LicenseChangeNotifier>(mcontext, listen: false).license_room_temp();
-                      return;
-                    }
+                    //   return;
+                    // } else if (!LicenseChangeNotifier.room_temp) {
+                    //   Provider.of<LicenseChangeNotifier>(mcontext, listen: false).license_room_temp();
+                    //   return;
+                    // }
                   }),
               Divider(
                 color: Theme.of(context).accentColor,
@@ -94,14 +88,14 @@ class _LicensesPageState extends State<LicensesPage> {
                     FloatingActionButton(
                       backgroundColor: Theme.of(context).primaryColor,
                       onPressed: () {
-                        if (!LicenseChangeNotifier.power_box) {
-                          Provider.of<LicenseChangeNotifier>(mcontext, listen: false).license_power_box();
+                        // if (!LicenseChangeNotifier.power_box) {
+                        //   Provider.of<LicenseChangeNotifier>(mcontext, listen: false).license_power_box();
 
-                          return;
-                        } else if (!LicenseChangeNotifier.room_temp) {
-                          Provider.of<LicenseChangeNotifier>(mcontext, listen: false).license_room_temp();
-                          return;
-                        }
+                        //   return;
+                        // } else if (!LicenseChangeNotifier.room_temp) {
+                        //   Provider.of<LicenseChangeNotifier>(mcontext, listen: false).license_room_temp();
+                        //   return;
+                        // }
                       },
                       child: Icon(Icons.done, size: 30),
                       // onPressed: () => setState(() {}),
@@ -127,7 +121,7 @@ class _LicensesPageState extends State<LicensesPage> {
                 padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
                 side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
                 shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
-            child: Text("New License", style: Theme.of(context).textTheme.headline6),
+            child: Text("New License", style: Theme.of(context).textTheme.bodyText1),
           ),
         ),
       );
@@ -141,14 +135,9 @@ class _LicensesPageState extends State<LicensesPage> {
               color: Theme.of(context).canvasColor,
               child: SafeArea(
                   child: Column(mainAxisSize: MainAxisSize.max, children: [
-                ...LicenseChangeNotifier.power_box ? build_license_row("Power Box") : [],
-                ...LicenseChangeNotifier.room_temp ? build_license_row("Room Temp sensor") : [],
-                value.is_both_licensed()
-                    ? Text("")
-                    : Text(
-                        "You must provide the power box and room sensor temperature licenses in order to use this device.",
-                        style: Theme.of(context).textTheme.headline6,
-                      ),
+                ...build_license_row("Power Box"),
+                ...build_license_row("Room Temp sensor"),
+
                 // ...,
                 Expanded(child: Align(alignment: Alignment.bottomCenter, child: build_new_license_button(mcontext)))
               ])));

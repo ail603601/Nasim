@@ -7,6 +7,7 @@ class User {
   String mac;
   ConnectionStatus connectionState;
   bool access;
+  int id_table;
 
-  User({this.name = "unknown", this.mac = "0.0.0.0", this.connectionState = ConnectionStatus.disconnected, this.access = false}) {}
+  User({this.name = "unknown", this.mac = "", this.connectionState = ConnectionStatus.disconnected, this.access = false, required this.id_table}) {}
 }

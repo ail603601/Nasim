@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:nasim/Model/Device.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
@@ -18,6 +19,7 @@ class SearchDevices extends StatefulWidget {
 class _SearchDevicesState extends State<SearchDevices> {
   late Timer search_timer;
   int interval = 150;
+  bool conneteced_wifi = true;
 
   @override
   void initState() {
@@ -30,11 +32,13 @@ class _SearchDevicesState extends State<SearchDevices> {
     refresh();
   }
 
-  refresh() {
+  refresh() async {
     Provider.of<ConnectionManager>(context, listen: false).found_devices.forEach((element) async {
       element.ping = await Provider.of<ConnectionManager>(context, listen: false).pingDevice(element);
-      setState(() {});
     });
+    conneteced_wifi = (await Connectivity().checkConnectivity() == ConnectivityResult.wifi);
+    if ((mounted)) setState(() {});
+
     if (mounted) Utils.setTimeOut(interval, refresh);
   }
 
@@ -52,7 +56,7 @@ class _SearchDevicesState extends State<SearchDevices> {
   // List<Device> search_devices() {}
   var text_field_value = "";
   Widget buildTextField(BuildContext context) => TextField(
-        style: Theme.of(context).textTheme.headline6!,
+        style: Theme.of(context).textTheme.bodyText1!,
         // controller: controller,
         keyboardType: TextInputType.number,
         onChanged: (value) {
@@ -65,6 +69,11 @@ class _SearchDevicesState extends State<SearchDevices> {
         ),
       );
 
+  void serial_validated() {
+    Navigator.pop(context);
+    Navigator.pop(context, 1);
+  }
+
   void openBottomSheet(context, Device d) {
     showModalBottomSheet(
         isScrollControlled: true,
@@ -72,17 +81,17 @@ class _SearchDevicesState extends State<SearchDevices> {
         builder: (context) => Column(mainAxisSize: MainAxisSize.min, children: [
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-                child: Text(AppLocalizations.of(context)!.serialNumberRequired, style: Theme.of(context).textTheme.headline6!),
+                child: Text(AppLocalizations.of(context)!.serialNumberRequired, style: Theme.of(context).textTheme.bodyText1!),
               ),
               ListTile(
                   leading: Icon(Icons.qr_code),
-                  title: Text(AppLocalizations.of(context)!.scanQrCode, style: Theme.of(context).textTheme.headline5!),
+                  title: Text(AppLocalizations.of(context)!.scanQrCode, style: Theme.of(context).textTheme.bodyText1!),
                   onTap: () async {
                     var code_received = await Navigator.pushNamed(context, "/scan_barcode");
                     if (code_received == d.serial) {
                       Provider.of<SavedDevicesChangeNotifier>(context, listen: false).setSelectedDevice(d);
-
-                      _displayTextInputDialog(context, d);
+                      await _displayTextInputDialog(context, d);
+                      serial_validated();
                     } else if (code_received != null) {
                       Utils.alert(context, "Error", "serial number was wrong.");
                     }
@@ -102,8 +111,8 @@ class _SearchDevicesState extends State<SearchDevices> {
                         var code_received = text_field_value;
                         if (code_received == d.serial) {
                           Provider.of<SavedDevicesChangeNotifier>(context, listen: false).setSelectedDevice(d);
-
-                          _displayTextInputDialog(context, d);
+                          await _displayTextInputDialog(context, d);
+                          serial_validated();
                         } else {
                           Utils.alert(context, "Error", "serial number was wrong.");
                         }
@@ -117,26 +126,27 @@ class _SearchDevicesState extends State<SearchDevices> {
             ]));
   }
 
-  String last_dialog_text = "Nasim N25";
+  String last_dialog_text = "BREEZE N25";
   Future<void> _displayTextInputDialog(BuildContext context, d) async {
     await showDialog(
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text('Set Device Name'),
+            title: Text('Set Device Name', style: Theme.of(context).textTheme.bodyText1),
             content: TextField(
+              style: Theme.of(context).textTheme.bodyText1,
               onChanged: (value) {
                 setState(() {
                   last_dialog_text = value;
                 });
               },
-              decoration: InputDecoration(hintText: "Nasim N25"),
+              decoration: InputDecoration(hintText: "BREEZE N25"),
             ),
             actions: <Widget>[
               FlatButton(
                 color: Colors.red,
                 textColor: Colors.white,
-                child: Text('CANCEL'),
+                child: Text('CANCEL', style: Theme.of(context).textTheme.bodyText1),
                 onPressed: () {
                   setState(() {
                     Navigator.pop(context);
@@ -146,7 +156,7 @@ class _SearchDevicesState extends State<SearchDevices> {
               FlatButton(
                 color: Colors.green,
                 textColor: Colors.white,
-                child: Text('OK'),
+                child: Text('OK', style: Theme.of(context).textTheme.bodyText1),
                 onPressed: () {
                   SavedDevicesChangeNotifier.selected_device!.name = last_dialog_text;
 
@@ -160,13 +170,16 @@ class _SearchDevicesState extends State<SearchDevices> {
         });
     Provider.of<SavedDevicesChangeNotifier>(context, listen: false)..addDevice(d);
 
-    Navigator.of(context).popUntil((route) => route.isFirst);
+    // Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   @override
   Widget build(BuildContext context) {
     Widget leading_icon(p) => Column(
-          children: [Icon(Icons.network_check), Text("$p  ms", style: Theme.of(context).textTheme.bodyText2!.copyWith(color: Colors.green[300]))],
+          children: [
+            Icon(Icons.network_check),
+            Text("${p == -1 ? "InAccessible" : 'Available'} ", style: Theme.of(context).textTheme.bodyText2!.copyWith(color: Colors.green[300]))
+          ],
           crossAxisAlignment: CrossAxisAlignment.center,
         );
 
@@ -176,7 +189,7 @@ class _SearchDevicesState extends State<SearchDevices> {
     Widget found_devices_list_view = ListView(
         children: found_devices
             .map((d) => ListTile(
-                  title: Text(d.name, style: Theme.of(context).textTheme.headline5!),
+                  title: Text(d.name, style: Theme.of(context).textTheme.bodyText1!),
                   onTap: () {
                     openBottomSheet(context, d);
                   },
@@ -186,7 +199,7 @@ class _SearchDevicesState extends State<SearchDevices> {
 
     return Scaffold(
         appBar: AppBar(
-          title: Text(AppLocalizations.of(context)!.searchingAvailableDevices, style: Theme.of(context).textTheme.headline5!),
+          title: Text(AppLocalizations.of(context)!.searchingAvailableDevices, style: Theme.of(context).textTheme.bodyText1!),
           centerTitle: true,
         ),
         extendBody: true,
@@ -195,10 +208,12 @@ class _SearchDevicesState extends State<SearchDevices> {
             Center(
               child: Padding(
                 padding: const EdgeInsets.all(20.0),
-                child: SpinKitDualRing(
-                  color: Theme.of(context).accentColor,
-                  size: 250,
-                ),
+                child: conneteced_wifi
+                    ? SpinKitDualRing(
+                        color: Theme.of(context).accentColor,
+                        size: 250,
+                      )
+                    : Icon(Icons.wifi_off, size: 150),
               ),
             ),
             Container(

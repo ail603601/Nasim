@@ -1,15 +1,21 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:day_night_switcher/day_night_switcher.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
-import 'package:nasim/utils.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class LightPage extends StatefulWidget {
+import '../../../utils.dart';
+
+class wpage_light extends StatefulWidget {
   @override
-  _LightPageState createState() => _LightPageState();
+  _wpage_lightState createState() => _wpage_lightState();
 }
 
-class _LightPageState extends State<LightPage> {
+class _wpage_lightState extends State<wpage_light> {
   late ConnectionManager cmg;
   refresh() async {
     ConnectionManager.Min_Day_Lux = Utils.int_str(await cmg.getRequest("get74"), ConnectionManager.Min_Day_Lux);
@@ -139,33 +145,36 @@ class _LightPageState extends State<LightPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        padding: EdgeInsets.only(top: 10),
-        color: Theme.of(context).canvasColor,
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          ...make_title("Light levels"),
-          SizedBox(
-            height: 16,
-          ),
-          build_boxed_titlebox(
-              title: "Day",
-              child: Center(
-                child: min_lux(),
-              )),
-          SizedBox(height: 16),
-          build_boxed_titlebox(
-              title: "Night",
-              child: Center(
-                child: max_lux(),
-              )),
-          Expanded(
-              child: Align(
-            alignment: Alignment.bottomCenter,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [build_apply_button(), build_reset_button()],
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 64),
+      child: Container(
+          padding: EdgeInsets.only(top: 10),
+          color: Theme.of(context).canvasColor,
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            ...make_title("Light levels"),
+            SizedBox(
+              height: 16,
             ),
-          ))
-        ]));
+            build_boxed_titlebox(
+                title: "Day",
+                child: Center(
+                  child: min_lux(),
+                )),
+            SizedBox(height: 16),
+            build_boxed_titlebox(
+                title: "Night",
+                child: Center(
+                  child: max_lux(),
+                )),
+            Expanded(
+                child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [build_apply_button(), build_reset_button()],
+              ),
+            ))
+          ])),
+    );
   }
 }

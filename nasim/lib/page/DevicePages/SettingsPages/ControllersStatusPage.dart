@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
 import 'package:nasim/utils.dart';
 import 'package:provider/provider.dart';
+import 'package:toggle_switch/toggle_switch.dart';
 
 class ControllersStatusPage extends StatefulWidget {
   @override
@@ -22,14 +23,14 @@ class _ControllersStatusPageState extends State<ControllersStatusPage> {
 
   late ConnectionManager cmg;
   refresh() async {
-    ConnectionManager.Cooler_Controller_Day_Mode = Utils.int_str(await cmg.getRequest("get74"), ConnectionManager.Cooler_Controller_Day_Mode);
-    ConnectionManager.Cooler_Controller_Night_Mod = Utils.int_str(await cmg.getRequest("get75"), ConnectionManager.Cooler_Controller_Night_Mod);
-    ConnectionManager.Heater_Controller_Day_Mode = Utils.int_str(await cmg.getRequest("get76"), ConnectionManager.Heater_Controller_Day_Mode);
-    ConnectionManager.Heater_Controller_Night_Mode = Utils.int_str(await cmg.getRequest("get77"), ConnectionManager.Heater_Controller_Night_Mode);
-    ConnectionManager.Humidity_Controller_Day_Mode = Utils.int_str(await cmg.getRequest("get78"), ConnectionManager.Humidity_Controller_Day_Mode);
-    ConnectionManager.Humidity_Controller_Night_Mode = Utils.int_str(await cmg.getRequest("get79"), ConnectionManager.Humidity_Controller_Night_Mode);
-    ConnectionManager.Air_Purifier_Controller_Day_Mode = Utils.int_str(await cmg.getRequest("get80"), ConnectionManager.Air_Purifier_Controller_Day_Mode);
-    ConnectionManager.Air_Purifier_Controller_Night_Mode = Utils.int_str(await cmg.getRequest("get81"), ConnectionManager.Air_Purifier_Controller_Night_Mode);
+    ConnectionManager.Cooler_Controller_Day_Mode = Utils.int_str(await cmg.getRequest("get112"), ConnectionManager.Cooler_Controller_Day_Mode);
+    ConnectionManager.Cooler_Controller_Night_Mod = Utils.int_str(await cmg.getRequest("get113"), ConnectionManager.Cooler_Controller_Night_Mod);
+    ConnectionManager.Heater_Controller_Day_Mode = Utils.int_str(await cmg.getRequest("get114"), ConnectionManager.Heater_Controller_Day_Mode);
+    ConnectionManager.Heater_Controller_Night_Mode = Utils.int_str(await cmg.getRequest("get115"), ConnectionManager.Heater_Controller_Night_Mode);
+    ConnectionManager.Humidity_Controller_Day_Mode = Utils.int_str(await cmg.getRequest("get116"), ConnectionManager.Humidity_Controller_Day_Mode);
+    ConnectionManager.Humidity_Controller_Night_Mode = Utils.int_str(await cmg.getRequest("get117"), ConnectionManager.Humidity_Controller_Night_Mode);
+    ConnectionManager.Air_Purifier_Controller_Day_Mode = Utils.int_str(await cmg.getRequest("get118"), ConnectionManager.Air_Purifier_Controller_Day_Mode);
+    ConnectionManager.Air_Purifier_Controller_Night_Mode = Utils.int_str(await cmg.getRequest("get119"), ConnectionManager.Air_Purifier_Controller_Night_Mode);
     if (is_night) {
       cooler_mod_val = ConnectionManager.Cooler_Controller_Night_Mod == "1" ? true : false;
       heater_mod_val = ConnectionManager.Heater_Controller_Night_Mode == "1" ? true : false;
@@ -46,114 +47,163 @@ class _ControllersStatusPageState extends State<ControllersStatusPage> {
   }
 
   apply() async {
-    if (!await cmg.set_request(74, Utils.lim_0_100(ConnectionManager.Cooler_Controller_Day_Mode))) {
+    if (!await cmg.set_request(112, Utils.lim_0_100(ConnectionManager.Cooler_Controller_Day_Mode))) {
       Utils.handleError(context);
       return;
     }
 
-    await cmg.set_request(75, Utils.lim_0_100(ConnectionManager.Cooler_Controller_Night_Mod));
-    await cmg.set_request(76, Utils.lim_0_100(ConnectionManager.Heater_Controller_Day_Mode));
-    await cmg.set_request(77, Utils.lim_0_100(ConnectionManager.Heater_Controller_Night_Mode));
-    await cmg.set_request(78, Utils.lim_0_100(ConnectionManager.Humidity_Controller_Day_Mode));
-    await cmg.set_request(79, Utils.lim_0_100(ConnectionManager.Humidity_Controller_Night_Mode));
-    await cmg.set_request(80, Utils.lim_0_100(ConnectionManager.Air_Purifier_Controller_Day_Mode));
-    await cmg.set_request(81, Utils.lim_0_100(ConnectionManager.Air_Purifier_Controller_Night_Mode));
+    await cmg.set_request(113, Utils.lim_0_100(ConnectionManager.Cooler_Controller_Night_Mod));
+    await cmg.set_request(114, Utils.lim_0_100(ConnectionManager.Heater_Controller_Day_Mode));
+    await cmg.set_request(115, Utils.lim_0_100(ConnectionManager.Heater_Controller_Night_Mode));
+    await cmg.set_request(116, Utils.lim_0_100(ConnectionManager.Humidity_Controller_Day_Mode));
+    await cmg.set_request(117, Utils.lim_0_100(ConnectionManager.Humidity_Controller_Night_Mode));
+    await cmg.set_request(118, Utils.lim_0_100(ConnectionManager.Air_Purifier_Controller_Day_Mode));
+    await cmg.set_request(119, Utils.lim_0_100(ConnectionManager.Air_Purifier_Controller_Night_Mode));
   }
 
   bool cooler_mod_val = false;
-  List<Widget> cooler_mod() => [
-        SwitchListTile(
-          title: Text("Cooler Controller"),
-          onChanged: (value) {
-            if (is_night)
-              ConnectionManager.Cooler_Controller_Night_Mod = value ? "1" : "0";
-            else
-              ConnectionManager.Cooler_Controller_Day_Mode = value ? "1" : "0";
-
-            setState(() {
-              cooler_mod_val = value;
-            });
-            apply();
-          },
-          value: cooler_mod_val,
-        ),
-        Divider(
-          height: 2,
-          thickness: 2,
-        )
-      ];
+  List<Widget> cooler_mod() {
+    return [
+      Row(
+        children: [
+          Expanded(child: Text("Cooler Controller", style: Theme.of(context).textTheme.bodyText1)),
+          ToggleSwitch(
+            minWidth: 60.0,
+            initialLabelIndex: cooler_mod_val ? 1 : 0,
+            cornerRadius: 0.0,
+            activeFgColor: Colors.white,
+            inactiveBgColor: Colors.grey,
+            inactiveFgColor: Colors.white,
+            activeBgColors: [Colors.blue, Colors.blue],
+            labels: ['Off', 'Auto'],
+            onToggle: (index) {
+              if (is_night)
+                ConnectionManager.Cooler_Controller_Night_Mod = index.toString();
+              else
+                ConnectionManager.Cooler_Controller_Day_Mode = index.toString();
+              setState(() {
+                cooler_mod_val = index == 1;
+              });
+              apply();
+            },
+          ),
+        ],
+      ),
+      Divider(
+        height: 2,
+        thickness: 2,
+      )
+    ];
+  }
 
   bool heater_mod_val = false;
-  List<Widget> heater_mod() => [
-        SwitchListTile(
-          title: Text("Heater Controller"),
-          onChanged: (value) {
-            if (is_night)
-              ConnectionManager.Heater_Controller_Night_Mode = value ? "1" : "0";
-            else
-              ConnectionManager.Heater_Controller_Day_Mode = value ? "1" : "0";
-
-            setState(() {
-              heater_mod_val = value;
-            });
-            apply();
-          },
-          value: heater_mod_val,
-        ),
-        Divider(
-          height: 2,
-          thickness: 2,
-        )
-      ];
+  List<Widget> heater_mod() {
+    return [
+      Row(
+        children: [
+          Expanded(child: Text("Heater Controller", style: Theme.of(context).textTheme.bodyText1)),
+          ToggleSwitch(
+            minWidth: 60.0,
+            initialLabelIndex: heater_mod_val ? 1 : 0,
+            cornerRadius: 0.0,
+            activeFgColor: Colors.white,
+            inactiveBgColor: Colors.grey,
+            inactiveFgColor: Colors.white,
+            activeBgColors: [Colors.blue, Colors.blue],
+            labels: ['Off', 'Auto'],
+            onToggle: (index) {
+              if (is_night)
+                ConnectionManager.Heater_Controller_Night_Mode = index.toString();
+              else
+                ConnectionManager.Heater_Controller_Day_Mode = index.toString();
+              setState(() {
+                heater_mod_val = index == 1;
+              });
+              apply();
+            },
+          ),
+        ],
+      ),
+      Divider(
+        height: 2,
+        thickness: 2,
+      )
+    ];
+  }
 
   bool humidity_mod_val = false;
-  List<Widget> humidity_mod() => [
-        SwitchListTile(
-          title: Text("Humidity Controller"),
-          onChanged: (value) {
-            if (is_night)
-              ConnectionManager.Humidity_Controller_Night_Mode = value ? "1" : "0";
-            else
-              ConnectionManager.Humidity_Controller_Day_Mode = value ? "1" : "0";
-
-            setState(() {
-              humidity_mod_val = value;
-            });
-            apply();
-          },
-          value: humidity_mod_val,
-        ),
-        Divider(
-          height: 2,
-          thickness: 2,
-        )
-      ];
+  List<Widget> humidity_mod() {
+    return [
+      Row(
+        children: [
+          Expanded(child: Text("Humidity Controller", style: Theme.of(context).textTheme.bodyText1)),
+          ToggleSwitch(
+            minWidth: 60.0,
+            initialLabelIndex: humidity_mod_val ? 1 : 0,
+            cornerRadius: 0.0,
+            activeFgColor: Colors.white,
+            inactiveBgColor: Colors.grey,
+            inactiveFgColor: Colors.white,
+            activeBgColors: [Colors.blue, Colors.blue],
+            labels: ['Off', 'Auto'],
+            onToggle: (index) {
+              if (is_night)
+                ConnectionManager.Humidity_Controller_Night_Mode = index.toString();
+              else
+                ConnectionManager.Humidity_Controller_Day_Mode = index.toString();
+              setState(() {
+                humidity_mod_val = index == 1;
+              });
+              apply();
+            },
+          ),
+        ],
+      ),
+      Divider(
+        height: 2,
+        thickness: 2,
+      )
+    ];
+  }
 
   bool ap_mod_val = false;
-  List<Widget> ap_mod() => [
-        SwitchListTile(
-          title: Text("Air Purifier Controller"),
-          onChanged: (value) {
-            if (is_night)
-              ConnectionManager.Air_Purifier_Controller_Night_Mode = value ? "1" : "0";
-            else
-              ConnectionManager.Air_Purifier_Controller_Day_Mode = value ? "1" : "0";
-
-            setState(() {
-              ap_mod_val = value;
-            });
-            apply();
-          },
-          value: ap_mod_val,
-        ),
-        Divider(
-          height: 2,
-          thickness: 2,
-        )
-      ];
+  List<Widget> ap_mod() {
+    return [
+      Row(
+        children: [
+          Expanded(child: Text("Air Purifier Controller", style: Theme.of(context).textTheme.bodyText1)),
+          ToggleSwitch(
+            minWidth: 60.0,
+            initialLabelIndex: ap_mod_val ? 1 : 0,
+            cornerRadius: 0.0,
+            activeFgColor: Colors.white,
+            inactiveBgColor: Colors.grey,
+            inactiveFgColor: Colors.white,
+            activeBgColors: [Colors.blue, Colors.blue],
+            labels: ['Off', 'Auto'],
+            onToggle: (index) {
+              if (is_night)
+                ConnectionManager.Air_Purifier_Controller_Night_Mode = index.toString();
+              else
+                ConnectionManager.Air_Purifier_Controller_Day_Mode = index.toString();
+              setState(() {
+                ap_mod_val = index == 1;
+              });
+              apply();
+            },
+          ),
+        ],
+      ),
+      Divider(
+        height: 2,
+        thickness: 2,
+      )
+    ];
+  }
 
   bool is_night = true;
   build_day_night_switch() => Container(
+        color: Color(0xff181818),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: Row(children: [

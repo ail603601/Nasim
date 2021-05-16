@@ -1,17 +1,21 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:day_night_switcher/day_night_switcher.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
-import 'package:nasim/utils.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class AirQualityPage extends StatefulWidget {
+import '../../../utils.dart';
+
+class wpage_air_quality extends StatefulWidget {
   @override
-  _AirQualityPageState createState() => _AirQualityPageState();
+  _wpage_air_qualityState createState() => _wpage_air_qualityState();
 }
 
-class _AirQualityPageState extends State<AirQualityPage> {
+class _wpage_air_qualityState extends State<wpage_air_quality> {
   late ConnectionManager cmg;
   refresh() async {
     ConnectionManager.Max_Day_IAQ = Utils.int_str(await cmg.getRequest("get65"), ConnectionManager.Max_Day_IAQ);
@@ -93,7 +97,7 @@ class _AirQualityPageState extends State<AirQualityPage> {
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
-            Expanded(child: Text("Max IAQ")),
+            Expanded(child: Text("Max IAQ", style: Theme.of(context).textTheme.bodyText1)),
             Expanded(
               child: TextField(
                 style: Theme.of(context).textTheme.bodyText1,
@@ -106,7 +110,7 @@ class _AirQualityPageState extends State<AirQualityPage> {
                   }
                 },
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(suffix: Text("ppm")),
+                decoration: InputDecoration(suffix: Text("ppm", style: Theme.of(context).textTheme.bodyText1)),
               ),
             )
           ],
@@ -117,7 +121,7 @@ class _AirQualityPageState extends State<AirQualityPage> {
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
-            Expanded(child: Text("Min IAQ")),
+            Expanded(child: Text("Min IAQ", style: Theme.of(context).textTheme.bodyText1)),
             Expanded(
               child: TextField(
                 style: Theme.of(context).textTheme.bodyText1,
@@ -130,7 +134,7 @@ class _AirQualityPageState extends State<AirQualityPage> {
                   }
                 },
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(suffix: Text("ppm")),
+                decoration: InputDecoration(suffix: Text("ppm", style: Theme.of(context).textTheme.bodyText1)),
               ),
             )
           ],
@@ -142,7 +146,7 @@ class _AirQualityPageState extends State<AirQualityPage> {
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
-            Expanded(child: Text("Max co2")),
+            Expanded(child: Text("Max co2", style: Theme.of(context).textTheme.bodyText1)),
             Expanded(
               child: TextField(
                 style: Theme.of(context).textTheme.bodyText1,
@@ -156,7 +160,7 @@ class _AirQualityPageState extends State<AirQualityPage> {
                   }
                 },
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(suffix: Text("ppm")),
+                decoration: InputDecoration(suffix: Text("ppm", style: Theme.of(context).textTheme.bodyText1)),
               ),
             )
           ],
@@ -167,7 +171,7 @@ class _AirQualityPageState extends State<AirQualityPage> {
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
-            Expanded(child: Text("Min co2")),
+            Expanded(child: Text("Min co2", style: Theme.of(context).textTheme.bodyText1)),
             Expanded(
               child: TextField(
                 style: Theme.of(context).textTheme.bodyText1,
@@ -180,7 +184,7 @@ class _AirQualityPageState extends State<AirQualityPage> {
                   }
                 },
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(suffix: Text("ppm")),
+                decoration: InputDecoration(suffix: Text("ppm", style: Theme.of(context).textTheme.bodyText1)),
               ),
             )
           ],
@@ -206,7 +210,7 @@ class _AirQualityPageState extends State<AirQualityPage> {
                 labelText: title,
                 labelStyle: Theme.of(context).textTheme.bodyText1,
                 border: OutlineInputBorder(borderSide: BorderSide(color: Colors.yellow))),
-            child: value_id == radio_gid ? child : Center(child: Text("disbaled"))));
+            child: value_id == radio_gid ? child : Center(child: Text("disbaled", style: Theme.of(context).textTheme.bodyText1))));
   }
 
   bool is_night = true;
@@ -286,9 +290,13 @@ class _AirQualityPageState extends State<AirQualityPage> {
   @override
   Widget build(BuildContext context) {
     return Container(
+        padding: const EdgeInsets.only(bottom: 64),
         color: Theme.of(context).canvasColor,
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           ...make_title("Air Quality"),
+          SizedBox(
+            height: 16,
+          ),
           build_day_night_switch(),
           SizedBox(
             height: 16,

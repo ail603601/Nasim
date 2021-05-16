@@ -19,13 +19,13 @@ class LightTheme {
       // Define the default TextTheme. Use this to specify the default
       // text styling for headlines, titles, bodies of text, and more.
       textTheme: TextTheme(
-        headline1: GoogleFonts.roboto(textStyle: TextStyle(fontSize: 72.0, fontWeight: FontWeight.bold, color: Colors.black87)),
-        headline2: GoogleFonts.roboto(textStyle: TextStyle(fontSize: 60.0, fontStyle: FontStyle.normal, color: Colors.black87)),
-        headline3: GoogleFonts.roboto(textStyle: TextStyle(fontSize: 48.0, fontStyle: FontStyle.normal, color: Colors.black87)),
-        headline4: GoogleFonts.roboto(textStyle: TextStyle(fontSize: 36.0, fontStyle: FontStyle.normal, color: Colors.black87)),
-        headline5: GoogleFonts.roboto(textStyle: TextStyle(fontSize: 24.0, fontStyle: FontStyle.normal, color: Colors.black87)),
-        headline6: GoogleFonts.roboto(textStyle: TextStyle(fontSize: 16.0, fontStyle: FontStyle.normal, color: Colors.black87)),
-        bodyText1: GoogleFonts.openSans(textStyle: TextStyle(fontSize: 18.0, fontWeight: FontWeight.normal, color: Colors.black87)),
-        bodyText2: GoogleFonts.openSans(textStyle: TextStyle(fontSize: 12.0, fontStyle: FontStyle.normal, color: Colors.black87)),
+        headline1: GoogleFonts.roboto(textStyle: TextStyle(fontSize: 28.0, fontWeight: FontWeight.bold, color: Colors.white)),
+        headline2: GoogleFonts.roboto(textStyle: TextStyle(fontSize: 26.0, fontStyle: FontStyle.normal, color: Colors.white)),
+        headline3: GoogleFonts.roboto(textStyle: TextStyle(fontSize: 24.0, fontStyle: FontStyle.normal, color: Colors.white)),
+        headline4: GoogleFonts.roboto(textStyle: TextStyle(fontSize: 20.0, fontStyle: FontStyle.normal, color: Colors.white)),
+        headline5: GoogleFonts.roboto(textStyle: TextStyle(fontSize: 18.0, fontStyle: FontStyle.normal, color: Colors.white)),
+        headline6: GoogleFonts.roboto(textStyle: TextStyle(fontSize: 16.0, fontStyle: FontStyle.normal, color: Colors.white)),
+        bodyText1: GoogleFonts.openSans(textStyle: TextStyle(fontSize: 14.0, fontWeight: FontWeight.normal, color: Colors.black87)),
+        bodyText2: GoogleFonts.openSans(textStyle: TextStyle(fontSize: 8.0, fontStyle: FontStyle.normal, color: Colors.black87)),
       ));
 }

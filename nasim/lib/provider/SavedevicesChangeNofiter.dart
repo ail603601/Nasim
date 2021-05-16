@@ -21,6 +21,7 @@ class SavedDevicesChangeNotifier extends ChangeNotifier {
           name: prefs.getString('Device${i}name') ?? "",
           serial: prefs.getString('Device${i}serial') ?? "",
           ip: prefs.getString('Device${i}ip') ?? "0.0.0.0",
+          username: prefs.getString('Device${i}username') ?? "",
           connectionState: ConnectionStatus.connected_close));
     }
     notifyListeners();
@@ -32,6 +33,8 @@ class SavedDevicesChangeNotifier extends ChangeNotifier {
     prefs.setString('Device${i}name', d.name);
     prefs.setString('Device${i}serial', d.serial);
     prefs.setString('Device${i}ip', d.ip);
+    prefs.setString('Device${i}username', d.username);
+
     saved_devices.add(d);
     prefs.setInt('saved_Devices_count', saved_devices.length);
     notifyListeners();
@@ -40,5 +43,18 @@ class SavedDevicesChangeNotifier extends ChangeNotifier {
   static Device? selected_device;
   setSelectedDevice(Device d) {
     selected_device = d;
+  }
+
+  updateSelecteduser_name(name) async {
+    int index = saved_devices.indexOf(selected_device!);
+    saved_devices[index].username = name;
+    selected_device!.username = name;
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('Device${index}name', selected_device!.name);
+    prefs.setString('Device${index}serial', selected_device!.serial);
+    prefs.setString('Device${index}ip', selected_device!.ip);
+    prefs.setString('Device${index}username', selected_device!.username);
+
+    notifyListeners();
   }
 }
