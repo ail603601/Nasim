@@ -1,0 +1,1165 @@
+
+
+/* Create a WiFi access point and provide a web server on it. */
+#include <EEPROM.h>
+
+#include <ESP8266WiFi.h>
+#include <WiFiClient.h>
+#include <WiFiUdp.h>
+
+#include "eep_interface.h"
+
+char device_initialized[] = "0";
+
+//globlal table
+char  DeviceName[] = "0123456789";
+char  Device_Serial_Num[] = "123456789";
+char  Device_Model[] = "N25";
+char  Device_Fan_Power[] = "25";
+char  Power_Box_Serial_Num[] = "123456789";
+char  GSM_Modem_Serial_Num[] = "123456789";
+char  Temp_Sensor_Serial_Num_0[] = "123456789";
+char  Temp_Sensor_Serial_Num_1[] = "123456789";
+char  Temp_Sensor_Serial_Num_2[] = "123456789";
+char  Temp_Sensor_Serial_Num_3[] = "123456789";
+char  Temp_Sensor_Serial_Num_4[] = "123456789";
+char  Temp_Sensor_Serial_Num_5[] = "123456789";
+char  Temp_Sensor_Serial_Num_6[] = "123456789";
+char  Temp_Sensor_Serial_Num_7[] = "123456789";
+char  Temp_Sensor_Serial_Num_8[] = "123456789";
+char  Temp_Sensor_Serial_Num_9[] = "123456789";
+char  Mobile_Name_0[] = "1234567891";
+char  Mobile_Name_1[] = "1234567891";
+char  Mobile_Name_2[] = "1234567891";
+char  Mobile_Name_3[] = "1234567891";
+char  Mobile_Name_4[] = "1234567891";
+char  Mobile_Name_5[] = "1234567891";
+char  Mobile_Model_0[] = "000";
+char  Mobile_Model_1[] = "000";
+char  Mobile_Model_2[] = "000";
+char  Mobile_Model_3[] = "000";
+char  Mobile_Model_4[] = "000";
+char  Mobile_Model_5[] = "000";
+char  Mobile_IMEI_0[] = "000";
+char  Mobile_IMEI_1[] = "000";
+char  Mobile_IMEI_2[] = "000";
+char  Mobile_IMEI_3[] = "000";
+char  Mobile_IMEI_4[] = "000";
+char  Mobile_IMEI_5[] = "000";
+char  Elevation[] = "000";
+char  Pressure[] = "000";
+char  Pressure_change[] = "018";
+char  Min_Valid_Output_Fan_Speed[] = "010";
+char  Max_Valid_Output_Fan_Speed[] = "030";
+char  Real_Output_Fan_Power[] = "000";
+char  Output_Fan_Available_Flag[] = "000";
+char  Min_Valid_Input_Fan_Speed_Day[] = "030";
+char  Min_Valid_Input_Fan_Speed_Night[] = "010";
+char  Max_Valid_Input_Fan_Speed_Day[] = "040";
+char  Max_Valid_Input_Fan_Speed_Night[] = "050";
+char  Input_Fan_Power[] = "050";
+char  Input_Fan_Available_Flag[] = "000";
+char  Favourite_Room_Temp_Day_[] = "000";
+char  Room_Temp_Sensitivity_Day[] = "000";
+char  Cooler_Start_Temp_Day[] = "000";
+char  Cooler_Stop_Temp_Day[] = "000";
+char  Heater_Start_Temp_Day[] = "000";
+char  Heater_Stop_Temp_Day[] = "000";
+char  Favourite_Room_Temp_Night[] = "000";
+char  Room_Temp_Sensitivity_Night[] = "000";
+char  Cooler_Start_Temp_Night[] = "000";
+char  Cooler_Stop_Temp_Night[] = "000";
+char  Heater_Start_Temp_Night[] = "000";
+char  Heater_Stop_Temp_Night[] = "000";
+char  Humidity_Controller[] = "000";
+char  Max_Day_Humidity[] = "000";
+char  Min_Day_Humidity[] = "000";
+char  Max_Night_Humidity[] = "000";
+char  Min_Night_Humidity[] = "000";
+char  IAQ_Flag[] = "0";
+char  Max_Day_IAQ[] = "0000";
+char  Min_Day_IAQ[] = "0000";
+char  Max_Night_IAQ[] = "0000";
+char  Min_Night_IAQ[] = "0000";
+char  CO2_Flag[] = "0";
+char  Max_Day_CO2[] = "0000";
+char  Min_Day_CO2[] = "0000";
+char  Max_Night_CO2[] = "0000";
+char  Min_Night_CO2[] = "0000";
+char  Min_Day_Lux[] = "0000";
+char  Max_Night_Lux[] = "0000";
+char  License_Type[] = "000";
+char  Increase_Fan_Power_License[] = "000";
+char  Increase_Connected_Mobile_License[] = "000";
+char  Real_Room_Temp_0[] = "000";
+char  Real_Room_Temp_1[] = "000";
+char  Real_Room_Temp_2[] = "000";
+char  Real_Room_Temp_3[] = "000";
+char  Real_Room_Temp_4[] = "000";
+char  Real_Room_Temp_5[] = "000";
+char  Real_Room_Temp_6[] = "000";
+char  Real_Room_Temp_7[] = "000";
+char  Real_Room_Temp_8[] = "000";
+char  Real_Room_Temp_9[] = "000";
+char  Real_Outdoor_Temp[] = "000";
+char  Real_Negative_Pressure_[] = "000";
+char  Real_Humidity[] = "000";
+char  Real_IAQ[] = "0000";
+char  Real_CO2[] = "0000";
+char  Real_Light_Level[] = "0000";
+char  Real_Input_Fan_Speed[] = "000";
+char  Real_Output_Fan_Speed[] = "061";
+char  Cooler_Status[] = "000";
+char  Heater_Status[] = "000";
+char  Air_Purifier_Status[] = "000";
+char  Humidity_Controller_Status[] = "000";
+char  Mobile_Number_0[] = "000";
+char  Mobile_Number_1[] = "000";
+char  Mobile_Number_2[] = "000";
+char  Mobile_Number_3[] = "000";
+char  Mobile_Number_4[] = "000";
+char  Mobile_Number_5[] = "000";
+char  GSM_Signal_Power[] = "000";
+char  GSM_SIM_Number[] = "9120000000";
+char  GSM_SIM_Balance[] = "000";
+char  SMS_Priorities_State[] = "0000000";
+char  Access_To_Internet_State[] = "000";
+char  Cooler_Controller_Day_Mode[] = "000";
+char  Cooler_Controller_Night_Mod[] = "000";
+char  Heater_Controller_Day_Mode[] = "000";
+char  Heater_Controller_Night_Mode[] = "000";
+char  Humidity_Controller_Day_Mode[] = "000";
+char  Humidity_Controller_Night_Mode[] = "000";
+char  Air_Purifier_Controller_Day_Mode[] = "000";
+char  Air_Purifier_Controller_Night_Mode[] = "000";
+
+#ifndef APSSID
+#define APSSID "BREEZE Air Conditioner2"
+#define APPSK "thereisnospoon"
+#endif
+#define BAUD_SERIAL 9600
+
+#define SERIAL_NUMBER 12345678
+
+/* Set these to your desired credentials. */
+const char *ssid = APSSID;
+const char *password = APPSK;
+IPAddress local_IP(192, 168, 4, 22);
+IPAddress gateway(192, 168, 4, 9);
+IPAddress subnet(255, 255, 255, 0);
+unsigned int localPort = 9315; // local port to listen on
+
+// buffers for receiving and sending data
+char packetBuffer[UDP_TX_PACKET_MAX_SIZE + 1]; //buffer to hold incoming packet,
+
+char DiscoverBuffer[] = "_INFO,NasimAirCondtioner,12345678"; // a string to send back when discver requested
+
+WiFiUDP Udp;
+
+bool iterate_cmp(char *c1, char *c2)
+{
+  register int ctr = 0;
+  while (1)
+  {
+    if (c1[ctr] == c2[ctr])
+    {
+      ctr++;
+
+      if (c1[ctr] == 0 || c2[ctr] == 0)
+      {
+        return true;
+      }
+    }
+    else
+    {
+      return false;
+    }
+  }
+}
+bool micro_request_ok(char *prefix, char *request)
+{
+
+  Serial.write(prefix, strlen(prefix));
+  Serial.write(request, strlen(request));
+  Serial.write('\n');
+
+  int timeout_ctr = 0;
+  const int timeout = 50000;
+  while (1)
+  {
+    timeout_ctr++;
+    size_t len = (size_t)Serial.available();
+    if (len)
+    {
+      uint8_t sbuf[len];
+      size_t serial_got = Serial.readBytes(sbuf, len);
+      char *index_addr;
+      int index;
+
+      index_addr = strchr((char*)sbuf, 'e');
+      index = (int)(index_addr - (char*)sbuf);
+      bool is_ok = sbuf[index + 1] == 'O' && sbuf[index + 2] == 'k';
+      if (is_ok)
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    }
+    else if (timeout_ctr > timeout)
+    {
+      return false;
+    }
+  }
+}
+void setup()
+{
+  EEPROM.begin(512);
+  Serial.begin(BAUD_SERIAL);
+  delay(500);
+  //first clean
+  if (read_eep(FLASH_CLEANED_1TIME) != 1234)
+  {
+    eep_clear();
+    save_eep(FLASH_CLEANED_1TIME, 1234);
+  }
+  if (read_eep(DEVICE_INITIALIZED) != 1)
+  {
+    device_initialized[0] = '0';
+  }
+
+  WiFi.softAPConfig(local_IP, gateway, subnet);
+  WiFi.setAutoConnect(false);
+  WiFi.setAutoReconnect(false);
+  WiFi.softAP(ssid);
+
+  delay(1000);
+
+  Udp.begin(localPort);
+}
+//char incomingPacket[255];  // buffer for incoming packets
+
+int last_target_index = 0;
+#define MAX_TARGETS_COUTN 20
+char targets_ip[MAX_TARGETS_COUTN][18];
+char targets_name[MAX_TARGETS_COUTN][18];
+
+void send_error(char error_code)
+{
+  char error_msg[] = "!X";
+  error_msg[1] = error_code;
+  send(error_msg);
+}
+
+char incoming_id[45];
+void send(char *data)
+{
+  Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
+  Udp.write(incoming_id);
+  Udp.write('*');
+  Udp.write(data);
+  Udp.endPacket();
+}
+void send(bool result_request)
+{
+  Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
+  Udp.write(incoming_id);
+  Udp.write('*');
+  Udp.write(result_request == true ? "OK" : "NOK");
+  Udp.endPacket();
+}
+
+void process_get_request(int table_id)
+{
+  switch (table_id)
+  {
+
+  case 0:
+    send(DeviceName);
+    break;
+  case 1:
+    send(Device_Serial_Num);
+    break;
+  case 2:
+    send(Device_Model);
+    break;
+  case 3:
+    send(Device_Fan_Power);
+    break;
+  case 4:
+    send(Power_Box_Serial_Num);
+    break;
+  case 5:
+    send(GSM_Modem_Serial_Num);
+    break;
+  case 6:
+    send(Temp_Sensor_Serial_Num_0);
+    break;
+  case 7:
+    send(Temp_Sensor_Serial_Num_1);
+    break;
+  case 8:
+    send(Temp_Sensor_Serial_Num_2);
+    break;
+  case 9:
+    send(Temp_Sensor_Serial_Num_3);
+    break;
+  case 10:
+    send(Temp_Sensor_Serial_Num_4);
+    break;
+  case 11:
+    send(Temp_Sensor_Serial_Num_5);
+    break;
+  case 12:
+    send(Temp_Sensor_Serial_Num_6);
+    break;
+  case 13:
+    send(Temp_Sensor_Serial_Num_7);
+    break;
+  case 14:
+    send(Temp_Sensor_Serial_Num_8);
+    break;
+  case 15:
+    send(Temp_Sensor_Serial_Num_9);
+    break;
+  case 16:
+    send(Mobile_Name_0);
+    break;
+  case 17:
+    send(Mobile_Name_1);
+    break;
+  case 18:
+    send(Mobile_Name_2);
+    break;
+  case 19:
+    send(Mobile_Name_3);
+    break;
+  case 20:
+    send(Mobile_Name_4);
+    break;
+  case 21:
+    send(Mobile_Name_5);
+    break;
+  case 22:
+    send(Mobile_Model_0);
+    break;
+  case 23:
+    send(Mobile_Model_1);
+    break;
+  case 24:
+    send(Mobile_Model_2);
+    break;
+  case 25:
+    send(Mobile_Model_3);
+    break;
+  case 26:
+    send(Mobile_Model_4);
+    break;
+  case 27:
+    send(Mobile_Model_5);
+    break;
+  case 28:
+    send(Mobile_IMEI_0);
+    break;
+  case 29:
+    send(Mobile_IMEI_1);
+    break;
+  case 30:
+    send(Mobile_IMEI_2);
+    break;
+  case 31:
+    send(Mobile_IMEI_3);
+    break;
+  case 32:
+    send(Mobile_IMEI_4);
+    break;
+  case 33:
+    send(Mobile_IMEI_5);
+    break;
+  case 34:
+    send(Elevation);
+    break;
+  case 35:
+    send(Pressure);
+    break;
+  case 36:
+    send(Pressure_change);
+    break;
+  case 37:
+    send(Min_Valid_Output_Fan_Speed);
+    break;
+  case 38:
+    send(Max_Valid_Output_Fan_Speed);
+    break;
+  case 39:
+    send(Real_Output_Fan_Power);
+    break;
+  case 40:
+    send(Output_Fan_Available_Flag);
+    break;
+  case 41:
+    send(Min_Valid_Input_Fan_Speed_Day);
+    break;
+  case 42:
+    send(Min_Valid_Input_Fan_Speed_Night);
+    break;
+  case 43:
+    send(Max_Valid_Input_Fan_Speed_Day);
+    break;
+  case 44:
+    send(Max_Valid_Input_Fan_Speed_Night);
+    break;
+  case 45:
+    send(Input_Fan_Power);
+    break;
+  case 46:
+    send(Input_Fan_Available_Flag);
+    break;
+  case 47:
+    send(Favourite_Room_Temp_Day_);
+    break;
+  case 48:
+    send(Room_Temp_Sensitivity_Day);
+    break;
+  case 49:
+    send(Cooler_Start_Temp_Day);
+    break;
+  case 50:
+    send(Cooler_Stop_Temp_Day);
+    break;
+  case 51:
+    send(Heater_Start_Temp_Day);
+    break;
+  case 52:
+    send(Heater_Stop_Temp_Day);
+    break;
+  case 53:
+    send(Favourite_Room_Temp_Night);
+    break;
+  case 54:
+    send(Room_Temp_Sensitivity_Night);
+    break;
+  case 55:
+    send(Cooler_Start_Temp_Night);
+    break;
+  case 56:
+    send(Cooler_Stop_Temp_Night);
+    break;
+  case 57:
+    send(Heater_Start_Temp_Night);
+    break;
+  case 58:
+    send(Heater_Stop_Temp_Night);
+    break;
+  case 59:
+    send(Humidity_Controller);
+    break;
+  case 60:
+    send(Max_Day_Humidity);
+    break;
+  case 61:
+    send(Min_Day_Humidity);
+    break;
+  case 62:
+    send(Max_Night_Humidity);
+    break;
+  case 63:
+    send(Min_Night_Humidity);
+    break;
+  case 64:
+    send(IAQ_Flag);
+    break;
+  case 65:
+    send(Max_Day_IAQ);
+    break;
+  case 66:
+    send(Min_Day_IAQ);
+    break;
+  case 67:
+    send(Max_Night_IAQ);
+    break;
+  case 68:
+    send(Min_Night_IAQ);
+    break;
+  case 69:
+    send(CO2_Flag);
+    break;
+  case 70:
+    send(Max_Day_CO2);
+    break;
+  case 71:
+    send(Min_Day_CO2);
+    break;
+  case 72:
+    send(Max_Night_CO2);
+    break;
+  case 73:
+    send(Min_Night_CO2);
+    break;
+  case 74:
+    send(Min_Day_Lux);
+    break;
+  case 75:
+    send(Max_Night_Lux);
+    break;
+  case 76:
+    send(License_Type);
+    break;
+  case 77:
+    send(Increase_Fan_Power_License);
+    break;
+  case 78:
+    send(Increase_Connected_Mobile_License);
+    break;
+  case 79:
+    send(Real_Room_Temp_0);
+    break;
+  case 80:
+    send(Real_Room_Temp_1);
+    break;
+  case 81:
+    send(Real_Room_Temp_2);
+    break;
+  case 82:
+    send(Real_Room_Temp_3);
+    break;
+  case 83:
+    send(Real_Room_Temp_4);
+    break;
+  case 84:
+    send(Real_Room_Temp_5);
+    break;
+  case 85:
+    send(Real_Room_Temp_6);
+    break;
+  case 86:
+    send(Real_Room_Temp_7);
+    break;
+  case 87:
+    send(Real_Room_Temp_8);
+    break;
+  case 88:
+    send(Real_Room_Temp_9);
+    break;
+  case 89:
+    send(Real_Outdoor_Temp);
+    break;
+  case 90:
+    send(Real_Negative_Pressure_);
+    break;
+  case 91:
+    send(Real_Humidity);
+    break;
+  case 92:
+    send(Real_IAQ);
+    break;
+  case 93:
+    send(Real_CO2);
+    break;
+  case 94:
+    send(Real_Light_Level);
+    break;
+  case 95:
+    send(Real_Input_Fan_Speed);
+    break;
+  case 96:
+    send(Real_Output_Fan_Speed);
+    break;
+  case 97:
+    send(Cooler_Status);
+    break;
+  case 98:
+    send(Heater_Status);
+    break;
+  case 99:
+    send(Air_Purifier_Status);
+    break;
+  case 100:
+    send(Humidity_Controller_Status);
+    break;
+  case 101:
+    send(Mobile_Number_0);
+    break;
+  case 102:
+    send(Mobile_Number_1);
+    break;
+  case 103:
+    send(Mobile_Number_2);
+    break;
+  case 104:
+    send(Mobile_Number_3);
+    break;
+  case 105:
+    send(Mobile_Number_4);
+    break;
+  case 106:
+    send(Mobile_Number_5);
+    break;
+  case 107:
+    send(GSM_Signal_Power);
+    break;
+  case 108:
+    send(GSM_SIM_Number);
+    break;
+  case 109:
+    send(GSM_SIM_Balance);
+    break;
+  case 110:
+    send(SMS_Priorities_State);
+    break;
+  case 111:
+    send(Access_To_Internet_State);
+    break;
+  case 112:
+    send(Cooler_Controller_Day_Mode);
+    break;
+  case 113:
+    send(Cooler_Controller_Night_Mod);
+    break;
+  case 114:
+    send(Heater_Controller_Day_Mode);
+    break;
+  case 115:
+    send(Heater_Controller_Night_Mode);
+    break;
+  case 116:
+    send(Humidity_Controller_Day_Mode);
+    break;
+  case 117:
+    send(Humidity_Controller_Night_Mode);
+    break;
+  case 118:
+    send(Air_Purifier_Controller_Day_Mode);
+    break;
+  case 119:
+    send(Air_Purifier_Controller_Night_Mode);
+    break;
+
+  //self defiend
+  case 120:
+    //    char asf = ((char)last_target_index) + '0';
+    //    send(&asf);
+    break;
+
+  case 121:
+    send(device_initialized);
+    break;
+
+  default:
+    break;
+  }
+}
+void process_set_request(int table_id, char *val)
+{
+  switch (table_id)
+  {
+
+  case 0:
+    strcpy(DeviceName, val);
+    break;
+  case 1:
+    strcpy(Device_Serial_Num, val);
+    break;
+  case 2:
+    strcpy(Device_Model, val);
+    break;
+  case 3:
+    strcpy(Device_Fan_Power, val);
+    break;
+  case 4:
+    strcpy(Power_Box_Serial_Num, val);
+    break;
+  case 5:
+    strcpy(GSM_Modem_Serial_Num, val);
+    break;
+  case 6:
+    strcpy(Temp_Sensor_Serial_Num_0, val);
+    // send(micro_request_ok("G0-", Temp_Sensor_Serial_Num_0));
+    break;
+  case 7:
+    strcpy(Temp_Sensor_Serial_Num_1, val);
+    send(micro_request_ok("G1-", Temp_Sensor_Serial_Num_1));
+    break;
+  case 8:
+    strcpy(Temp_Sensor_Serial_Num_2, val);
+    send(micro_request_ok("G2-", Temp_Sensor_Serial_Num_2));
+    break;
+  case 9:
+    strcpy(Temp_Sensor_Serial_Num_3, val);
+    send(micro_request_ok("G3-", Temp_Sensor_Serial_Num_3));
+    break;
+  case 10:
+    strcpy(Temp_Sensor_Serial_Num_4, val);
+    send(micro_request_ok("G4-", Temp_Sensor_Serial_Num_4));
+    break;
+  case 11:
+    strcpy(Temp_Sensor_Serial_Num_5, val);
+    send(micro_request_ok("G5-", Temp_Sensor_Serial_Num_5));
+    break;
+  case 12:
+    strcpy(Temp_Sensor_Serial_Num_6, val);
+    send(micro_request_ok("G6-", Temp_Sensor_Serial_Num_6));
+    break;
+  case 13:
+    strcpy(Temp_Sensor_Serial_Num_7, val);
+    send(micro_request_ok("G7-", Temp_Sensor_Serial_Num_7));
+    break;
+  case 14:
+    strcpy(Temp_Sensor_Serial_Num_8, val);
+    send(micro_request_ok("G8-", Temp_Sensor_Serial_Num_8));
+    break;
+  case 15:
+    strcpy(Temp_Sensor_Serial_Num_9, val);
+    send(micro_request_ok("G9-", Temp_Sensor_Serial_Num_9));
+    break;
+  case 16:
+    strcpy(Mobile_Name_0, val);
+    break;
+  case 17:
+    strcpy(Mobile_Name_1, val);
+    break;
+  case 18:
+    strcpy(Mobile_Name_2, val);
+    break;
+  case 19:
+    strcpy(Mobile_Name_3, val);
+    break;
+  case 20:
+    strcpy(Mobile_Name_4, val);
+    break;
+  case 21:
+    strcpy(Mobile_Name_5, val);
+    break;
+  case 22:
+    strcpy(Mobile_Model_0, val);
+    break;
+  case 23:
+    strcpy(Mobile_Model_1, val);
+    break;
+  case 24:
+    strcpy(Mobile_Model_2, val);
+    break;
+  case 25:
+    strcpy(Mobile_Model_3, val);
+    break;
+  case 26:
+    strcpy(Mobile_Model_4, val);
+    break;
+  case 27:
+    strcpy(Mobile_Model_5, val);
+    break;
+  case 28:
+    strcpy(Mobile_IMEI_0, val);
+    break;
+  case 29:
+    strcpy(Mobile_IMEI_1, val);
+    break;
+  case 30:
+    strcpy(Mobile_IMEI_2, val);
+    break;
+  case 31:
+    strcpy(Mobile_IMEI_3, val);
+    break;
+  case 32:
+    strcpy(Mobile_IMEI_4, val);
+    break;
+  case 33:
+    strcpy(Mobile_IMEI_5, val);
+    break;
+  case 34:
+    strcpy(Elevation, val);
+    break;
+  case 35:
+    strcpy(Pressure, val);
+    break;
+  case 36:
+    strcpy(Pressure_change, val);
+    break;
+  case 37:
+    strcpy(Min_Valid_Output_Fan_Speed, val);
+    break;
+  case 38:
+    strcpy(Max_Valid_Output_Fan_Speed, val);
+    break;
+  case 39:
+    strcpy(Real_Output_Fan_Power, val);
+    break;
+  case 40:
+    strcpy(Output_Fan_Available_Flag, val);
+    break;
+  case 41:
+    strcpy(Min_Valid_Input_Fan_Speed_Day, val);
+    break;
+  case 42:
+    strcpy(Min_Valid_Input_Fan_Speed_Night, val);
+    break;
+  case 43:
+    strcpy(Max_Valid_Input_Fan_Speed_Day, val);
+    break;
+  case 44:
+    strcpy(Max_Valid_Input_Fan_Speed_Night, val);
+    break;
+  case 45:
+    strcpy(Input_Fan_Power, val);
+    break;
+  case 46:
+    strcpy(Input_Fan_Available_Flag, val);
+    break;
+  case 47:
+    strcpy(Favourite_Room_Temp_Day_, val);
+    break;
+  case 48:
+    strcpy(Room_Temp_Sensitivity_Day, val);
+    break;
+  case 49:
+    strcpy(Cooler_Start_Temp_Day, val);
+    break;
+  case 50:
+    strcpy(Cooler_Stop_Temp_Day, val);
+    break;
+  case 51:
+    strcpy(Heater_Start_Temp_Day, val);
+    break;
+  case 52:
+    strcpy(Heater_Stop_Temp_Day, val);
+    break;
+  case 53:
+    strcpy(Favourite_Room_Temp_Night, val);
+    break;
+  case 54:
+    strcpy(Room_Temp_Sensitivity_Night, val);
+    break;
+  case 55:
+    strcpy(Cooler_Start_Temp_Night, val);
+    break;
+  case 56:
+    strcpy(Cooler_Stop_Temp_Night, val);
+    break;
+  case 57:
+    strcpy(Heater_Start_Temp_Night, val);
+    break;
+  case 58:
+    strcpy(Heater_Stop_Temp_Night, val);
+    break;
+  case 59:
+    strcpy(Humidity_Controller, val);
+    break;
+  case 60:
+    strcpy(Max_Day_Humidity, val);
+    break;
+  case 61:
+    strcpy(Min_Day_Humidity, val);
+    break;
+  case 62:
+    strcpy(Max_Night_Humidity, val);
+    break;
+  case 63:
+    strcpy(Min_Night_Humidity, val);
+    break;
+  case 64:
+    strcpy(IAQ_Flag, val);
+    break;
+  case 65:
+    strcpy(Max_Day_IAQ, val);
+    break;
+  case 66:
+    strcpy(Min_Day_IAQ, val);
+    break;
+  case 67:
+    strcpy(Max_Night_IAQ, val);
+    break;
+  case 68:
+    strcpy(Min_Night_IAQ, val);
+    break;
+  case 69:
+    strcpy(CO2_Flag, val);
+    break;
+  case 70:
+    strcpy(Max_Day_CO2, val);
+    break;
+  case 71:
+    strcpy(Min_Day_CO2, val);
+    break;
+  case 72:
+    strcpy(Max_Night_CO2, val);
+    break;
+  case 73:
+    strcpy(Min_Night_CO2, val);
+    break;
+  case 74:
+    strcpy(Min_Day_Lux, val);
+    break;
+  case 75:
+    strcpy(Max_Night_Lux, val);
+    break;
+  case 76:
+    strcpy(License_Type, val);
+    break;
+  case 77:
+    strcpy(Increase_Fan_Power_License, val);
+    break;
+  case 78:
+    strcpy(Increase_Connected_Mobile_License, val);
+    break;
+  case 79:
+    strcpy(Real_Room_Temp_0, val);
+    break;
+  case 80:
+    strcpy(Real_Room_Temp_1, val);
+    break;
+  case 81:
+    strcpy(Real_Room_Temp_2, val);
+    break;
+  case 82:
+    strcpy(Real_Room_Temp_3, val);
+    break;
+  case 83:
+    strcpy(Real_Room_Temp_4, val);
+    break;
+  case 84:
+    strcpy(Real_Room_Temp_5, val);
+    break;
+  case 85:
+    strcpy(Real_Room_Temp_6, val);
+    break;
+  case 86:
+    strcpy(Real_Room_Temp_7, val);
+    break;
+  case 87:
+    strcpy(Real_Room_Temp_8, val);
+    break;
+  case 88:
+    strcpy(Real_Room_Temp_9, val);
+    break;
+  case 89:
+    strcpy(Real_Outdoor_Temp, val);
+    break;
+  case 90:
+    strcpy(Real_Negative_Pressure_, val);
+    break;
+  case 91:
+    strcpy(Real_Humidity, val);
+    break;
+  case 92:
+    strcpy(Real_IAQ, val);
+    break;
+  case 93:
+    strcpy(Real_CO2, val);
+    break;
+  case 94:
+    strcpy(Real_Light_Level, val);
+    break;
+  case 95:
+    strcpy(Real_Input_Fan_Speed, val);
+    break;
+  case 96:
+    strcpy(Real_Output_Fan_Speed, val);
+    break;
+  case 97:
+    strcpy(Cooler_Status, val);
+    break;
+  case 98:
+    strcpy(Heater_Status, val);
+    break;
+  case 99:
+    strcpy(Air_Purifier_Status, val);
+    break;
+  case 100:
+    strcpy(Humidity_Controller_Status, val);
+    break;
+  case 101:
+    strcpy(Mobile_Number_0, val);
+    break;
+  case 102:
+    strcpy(Mobile_Number_1, val);
+    break;
+  case 103:
+    strcpy(Mobile_Number_2, val);
+    break;
+  case 104:
+    strcpy(Mobile_Number_3, val);
+    break;
+  case 105:
+    strcpy(Mobile_Number_4, val);
+    break;
+  case 106:
+    strcpy(Mobile_Number_5, val);
+    break;
+  case 107:
+    strcpy(GSM_Signal_Power, val);
+    break;
+  case 108:
+    strcpy(GSM_SIM_Number, val);
+    break;
+  case 109:
+    strcpy(GSM_SIM_Balance, val);
+    break;
+  case 110:
+    strcpy(SMS_Priorities_State, val);
+    break;
+  case 111:
+    strcpy(Access_To_Internet_State, val);
+    break;
+  case 112:
+    strcpy(Cooler_Controller_Day_Mode, val);
+    break;
+  case 113:
+    strcpy(Cooler_Controller_Night_Mod, val);
+    break;
+  case 114:
+    strcpy(Heater_Controller_Day_Mode, val);
+    break;
+  case 115:
+    strcpy(Heater_Controller_Night_Mode, val);
+    break;
+  case 116:
+    strcpy(Humidity_Controller_Day_Mode, val);
+    break;
+  case 117:
+    strcpy(Humidity_Controller_Night_Mode, val);
+    break;
+  case 118:
+    strcpy(Air_Purifier_Controller_Day_Mode, val);
+    break;
+  case 119:
+    strcpy(Air_Purifier_Controller_Night_Mode, val);
+    break;
+  case 121:
+  strcpy(device_initialized, val);
+    break;
+
+  default:
+    break;
+  }
+}
+int subtrack_id(char *enitrepacket)
+{
+  int counter = 0;
+  while (1)
+  {
+    if (enitrepacket[counter] == '/')
+    {
+      //end
+      incoming_id[counter] = 0;
+      break;
+    }
+    incoming_id[counter] = enitrepacket[counter];
+
+    counter++;
+  }
+  return counter;
+}
+
+void loop()
+{
+
+  // if there's data available, read a packet
+  int packetSize = Udp.parsePacket();
+
+  if (packetSize)
+  {
+    //    Serial.printf("Received packet of size %d from %s:%d\n    (to %s:%d, free heap = %d B)\n",
+    //                  packetSize,
+    //                  Udp.remoteIP().toString().c_str(), Udp.remotePort(),
+    //                  Udp.destinationIP().toString().c_str(), Udp.localPort(),
+    //                  ESP.getFreeHeap()); ee09e6d0-ad74-11eb-9a7b-495ebcf498fd/NASIM_SERVER_DISCOVER
+
+    // read the packet into packetBufffer
+    int n = Udp.read(packetBuffer, UDP_TX_PACKET_MAX_SIZE);
+    packetBuffer[n] = 0;
+    char *packet_data = packetBuffer + subtrack_id(packetBuffer) + 1;
+
+    if (strcmp(packet_data, "_DISCOVER") == 0)
+    {
+      //if we dont have it already
+      // bool already_exist = false;
+      // for (int i = 0; i < MAX_TARGETS_COUTN; i++)
+      // {
+      //   if (strcmp(targets_ip[i], Udp.remoteIP().toString().c_str()) == 0)
+      //   {
+      //     already_exist = true;
+      //   }
+      // }
+      // if (!already_exist)
+      // {
+        //add it to list
+        // strcpy(targets_ip[last_target_index], Udp.remoteIP().toString().c_str());
+        // last_target_index++;
+      // }
+
+      //answering it
+      send(DiscoverBuffer);
+      return;
+    }
+
+    if (strcmp(packet_data, "_PING") == 0)
+    {
+      send("reply");
+      return;
+    }
+    if (iterate_cmp("get", packet_data))
+    {
+      int number = atoi(&packet_data[3]);
+      process_get_request(number);
+    }
+    if (iterate_cmp("set", packet_data))
+    {
+      char number_table[] = "000";
+      number_table[0] = packet_data[3];
+      number_table[1] = packet_data[4];
+      number_table[2] = packet_data[5];
+
+      int number = atoi(number_table);
+      Serial.printf("set %d to %s", number, &packet_data[7]);
+
+      process_set_request(number, &packet_data[7]);
+      send("OK");
+      return;
+    }
+
+    // else
+    // {
+    //   //if we have registered this client, we answer
+    //   bool already_exist = false;
+
+    //   for (int i = 0; i < last_target_index; i++)
+    //   {
+    //     if (strcmp(targets_ip[i], Udp.remoteIP().toString().c_str()) == 0)
+    //     {
+
+    //       already_exist = true;
+    //     }
+    //   }
+    //   if (already_exist)
+    //   {
+    //     Serial.write(packet_data, n);
+    //   }
+    // }
+    //check UART for data
+    //    {
+    //            size_t len = (size_t)Serial.available();
+    //            if (len) {
+    //              uint8_t sbuf[len];
+    //              size_t serial_got = Serial.readBytes(sbuf, len);
+    //              // push UART data to all connected telnet clients
+    //              for (int i = 0; i < last_target_index; i++)
+    //              {
+    //              Udp.beginPacket(targets_ip[i], 9315);
+    //              Udp.write(sbuf,serial_got);
+    //              Udp.endPacket();
+    //              }
+    //
+    //
+    //          }
+    //    }
+    //    Serial.println("Contents:");
+    //    Serial.println(packetBuffer);
+    //
+    //    // send a reply, to the IP address and port that sent us the packet we received
+    //    Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
+    //    Udp.write(ReplyBuffer);
+    //    Udp.endPacket();
+  }
+}
