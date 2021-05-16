@@ -40,12 +40,12 @@ char Mobile_Model_2[] = "X";
 char Mobile_Model_3[] = "X";
 char Mobile_Model_4[] = "X";
 char Mobile_Model_5[] = "X";
-char Mobile_IMEI_0[]  = "X";
-char Mobile_IMEI_1[]  = "X";
-char Mobile_IMEI_2[]  = "X";
-char Mobile_IMEI_3[]  = "X";
-char Mobile_IMEI_4[]  = "X";
-char Mobile_IMEI_5[]  = "X";
+char Mobile_IMEI_0[] = "X";
+char Mobile_IMEI_1[] = "X";
+char Mobile_IMEI_2[] = "X";
+char Mobile_IMEI_3[] = "X";
+char Mobile_IMEI_4[] = "X";
+char Mobile_IMEI_5[] = "X";
 char Elevation[] = "12345";
 char Pressure[] = "12345";
 char Pressure_change[] = "1234";
@@ -59,18 +59,18 @@ char Max_Valid_Input_Fan_Speed_Day[] = "000";
 char Max_Valid_Input_Fan_Speed_Night[] = "000";
 char Input_Fan_Power[] = "0000";
 char Input_Fan_Available_Flag[] = "0";
-char Favourite_Room_Temp_Day_[] = "+000";//alamat far
-char Room_Temp_Sensitivity_Day[] = "00";//float
-char Cooler_Start_Temp_Day[] = "+000";//alamat far
-char Cooler_Stop_Temp_Day[] = "+000";//alamat far
-char Heater_Start_Temp_Day[] = "+000";//alamat far
-char Heater_Stop_Temp_Day[] = "+000";//alamat far
-char Favourite_Room_Temp_Night[] = "+000";//alamat far
-char Room_Temp_Sensitivity_Night[] = "00";//float
-char Cooler_Start_Temp_Night[] = "+000";//alamat far
-char Cooler_Stop_Temp_Night[] = "+000";//alamat far
-char Heater_Start_Temp_Night[] = "+000";//alamat far
-char Heater_Stop_Temp_Night[] = "+000";//alamat far
+char Favourite_Room_Temp_Day_[] = "+000";  //alamat far
+char Room_Temp_Sensitivity_Day[] = "00";   //float
+char Cooler_Start_Temp_Day[] = "+000";     //alamat far
+char Cooler_Stop_Temp_Day[] = "+000";      //alamat far
+char Heater_Start_Temp_Day[] = "+000";     //alamat far
+char Heater_Stop_Temp_Day[] = "+000";      //alamat far
+char Favourite_Room_Temp_Night[] = "+000"; //alamat far
+char Room_Temp_Sensitivity_Night[] = "00"; //float
+char Cooler_Start_Temp_Night[] = "+000";   //alamat far
+char Cooler_Stop_Temp_Night[] = "+000";    //alamat far
+char Heater_Start_Temp_Night[] = "+000";   //alamat far
+char Heater_Stop_Temp_Night[] = "+000";    //alamat far
 char Humidity_Controller[] = "0";
 char Max_Day_Humidity[] = "000";
 char Min_Day_Humidity[] = "000";
@@ -91,17 +91,17 @@ char Max_Night_Lux[] = "0000";
 char License_Type[] = "0";
 char Increase_Fan_Power_License[] = "0123456789";
 char Increase_Connected_Mobile_License[] = "0123456789";
-char Real_Room_Temp_0[] = "+000";//alamat far
-char Real_Room_Temp_1[] = "+000";//alamat far
-char Real_Room_Temp_2[] = "+000";//alamat far
-char Real_Room_Temp_3[] = "+000";//alamat far
-char Real_Room_Temp_4[] = "+000";//alamat far
-char Real_Room_Temp_5[] = "+000";//alamat far
-char Real_Room_Temp_6[] = "+000";//alamat far
-char Real_Room_Temp_7[] = "+000";//alamat far
-char Real_Room_Temp_8[] = "+000";//alamat far
-char Real_Room_Temp_9[] = "+000";//alamat far
-char Real_Outdoor_Temp[] = "+000";//alamat far
+char Real_Room_Temp_0[] = "+000";  //alamat far
+char Real_Room_Temp_1[] = "+000";  //alamat far
+char Real_Room_Temp_2[] = "+000";  //alamat far
+char Real_Room_Temp_3[] = "+000";  //alamat far
+char Real_Room_Temp_4[] = "+000";  //alamat far
+char Real_Room_Temp_5[] = "+000";  //alamat far
+char Real_Room_Temp_6[] = "+000";  //alamat far
+char Real_Room_Temp_7[] = "+000";  //alamat far
+char Real_Room_Temp_8[] = "+000";  //alamat far
+char Real_Room_Temp_9[] = "+000";  //alamat far
+char Real_Outdoor_Temp[] = "+000"; //alamat far
 char Real_Negative_Pressure_[] = "0000";
 char Real_Humidity[] = "000";
 char Real_IAQ[] = "0000";
@@ -176,6 +176,36 @@ bool iterate_cmp(char *c1, char *c2)
     }
   }
 }
+bool is_line_break_present(char *data, int len)
+{
+  while (1)
+  {
+    len--;
+    char c = data[len];
+    if (c == '\n')
+      return true;
+    else if (c == 0)
+      return false;
+    else if (len == 0)
+      return false;
+  }
+  return false;
+}
+char index_of_char(char c,char* str,int len){
+  int i = 0;
+   while (1)
+  {
+    if(str[i]==c)
+    return true;
+    else if(str[i]==0)
+    return false;
+    else if(len == i)
+    return false;
+
+
+    i++;
+  }
+}
 bool micro_request_ok(char *prefix, char *request)
 {
 
@@ -184,32 +214,44 @@ bool micro_request_ok(char *prefix, char *request)
   Serial.write('\n');
 
   int timeout_ctr = 0;
-  const int timeout = 50000;
+  const int timeout = 5000000; //like 10 sec
   while (1)
   {
     timeout_ctr++;
     size_t len = (size_t)Serial.available();
     if (len)
     {
-      uint8_t sbuf[len];
+      uint8_t sbuf[50];
       size_t serial_got = Serial.readBytes(sbuf, len);
-      char *index_addr;
-      int index;
+      while (!is_line_break_present((char *)sbuf, serial_got))
+      {
+        serial_got += Serial.readBytes((char *)sbuf + serial_got, len);
+      }
 
-      index_addr = strchr((char *)sbuf, '_');
-      index = (int)(index_addr - (char *)sbuf);
+      Serial.write("\nReceived: ");
+      Serial.write(sbuf, serial_got);
+      Serial.write("\n");
+
+      char *index_addr;
+      int index =   index_of_char('_',(char*)sbuf, serial_got);
       bool is_ok = sbuf[index + 1] == 'O' && sbuf[index + 2] == 'k';
       if (is_ok)
       {
+        Serial.write("Request succeed!\n");
+
         return true;
       }
       else
       {
+        Serial.write("Request failed (NOK)!\n");
+
         return false;
       }
     }
     else if (timeout_ctr > timeout)
     {
+      Serial.write("timed out\n");
+
       return false;
     }
   }
@@ -812,6 +854,26 @@ void process_get_request(int table_id)
     break;
   }
 }
+
+char mstrcpy_container[30];
+char *mstrcpy(char *dest, char *from)
+{
+
+  bool reached_end_from = false;
+  int i = 0;
+  while (dest[i] != 0)
+  {
+    if (from[i] == 0)
+    {
+      reached_end_from = true;
+    }
+    mstrcpy_container[i] = reached_end_from ? '0' : from[i];
+    i++;
+  }
+  mstrcpy_container[i] = 0;
+  return mstrcpy_container;
+}
+
 bool process_set_request(int table_id, char *val)
 {
   switch (table_id)
@@ -846,7 +908,7 @@ bool process_set_request(int table_id, char *val)
     }
     break;
   case 4:
-    if (micro_request_ok("(E", val))
+    if (micro_request_ok("(E", mstrcpy(Power_Box_Serial_Num, val)))
     {
       strcpy(Power_Box_Serial_Num, val);
       return true;
@@ -1410,17 +1472,17 @@ bool process_set_request(int table_id, char *val)
     }
     break;
   case 107:
-    strcpy(GSM_Signal_Power, val);//invalid set
+    strcpy(GSM_Signal_Power, val); //invalid set
     break;
   case 108:
-   if (micro_request_ok("&K", val))
+    if (micro_request_ok("&K", val))
     {
       strcpy(GSM_SIM_Number, val);
       return true;
     }
     break;
   case 109:
-    strcpy(GSM_SIM_Balance, val;//invalid set
+    strcpy(GSM_SIM_Balance, val); //invalid set
     break;
   case 110:
     if (micro_request_ok("&M", val))
@@ -1430,74 +1492,74 @@ bool process_set_request(int table_id, char *val)
     }
     break;
   case 111:
-   if (micro_request_ok("&N", val))
+    if (micro_request_ok("&N", val))
     {
       strcpy(Access_To_Internet_State, val);
       return true;
     }
     break;
   case 112:
-  if (micro_request_ok("&O", val))
+    if (micro_request_ok("&O", val))
     {
       strcpy(Cooler_Controller_Day_Mode, val);
       return true;
     }
     break;
   case 113:
-  if (micro_request_ok("&P", val))
+    if (micro_request_ok("&P", val))
     {
       strcpy(Cooler_Controller_Night_Mod, val);
       return true;
     }
     break;
   case 114:
-  if (micro_request_ok("&Q", val))
+    if (micro_request_ok("&Q", val))
     {
       strcpy(Heater_Controller_Day_Mode, val);
       return true;
     }
     break;
   case 115:
-  if (micro_request_ok("&R", val))
+    if (micro_request_ok("&R", val))
     {
       strcpy(Heater_Controller_Night_Mode, val);
       return true;
     }
     break;
   case 116:
-  if (micro_request_ok("&S", val))
+    if (micro_request_ok("&S", val))
     {
       strcpy(Humidity_Controller_Day_Mode, val);
       return true;
     }
     break;
   case 117:
-  if (micro_request_ok("&T", val))
+    if (micro_request_ok("&T", val))
     {
       strcpy(Humidity_Controller_Night_Mode, val);
       return true;
     }
     break;
   case 118:
-  if (micro_request_ok("&U", val))
+    if (micro_request_ok("&U", val))
     {
       strcpy(Air_Purifier_Controller_Day_Mode, val);
       return true;
     }
     break;
   case 119:
-   if (micro_request_ok("&V", val))
+    if (micro_request_ok("&V", val))
     {
       strcpy(Air_Purifier_Controller_Night_Mode, val);
       return true;
     }
     break;
   case 121:
-  // if (micro_request_ok("&", val))
-  //   {
-      strcpy(device_initialized, val);
-      return true;
-  //   }
+    // if (micro_request_ok("&", val))
+    //   {
+    strcpy(device_initialized, val);
+    return true;
+    //   }
     break;
 
   default:
