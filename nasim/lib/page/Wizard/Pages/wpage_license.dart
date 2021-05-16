@@ -259,7 +259,7 @@ class _wpage_licenseState extends State<wpage_license> {
           if (data == "") {
             return;
           }
-          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).set_request(int.parse(num) + 6, data);
+          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).set_request((num + 6), data);
           if (is_valid) {
             onvalidated();
 

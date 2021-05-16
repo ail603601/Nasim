@@ -9,6 +9,8 @@
 
 #include "eep_interface.h"
 
+#define TEST_MODE 1
+
 char device_initialized[] = "0";
 
 //globlal table
@@ -191,17 +193,17 @@ bool is_line_break_present(char *data, int len)
   }
   return false;
 }
-char index_of_char(char c,char* str,int len){
+char index_of_char(char c, char *str, int len)
+{
   int i = 0;
-   while (1)
+  while (1)
   {
-    if(str[i]==c)
-    return true;
-    else if(str[i]==0)
-    return false;
-    else if(len == i)
-    return false;
-
+    if (str[i] == c)
+      return i;
+    else if (str[i] == 0)
+      return 0;
+    else if (len == i)
+      return 0;
 
     i++;
   }
@@ -227,30 +229,37 @@ bool micro_request_ok(char *prefix, char *request)
       {
         serial_got += Serial.readBytes((char *)sbuf + serial_got, len);
       }
+      sbuf[serial_got] = 0;
 
+#if TEST_MODE
       Serial.write("\nReceived: ");
       Serial.write(sbuf, serial_got);
       Serial.write("\n");
+#endif
 
-      char *index_addr;
-      int index =   index_of_char('_',(char*)sbuf, serial_got);
-      bool is_ok = sbuf[index + 1] == 'O' && sbuf[index + 2] == 'k';
+      int index = index_of_char('_', (char *)sbuf, serial_got);
+      bool is_ok = sbuf[index + 1] == 'O' && sbuf[index + 2] == 'K';
       if (is_ok)
       {
-        Serial.write("Request succeed!\n");
 
+#if TEST_MODE
+        Serial.write("Request succeed!\n");
+#endif
         return true;
       }
       else
       {
+#if TEST_MODE
         Serial.write("Request failed (NOK)!\n");
-
+#endif
         return false;
       }
     }
     else if (timeout_ctr > timeout)
     {
+#if TEST_MODE
       Serial.write("timed out\n");
+#endif
 
       return false;
     }
@@ -263,25 +272,44 @@ void micro_get_requiest(char *get_cmd, char *destination)
   Serial.write('\n');
 
   int timeout_ctr = 0;
-  const int timeout = 50000;
+  const int timeout = 5000000; //like 10 sec
   while (1)
   {
     timeout_ctr++;
     size_t len = (size_t)Serial.available();
     if (len)
     {
-      uint8_t sbuf[len];
+      uint8_t sbuf[50];
       size_t serial_got = Serial.readBytes(sbuf, len);
-      char *index_addr;
-      int index;
+      while (!is_line_break_present((char *)sbuf, serial_got))
+      {
+        serial_got += Serial.readBytes((char *)sbuf + serial_got, len);
+      }
+      sbuf[serial_got] = 0;
 
-      index_addr = strchr((char *)sbuf, '_');
-      index = (int)(index_addr - (char *)sbuf);
+#if TEST_MODE
+      Serial.write("\nReceived: ");
+      Serial.write(sbuf, serial_got);
+      Serial.write("\n");
+#endif
+
+      int index = index_of_char('_', (char *)sbuf, serial_got);
+
+#if TEST_MODE
+      Serial.write("current get request answered => ");
+      Serial.write((char *)&sbuf[index]);
+      Serial.write("\n");
+#endif
+
       strcpy(destination, (char *)&sbuf[index]);
       return;
     }
     else if (timeout_ctr > timeout)
     {
+#if TEST_MODE
+      Serial.write("current get request timed out, answered by last chached data\n");
+#endif
+
       return;
     }
   }
@@ -1645,7 +1673,7 @@ void loop()
       number_table[2] = packet_data[5];
 
       int number = atoi(number_table);
-      Serial.printf("set %d to %s", number, &packet_data[7]);
+      Serial.printf("set %d to %s => ", number, &packet_data[7]);
 
       send(process_set_request(number, &packet_data[7]));
       // send("OK");
