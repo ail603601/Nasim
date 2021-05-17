@@ -1,6 +1,9 @@
 import 'package:flutter/foundation.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nasim/utils.dart';
+
+import 'ConnectionManager.dart';
 
 class LicenseChangeNotifier extends ChangeNotifier {
   bool power_box = false;
@@ -22,8 +25,8 @@ class LicenseChangeNotifier extends ChangeNotifier {
   bool is_both_licensed() => power_box && room_temp_0;
 
   void license_power_box() async {
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setBool(dserial + 'power_box', true);
+    // final prefs = await SharedPreferences.getInstance();
+    // prefs.setBool(dserial + 'power_box', true);
     power_box = true;
     notifyListeners();
   }
@@ -61,57 +64,65 @@ class LicenseChangeNotifier extends ChangeNotifier {
         room_temp_9 = true;
         break;
     }
-    final prefs = await SharedPreferences.getInstance();
-
-    prefs.setBool(dserial + 'room_temp_$n', true);
+    // final prefs = await SharedPreferences.getInstance();
+    // prefs.setBool(dserial + 'room_temp_$n', true);
     notifyListeners();
   }
 
   license_6_mobiles() async {
     six_mobiles = true;
 
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setBool(dserial + 'six_mobiles', true);
+    // final prefs = await SharedPreferences.getInstance();
+    // prefs.setBool(dserial + 'six_mobiles', true);
     notifyListeners();
   }
 
   license_outdoor_temp() async {
     outdoor_temp = true;
 
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setBool(dserial + 'outdoor_temp', true);
+    // final prefs = await SharedPreferences.getInstance();
+    // prefs.setBool(dserial + 'outdoor_temp', true);
     notifyListeners();
   }
 
   license_gsm_modem() async {
     gsm_modem = true;
 
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setBool(dserial + 'gsm_modem', true);
+    // final prefs = await SharedPreferences.getInstance();
+    // prefs.setBool(dserial + 'gsm_modem', true);
     notifyListeners();
   }
 
-  LicenseChangeNotifier(dserial) {
-    this.dserial = dserial;
-    init();
+  LicenseChangeNotifier(context) {
+    init(context);
   }
 
-  init() async {
-    final prefs = await SharedPreferences.getInstance();
-    // power_box = prefs.getBool(dserial + 'power_box') ?? false;
-    // room_temp_0 = prefs.getBool(dserial + 'room_temp_0') ?? false;
-    // room_temp_1 = prefs.getBool(dserial + 'room_temp_1') ?? false;
-    // room_temp_2 = prefs.getBool(dserial + 'room_temp_2') ?? false;
-    // room_temp_3 = prefs.getBool(dserial + 'room_temp_3') ?? false;
-    // room_temp_4 = prefs.getBool(dserial + 'room_temp_4') ?? false;
-    // room_temp_5 = prefs.getBool(dserial + 'room_temp_5') ?? false;
-    // room_temp_6 = prefs.getBool(dserial + 'room_temp_6') ?? false;
-    // room_temp_7 = prefs.getBool(dserial + 'room_temp_7') ?? false;
-    // room_temp_8 = prefs.getBool(dserial + 'room_temp_8') ?? false;
-    // room_temp_9 = prefs.getBool(dserial + 'room_temp_9') ?? false;
-    // six_mobiles = prefs.getBool(dserial + 'six_mobiles') ?? false;
-    // outdoor_temp = prefs.getBool(dserial + 'outdoor_temp') ?? false;
-    // gsm_modem = prefs.getBool(dserial + 'gsm_modem') ?? false;
+  Future<String> get_safe(cmd, context, defaul) async {
+    String rec = await Provider.of<ConnectionManager>(context, listen: false).getRequest(cmd);
+    if (rec == "timeout") {
+      rec = defaul;
+    }
+    notifyListeners();
+
+    return rec;
+  }
+
+  init(context) async {
+    // final prefs = await SharedPreferences.getInstance();
+    power_box = await get_safe("get4", context, "0000000000") != "0000000000";
+    room_temp_0 = await get_safe("get6", context, "0000000000") != "0000000000";
+    room_temp_1 = await get_safe("get7", context, "0000000000") != "0000000000";
+    room_temp_2 = await get_safe("get8", context, "0000000000") != "0000000000";
+    room_temp_3 = await get_safe("get9", context, "0000000000") != "0000000000";
+    room_temp_4 = await get_safe("get10", context, "0000000000") != "0000000000";
+    room_temp_5 = await get_safe("get11", context, "0000000000") != "0000000000";
+    room_temp_6 = await get_safe("get12", context, "0000000000") != "0000000000";
+    room_temp_7 = await get_safe("get13", context, "0000000000") != "0000000000";
+    room_temp_8 = await get_safe("get14", context, "0000000000") != "0000000000";
+    room_temp_9 = await get_safe("get15", context, "0000000000") != "0000000000";
+    // six_mobiles = await Provider.of<ConnectionManager>(context, listen: false).getRequest("get16", context) != "0000000000";
+    // outdoor_temp = axwait Provider.of<ConnectionManager>(context, listen: false).getRequest("get16", context) != "0000000000";
+    gsm_modem = await get_safe("get5", context, "0000000000") != "0000000000";
     notifyListeners();
   }
 }

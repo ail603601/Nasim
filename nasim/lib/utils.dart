@@ -22,6 +22,17 @@ class Utils {
     Utils.alert(context, "Error", "Commiunication Failed.");
   }
 
+  static String lim_0_20(String input) {
+    int converted = int.tryParse(input) ?? -1;
+    if (converted == -1) {
+      return "00";
+    } else {
+      converted = min(20, converted);
+      converted = max(0, converted);
+      return converted.toString().padLeft(2, '0');
+    }
+  }
+
   static String lim_0_100(String input) {
     int converted = int.tryParse(input) ?? -1;
     if (converted == -1) {
@@ -41,6 +52,32 @@ class Utils {
       converted = min(9999, converted);
       converted = max(0, converted);
       return converted.toString().padLeft(4, '0');
+    }
+  }
+
+  static String sign_int_999(String input) {
+    int converted = int.tryParse(input) ?? -1;
+    if (converted == -1) {
+      return "+000";
+    } else {
+      converted = min(999, converted);
+      converted = max(-999, converted);
+      String raw = converted.toString().padLeft(3, '0');
+      String sign = converted < 0 ? "-" : "+";
+      return "$sign$raw";
+    }
+  }
+
+  static String sign_int_100(String input) {
+    int converted = int.tryParse(input) ?? -1;
+    if (converted == -1) {
+      return "+000";
+    } else {
+      converted = min(100, converted);
+      converted = max(-100, converted);
+      String raw = converted.toString().padLeft(3, '0');
+      String sign = converted < 0 ? "-" : "+";
+      return "$sign$raw";
     }
   }
 
@@ -70,7 +107,7 @@ class Utils {
         // set up the AlertDialog
         AlertDialog alert = AlertDialog(
           title: Text(title, style: Theme.of(context).textTheme.bodyText1!),
-          content: Text(msg, style: Theme.of(context).textTheme.bodyText2!),
+          content: Text(msg, style: Theme.of(context).textTheme.bodyText1!),
           actions: [
             okButton,
           ],

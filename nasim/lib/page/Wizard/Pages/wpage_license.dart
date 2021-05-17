@@ -52,7 +52,7 @@ class _wpage_licenseState extends State<wpage_license> {
             return;
           }
           var data = await Utils.ask_serial("You have to provdie license's serial number", context);
-          if (data == "") {
+          if (data == "" && data != "null") {
             return;
           }
           bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).set_request(5, data);
@@ -88,7 +88,7 @@ class _wpage_licenseState extends State<wpage_license> {
             return;
           }
           var data = await Utils.ask_serial("You have to provdie license's serial number", context);
-          if (data == "") {
+          if (data == "" && data != "null") {
             return;
           }
           //TODO: THIS ID IS NOT CORRECT
@@ -127,7 +127,7 @@ class _wpage_licenseState extends State<wpage_license> {
             return;
           }
           var data = await Utils.ask_serial("You have to provdie license's serial number", context);
-          if (data == "") {
+          if (data == "" && data != "null") {
             return;
           }
           bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).set_request(4, data);
@@ -217,7 +217,7 @@ class _wpage_licenseState extends State<wpage_license> {
             return;
           }
           var data = await Utils.ask_serial("You have to provdie license's serial number", context);
-          if (data == "") {
+          if (data == "" && data != "null") {
             return;
           }
           bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).set_request(6, data);
@@ -256,7 +256,7 @@ class _wpage_licenseState extends State<wpage_license> {
             return;
           }
           var data = await Utils.ask_serial("You have to provdie license's serial number", context);
-          if (data == "") {
+          if (data == "" && data != "null") {
             return;
           }
           bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).set_request((num + 6), data);
@@ -278,11 +278,14 @@ class _wpage_licenseState extends State<wpage_license> {
 
   @override
   Widget build(BuildContext context) {
+    checkifnexyallowed(Provider.of<LicenseChangeNotifier>(context, listen: false));
+
     return Container(
         padding: const EdgeInsets.only(bottom: 64),
         child: SingleChildScrollView(
-          child: Consumer<LicenseChangeNotifier>(
-            builder: (context, lcn, child) => Column(
+          child: Consumer<LicenseChangeNotifier>(builder: (context, lcn, child) {
+            checkifnexyallowed(lcn);
+            return Column(
               children: [
                 hintbox(),
                 license_power_box_row(lcn),
@@ -299,8 +302,8 @@ class _wpage_licenseState extends State<wpage_license> {
                 ),
                 license_gsm_modem_row(lcn)
               ],
-            ),
-          ),
+            );
+          }),
         ));
   }
 }

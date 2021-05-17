@@ -36,7 +36,7 @@ class WizardPage extends StatelessWidget {
           centerTitle: true,
         ),
         body: ChangeNotifierProvider<LicenseChangeNotifier>(
-          create: (context) => LicenseChangeNotifier(SavedDevicesChangeNotifier.selected_device!.serial),
+          create: (context) => LicenseChangeNotifier(context),
           lazy: false,
           child: IntroductionScreen(
             onNext: () => can_next,

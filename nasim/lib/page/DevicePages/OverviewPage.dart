@@ -29,6 +29,15 @@ class _OverviePageState extends State<OverviePage> {
 
   refresh() async {
     ConnectionManager.Real_Room_Temp_0 = Utils.int_str(await cmg.getRequest("get79"), ConnectionManager.Real_Room_Temp_0);
+    ConnectionManager.Real_Room_Temp_1 = Utils.int_str(await cmg.getRequest("get80"), ConnectionManager.Real_Room_Temp_1);
+    ConnectionManager.Real_Room_Temp_2 = Utils.int_str(await cmg.getRequest("get81"), ConnectionManager.Real_Room_Temp_2);
+    ConnectionManager.Real_Room_Temp_3 = Utils.int_str(await cmg.getRequest("get82"), ConnectionManager.Real_Room_Temp_3);
+    ConnectionManager.Real_Room_Temp_4 = Utils.int_str(await cmg.getRequest("get83"), ConnectionManager.Real_Room_Temp_4);
+    ConnectionManager.Real_Room_Temp_5 = Utils.int_str(await cmg.getRequest("get84"), ConnectionManager.Real_Room_Temp_5);
+    ConnectionManager.Real_Room_Temp_6 = Utils.int_str(await cmg.getRequest("get85"), ConnectionManager.Real_Room_Temp_6);
+    ConnectionManager.Real_Room_Temp_7 = Utils.int_str(await cmg.getRequest("get86"), ConnectionManager.Real_Room_Temp_7);
+    ConnectionManager.Real_Room_Temp_8 = Utils.int_str(await cmg.getRequest("get87"), ConnectionManager.Real_Room_Temp_8);
+
     ConnectionManager.Real_Outdoor_Temp = Utils.int_str(await cmg.getRequest("get89"), ConnectionManager.Real_Outdoor_Temp);
     ConnectionManager.Real_Negative_Pressure_ = Utils.int_str(await cmg.getRequest("get90"), ConnectionManager.Real_Negative_Pressure_);
     ConnectionManager.Real_Humidity = Utils.int_str(await cmg.getRequest("get91"), ConnectionManager.Real_Humidity);
@@ -83,7 +92,15 @@ class _OverviePageState extends State<OverviePage> {
         child: SafeArea(
             child: SingleChildScrollView(
           child: Column(mainAxisSize: MainAxisSize.max, children: [
-            ...build_text_row(title: "Room Temperature", value: ConnectionManager.Real_Room_Temp_0),
+            ...build_text_row(title: "Room Temperature 0", value: ConnectionManager.Real_Room_Temp_0),
+            ...build_text_row(title: "Room Temperature 1", value: ConnectionManager.Real_Room_Temp_1),
+            ...build_text_row(title: "Room Temperature 2", value: ConnectionManager.Real_Room_Temp_2),
+            ...build_text_row(title: "Room Temperature 3", value: ConnectionManager.Real_Room_Temp_3),
+            ...build_text_row(title: "Room Temperature 4", value: ConnectionManager.Real_Room_Temp_4),
+            ...build_text_row(title: "Room Temperature 5", value: ConnectionManager.Real_Room_Temp_5),
+            ...build_text_row(title: "Room Temperature 6", value: ConnectionManager.Real_Room_Temp_6),
+            ...build_text_row(title: "Room Temperature 7", value: ConnectionManager.Real_Room_Temp_7),
+            ...build_text_row(title: "Room Temperature 8", value: ConnectionManager.Real_Room_Temp_8),
             ...build_text_row(title: "Outdoor Temperature", value: ConnectionManager.Real_Outdoor_Temp),
             ...build_text_row(title: "Negative Pressure", value: ConnectionManager.Real_Negative_Pressure_, suffix: 'hpa'),
             ...build_text_row(title: "HUmiditoy", value: ConnectionManager.Real_Humidity, suffix: '%'),

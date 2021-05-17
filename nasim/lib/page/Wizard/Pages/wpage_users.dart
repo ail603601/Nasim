@@ -28,50 +28,46 @@ class _wpage_usersState extends State<wpage_users> {
   }
 
   add_device() async {
-    if (SavedDevicesChangeNotifier.selected_device!.username != "") {
-      Utils.showSnackBar(context, "you can't add your phone again.");
-      return;
-    }
-
     if (await refresh()) {
-      var lcn = Provider.of<LicenseChangeNotifier>(context, listen: false);
-      for (var i = 0; i < 6; i++) {
-        String name_n = await cmg.getRequest("get${i + 16}");
-        if (!name_n.startsWith("_")) {
-          if (i > 2) {
-            if (!lcn.six_mobiles) {
-              var data = await Utils.ask_serial("only 3 mobiles can be added by free, delete one mobile or provide the 6 mobiles serial number", context);
-              if (data == "") {
-                return;
-              }
-              bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).set_request(78, data);
-              if (is_valid) {
-                lcn.license_6_mobiles();
-              } else {
-                Utils.showSnackBar(context, "Wrong serial number.");
-                return;
-              }
-            }
-          }
-          await _displayTextInputDialog(context, (name) async {
-            name = "_" + name;
-            if (users_found.any((element) => "_" + element.name == name)) {
-              Utils.showSnackBar(context, "this name already exists");
-            } else {
-              if (await cmg.set_request(i + 16, name)) {
-                await Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelecteduser_name(name);
+      if (SavedDevicesChangeNotifier.selected_device!.username != "") {
+        Utils.showSnackBar(context, "you can't add your phone again.");
+        return;
+      }
 
-                await refresh();
-                Utils.showSnackBar(context, "Done.");
-                WizardPage.can_next = true;
-              } else {
-                Utils.showSnackBar(context, "cummunication failed");
-              }
-            }
-          });
-          return;
+      var lcn = Provider.of<LicenseChangeNotifier>(context, listen: false);
+
+      if (users_found.length > 3) {
+        if (!lcn.six_mobiles) {
+          var data = await Utils.ask_serial("only 3 mobiles can be added by free, delete one mobile or provide the 6 mobiles serial number", context);
+          if (data == "") {
+            return;
+          }
+          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).set_request(78, data);
+          if (is_valid) {
+            lcn.license_6_mobiles();
+          } else {
+            Utils.showSnackBar(context, "Wrong serial number.");
+            return;
+          }
         }
       }
+      await _displayTextInputDialog(context, (name) async {
+        name = "_" + name;
+        if (users_found.any((element) => "_" + element.name == name)) {
+          Utils.showSnackBar(context, "this name already exists");
+        } else {
+          if (await cmg.set_request(users_found.length + 16, name)) {
+            await Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelecteduser_name(name);
+
+            await refresh();
+            Utils.showSnackBar(context, "Done.");
+            WizardPage.can_next = true;
+          } else {
+            Utils.showSnackBar(context, "cummunication failed");
+          }
+        }
+      });
+      return;
     }
   }
 
@@ -84,6 +80,7 @@ class _wpage_usersState extends State<wpage_users> {
     for (var i = 0; i < 6; i++) {
       String name_n = await cmg.getRequest("get${i + 16}");
       if (name_n == 'timeout') {
+        Utils.handleError(context);
         return false;
       }
       if (name_n.startsWith("_")) {

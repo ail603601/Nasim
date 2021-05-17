@@ -26,6 +26,6 @@ class LightTheme {
         headline5: GoogleFonts.roboto(textStyle: TextStyle(fontSize: 18.0, fontStyle: FontStyle.normal, color: Colors.white)),
         headline6: GoogleFonts.roboto(textStyle: TextStyle(fontSize: 16.0, fontStyle: FontStyle.normal, color: Colors.white)),
         bodyText1: GoogleFonts.openSans(textStyle: TextStyle(fontSize: 14.0, fontWeight: FontWeight.normal, color: Colors.black87)),
-        bodyText2: GoogleFonts.openSans(textStyle: TextStyle(fontSize: 8.0, fontStyle: FontStyle.normal, color: Colors.black87)),
+        bodyText2: GoogleFonts.openSans(textStyle: TextStyle(fontSize: 12.0, fontStyle: FontStyle.normal, color: Colors.black87)),
       ));
 }

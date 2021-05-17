@@ -55,7 +55,7 @@
     "controll":"Controll",
     "settings":"Settings",
     "licenses":"Licenses",
-    "usersPageDescription":"this page shows all mobile phones that can acceess this device,in order yo use this device, you must your phone to the list, maximum 3 devices can be added by free ",
+    "usersPageDescription":"this page shows all mobile phones that can acceess this device,in order to controll the air condtioner, you must add your phone to the list, maximum 3 devices can be added by free ",
 
     "hello": "Hello {username}",
     "@hello": {

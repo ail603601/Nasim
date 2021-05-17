@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../utils.dart';
+import '../Wizardpage.dart';
 
 class wpage_light extends StatefulWidget {
   @override
@@ -26,6 +27,7 @@ class _wpage_lightState extends State<wpage_light> {
   @override
   void initState() {
     super.initState();
+    WizardPage.can_next = false;
 
     cmg = Provider.of<ConnectionManager>(context, listen: false);
 
@@ -39,6 +41,7 @@ class _wpage_lightState extends State<wpage_light> {
     }
 
     await cmg.set_request(75, Utils.lim_0_9999(ConnectionManager.Max_Night_Lux));
+    WizardPage.can_next = true;
 
     refresh();
   }

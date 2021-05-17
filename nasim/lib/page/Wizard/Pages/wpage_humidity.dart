@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../utils.dart';
+import '../Wizardpage.dart';
 
 class wpage_humidity extends StatefulWidget {
   @override
@@ -20,6 +21,7 @@ class _wpage_humidityState extends State<wpage_humidity> {
   @override
   void initState() {
     super.initState();
+    WizardPage.can_next = false;
 
     cmg = Provider.of<ConnectionManager>(context, listen: false);
 
@@ -256,15 +258,16 @@ class _wpage_humidityState extends State<wpage_humidity> {
         return;
       }
 
-      if (!await cmg.set_request(59, Utils.lim_0_100(ConnectionManager.Humidity_Controller))) {
+      if (!await cmg.set_request(59, Utils.sign_int_100(ConnectionManager.Humidity_Controller))) {
         Utils.handleError(context);
         return;
       }
 
-      await cmg.set_request(61, Utils.lim_0_100(ConnectionManager.Min_Day_Humidity));
-      await cmg.set_request(63, Utils.lim_0_100(ConnectionManager.Min_Night_Humidity));
-      await cmg.set_request(60, Utils.lim_0_100(ConnectionManager.Max_Day_Humidity));
-      await cmg.set_request(62, Utils.lim_0_100(ConnectionManager.Max_Night_Humidity));
+      await cmg.set_request(61, Utils.sign_int_100(ConnectionManager.Min_Day_Humidity));
+      await cmg.set_request(63, Utils.sign_int_100(ConnectionManager.Min_Night_Humidity));
+      await cmg.set_request(60, Utils.sign_int_100(ConnectionManager.Max_Day_Humidity));
+      await cmg.set_request(62, Utils.sign_int_100(ConnectionManager.Max_Night_Humidity));
+      WizardPage.can_next = true;
     } catch (e) {
       Utils.alert(context, "Error", "please check your input and try again.");
     }

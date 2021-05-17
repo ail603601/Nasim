@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../utils.dart';
+import '../Wizardpage.dart';
 
 class wpage_temperature extends StatefulWidget {
   @override
@@ -20,6 +21,7 @@ class _wpage_temperatureState extends State<wpage_temperature> {
   @override
   void initState() {
     super.initState();
+    WizardPage.can_next = false;
 
     cmg = Provider.of<ConnectionManager>(context, listen: false);
 
@@ -83,23 +85,24 @@ class _wpage_temperatureState extends State<wpage_temperature> {
         return;
       }
 
-      if (!await cmg.set_request(47, Utils.lim_0_100(ConnectionManager.Favourite_Room_Temp_Day_))) {
+      if (!await cmg.set_request(47, Utils.sign_int_100(ConnectionManager.Favourite_Room_Temp_Day_))) {
         Utils.handleError(context);
         return;
       }
-      await cmg.set_request(53, Utils.lim_0_100(ConnectionManager.Favourite_Room_Temp_Night));
+      await cmg.set_request(53, Utils.sign_int_100(ConnectionManager.Favourite_Room_Temp_Night));
 
-      await cmg.set_request(48, Utils.lim_0_100(ConnectionManager.Room_Temp_Sensitivity_Day));
-      await cmg.set_request(54, Utils.lim_0_100(ConnectionManager.Room_Temp_Sensitivity_Night));
+      await cmg.set_request(48, Utils.lim_0_20(ConnectionManager.Room_Temp_Sensitivity_Day));
+      await cmg.set_request(54, Utils.lim_0_20(ConnectionManager.Room_Temp_Sensitivity_Night));
 
-      await cmg.set_request(49, Utils.lim_0_100(ConnectionManager.Cooler_Start_Temp_Day));
-      await cmg.set_request(55, Utils.lim_0_100(ConnectionManager.Cooler_Start_Temp_Night));
-      await cmg.set_request(50, Utils.lim_0_100(ConnectionManager.Cooler_Stop_Temp_Day));
-      await cmg.set_request(56, Utils.lim_0_100(ConnectionManager.Cooler_Stop_Temp_Night));
-      await cmg.set_request(51, Utils.lim_0_100(ConnectionManager.Heater_Start_Temp_Day));
-      await cmg.set_request(57, Utils.lim_0_100(ConnectionManager.Heater_Start_Temp_Night));
-      await cmg.set_request(52, Utils.lim_0_100(ConnectionManager.Heater_Stop_Temp_Day));
-      await cmg.set_request(58, Utils.lim_0_100(ConnectionManager.Heater_Stop_Temp_Night));
+      await cmg.set_request(49, Utils.sign_int_100(ConnectionManager.Cooler_Start_Temp_Day));
+      await cmg.set_request(55, Utils.sign_int_100(ConnectionManager.Cooler_Start_Temp_Night));
+      await cmg.set_request(50, Utils.sign_int_100(ConnectionManager.Cooler_Stop_Temp_Day));
+      await cmg.set_request(56, Utils.sign_int_100(ConnectionManager.Cooler_Stop_Temp_Night));
+      await cmg.set_request(51, Utils.sign_int_100(ConnectionManager.Heater_Start_Temp_Day));
+      await cmg.set_request(57, Utils.sign_int_100(ConnectionManager.Heater_Start_Temp_Night));
+      await cmg.set_request(52, Utils.sign_int_100(ConnectionManager.Heater_Stop_Temp_Day));
+      await cmg.set_request(58, Utils.sign_int_100(ConnectionManager.Heater_Stop_Temp_Night));
+      WizardPage.can_next = true;
     } catch (e) {
       Utils.alert(context, "Error", "please check your input and try again.");
     }
@@ -152,7 +155,7 @@ class _wpage_temperatureState extends State<wpage_temperature> {
         ),
       );
 
-  String room_temp_sensivity = "0.5";
+  String room_temp_sensivity = "";
   Widget get row_room_temp_sensivity => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
