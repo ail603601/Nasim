@@ -1,58 +1,34 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:bubble_tab_indicator/bubble_tab_indicator.dart';
 import 'package:day_night_switcher/day_night_switcher.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:nasim/IntroductionScreen/introduction_screen.dart';
+import 'package:holding_gesture/holding_gesture.dart';
+import 'package:nasim/Model/Device.dart';
+import 'package:nasim/Model/menu_info.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
+import 'package:nasim/utils.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:math';
 
-import '../../../utils.dart';
-import '../Wizardpage.dart';
-
-class wpage_humidity extends StatefulWidget {
+class HumidityPage extends StatefulWidget {
   @override
-  wpage_humidityState createState() => wpage_humidityState();
-
-  bool Function()? Next = null;
+  _HumidityPageState createState() => _HumidityPageState();
 }
 
-class wpage_humidityState extends State<wpage_humidity> with SingleTickerProviderStateMixin {
+class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderStateMixin {
   late ConnectionManager cmg;
   TabController? _tabController;
-  static bool is_night_set = false;
-  static bool is_day_set = false;
   @override
   void initState() {
     super.initState();
-    widget.Next = () {
-      if (_tabController!.index == 0) {
-        if (!is_day_set) {
-          Utils.alert(context, "", "Please set Day time Humidity.");
-          return false;
-        }
-        _tabController!.animateTo(1);
-      } else if (_tabController!.index == 1) {
-        if (!is_day_set) {
-          Utils.alert(context, "", "Please set night time Humidity.");
-          return false;
-        }
-        if (!is_night_set) {
-          Utils.alert(context, "", "Please set night time Humidity.");
-          return false;
-        }
-        return true;
-      }
-      return false;
-    };
+
     _tabController = new TabController(vsync: this, length: tabs.length);
 
     _tabController!.addListener(() {
       is_night = _tabController!.index == 1;
-      refresh();
+      // refresh();
     });
     cmg = Provider.of<ConnectionManager>(context, listen: false);
 
@@ -111,7 +87,7 @@ class wpage_humidityState extends State<wpage_humidity> with SingleTickerProvide
               child: TextField(
                   maxLength: 3,
                   style: Theme.of(context).textTheme.bodyText1,
-                  controller: TextEditingController()..text = (int.tryParse(value) ?? 0).toString(),
+                  controller: TextEditingController()..text = value,
                   onChanged: (value) {
                     humidity_min = Utils.lim_0_100(value);
                     if (is_night) {
@@ -136,7 +112,7 @@ class wpage_humidityState extends State<wpage_humidity> with SingleTickerProvide
               child: TextField(
                 maxLength: 3,
                 style: Theme.of(context).textTheme.bodyText1,
-                controller: TextEditingController()..text = (int.tryParse(value) ?? 0).toString(),
+                controller: TextEditingController()..text = value,
                 onChanged: (value) {
                   humidity_max = Utils.lim_0_100(value);
                   if (is_night) {
@@ -249,17 +225,14 @@ class wpage_humidityState extends State<wpage_humidity> with SingleTickerProvide
       await cmg.set_request(63, Utils.lim_0_100(ConnectionManager.Min_Night_Humidity));
       await cmg.set_request(60, Utils.lim_0_100(ConnectionManager.Max_Day_Humidity));
       await cmg.set_request(62, Utils.lim_0_100(ConnectionManager.Max_Night_Humidity));
-      WizardPage.can_next = true;
+
       Utils.showSnackBar(context, "Done.");
       if (_tabController!.index == 0) {
-        is_night_set = true;
-        _tabController!.animateTo(1);
-        // await refresh();
+        await refresh();
 
         return;
       } else if (_tabController!.index == 1) {
-        is_day_set = true;
-        IntroductionScreenState.force_next();
+        await refresh();
       }
     } catch (e) {
       Utils.alert(context, "Error", "please check your input and try again.");
@@ -373,9 +346,6 @@ class wpage_humidityState extends State<wpage_humidity> with SingleTickerProvide
             apply_humidity();
           }),
           build_reset_button(),
-          SizedBox(
-            height: 64,
-          )
         ]));
   }
 }

@@ -4,6 +4,7 @@ import '../enums.dart';
 
 class Device {
   String name;
+  String wifiname;
   String ip;
   String serial;
   int ping;
@@ -12,10 +13,11 @@ class Device {
 
   Device(
       {this.name = "unknown",
+      this.wifiname = "unknown",
       this.serial = "0000000000",
       this.ip = "0.0.0.0",
       this.connectionState = ConnectionStatus.disconnected,
-      this.ping = 2,
+      this.ping = -1,
       this.username = ""}) {}
   @override
   bool operator ==(Object other) {

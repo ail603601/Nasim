@@ -14,9 +14,14 @@ class SavedDevicesChangeNotifier extends ChangeNotifier {
     init();
   }
   init() async {
+    saved_devices = [];
     final prefs = await SharedPreferences.getInstance();
     int list_count = prefs.getInt('saved_Devices_count') ?? 0;
+
     for (var i = 0; i < list_count; i++) {
+      if ((prefs.getString('Device${i}name') ?? "") == "") {
+        continue;
+      }
       saved_devices.add(Device(
           name: prefs.getString('Device${i}name') ?? "",
           serial: prefs.getString('Device${i}serial') ?? "",
@@ -28,6 +33,10 @@ class SavedDevicesChangeNotifier extends ChangeNotifier {
   }
 
   addDevice(Device d) async {
+    await init();
+    if (saved_devices.contains(d)) {
+      return;
+    }
     int i = saved_devices.length;
     final prefs = await SharedPreferences.getInstance();
     prefs.setString('Device${i}name', d.name);
@@ -40,13 +49,29 @@ class SavedDevicesChangeNotifier extends ChangeNotifier {
     notifyListeners();
   }
 
+  removeDevice(Device d) async {
+    int index = saved_devices.indexOf(d);
+    d.name = "";
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString('Device${index}name', "");
+    prefs.setString('Device${index}serial', "");
+    prefs.setString('Device${index}ip', "");
+    prefs.setString('Device${index}username', "");
+    saved_devices.remove(d);
+    notifyListeners();
+  }
+
   static Device? selected_device;
   setSelectedDevice(Device d) {
     selected_device = d;
   }
 
-  updateSelecteduser_name(name) async {
+  updateSelecteduser_name(String name) async {
     int index = saved_devices.indexOf(selected_device!);
+    if (index == -1) {
+      return;
+    }
+
     saved_devices[index].username = name;
     selected_device!.username = name;
     final prefs = await SharedPreferences.getInstance();

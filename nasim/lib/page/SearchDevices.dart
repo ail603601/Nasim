@@ -25,21 +25,22 @@ class _SearchDevicesState extends State<SearchDevices> {
   void initState() {
     super.initState();
     // runs every 1 second
-    search_timer = Timer.periodic(new Duration(seconds: 1), (timer) {
-      send_signal();
-      setState(() {});
+    search_timer = Timer.periodic(new Duration(seconds: 1), (timer) async {
+      await send_signal();
+      await refresh();
+      // setState(() {});
     });
     refresh();
   }
 
   refresh() async {
-    Provider.of<ConnectionManager>(context, listen: false).found_devices.forEach((element) async {
-      element.ping = await Provider.of<ConnectionManager>(context, listen: false).pingDevice(element);
-    });
+    // Provider.of<ConnectionManager>(context, listen: false).found_devices.forEach((element) async {
+    //   element.ping = await Provider.of<ConnectionManager>(context, listen: false).pingDevice(element);
+    // });
     conneteced_wifi = (await Connectivity().checkConnectivity() == ConnectivityResult.wifi);
     if ((mounted)) setState(() {});
 
-    if (mounted) Utils.setTimeOut(interval, refresh);
+    // if (mounted) Utils.setTimeOut(interval, refresh);
   }
 
   @override
@@ -49,8 +50,8 @@ class _SearchDevicesState extends State<SearchDevices> {
     super.dispose();
   }
 
-  void send_signal() {
-    Provider.of<ConnectionManager>(context, listen: false).sendDiscoverSignal();
+  send_signal() async {
+    await Provider.of<ConnectionManager>(context, listen: false).sendDiscoverSignal();
   }
 
   // List<Device> search_devices() {}
@@ -79,7 +80,8 @@ class _SearchDevicesState extends State<SearchDevices> {
         isScrollControlled: true,
         context: context,
         builder: (context) => Column(mainAxisSize: MainAxisSize.min, children: [
-              Padding(
+              Container(
+                // color: Colors.black12,
                 padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
                 child: Text(AppLocalizations.of(context)!.serialNumberRequired, style: Theme.of(context).textTheme.bodyText1!),
               ),
@@ -90,7 +92,12 @@ class _SearchDevicesState extends State<SearchDevices> {
                     var code_received = await Navigator.pushNamed(context, "/scan_barcode");
                     if (code_received == d.serial) {
                       Provider.of<SavedDevicesChangeNotifier>(context, listen: false).setSelectedDevice(d);
-                      await _displayTextInputDialog(context, d);
+                      String device_name = await Provider.of<ConnectionManager>(context, listen: false).getRequest_non0("get0");
+                      if (device_name == "") {
+                        await _displayTextInputDialog(context, d);
+                      } else {
+                        SavedDevicesChangeNotifier.selected_device!.name = last_dialog_text;
+                      }
                       serial_validated();
                     } else if (code_received != null) {
                       Utils.alert(context, "Error", "serial number was wrong.");
@@ -111,7 +118,12 @@ class _SearchDevicesState extends State<SearchDevices> {
                         var code_received = text_field_value;
                         if (code_received == d.serial) {
                           Provider.of<SavedDevicesChangeNotifier>(context, listen: false).setSelectedDevice(d);
-                          await _displayTextInputDialog(context, d);
+                          String device_name = await Provider.of<ConnectionManager>(context, listen: false).getRequest_non0("get0");
+                          if (device_name == "") {
+                            await _displayTextInputDialog(context, d);
+                          } else {
+                            SavedDevicesChangeNotifier.selected_device!.name = device_name;
+                          }
                           serial_validated();
                         } else {
                           Utils.alert(context, "Error", "serial number was wrong.");
@@ -144,8 +156,8 @@ class _SearchDevicesState extends State<SearchDevices> {
             ),
             actions: <Widget>[
               FlatButton(
-                color: Colors.red,
-                textColor: Colors.white,
+                // color: Colors.red,
+                textColor: Colors.black,
                 child: Text('CANCEL', style: Theme.of(context).textTheme.bodyText1),
                 onPressed: () {
                   setState(() {
@@ -154,12 +166,12 @@ class _SearchDevicesState extends State<SearchDevices> {
                 },
               ),
               FlatButton(
-                color: Colors.green,
-                textColor: Colors.white,
+                // color: Colors.green,
+                textColor: Colors.black,
                 child: Text('OK', style: Theme.of(context).textTheme.bodyText1),
-                onPressed: () {
+                onPressed: () async {
                   SavedDevicesChangeNotifier.selected_device!.name = last_dialog_text;
-
+                  await Provider.of<ConnectionManager>(context, listen: false).set_request(0, last_dialog_text);
                   setState(() {
                     Navigator.pop(context);
                   });
@@ -168,9 +180,8 @@ class _SearchDevicesState extends State<SearchDevices> {
             ],
           );
         });
-    Provider.of<SavedDevicesChangeNotifier>(context, listen: false)..addDevice(d);
 
-    // Navigator.of(context).popUntil((route) => route.isFirst);
+    // Provider.of<SavedDevicesChangeNotifier>(context, listen: false)..addDevice(d);
   }
 
   @override
@@ -189,7 +200,7 @@ class _SearchDevicesState extends State<SearchDevices> {
     Widget found_devices_list_view = ListView(
         children: found_devices
             .map((d) => ListTile(
-                  title: Text(d.name, style: Theme.of(context).textTheme.bodyText1!),
+                  title: Text(d.wifiname, style: Theme.of(context).textTheme.bodyText1!),
                   onTap: () {
                     openBottomSheet(context, d);
                   },
@@ -198,6 +209,7 @@ class _SearchDevicesState extends State<SearchDevices> {
             .toList());
 
     return Scaffold(
+        resizeToAvoidBottomInset: false,
         appBar: AppBar(
           title: Text(AppLocalizations.of(context)!.searchingAvailableDevices, style: Theme.of(context).textTheme.bodyText1!),
           centerTitle: true,

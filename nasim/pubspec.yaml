@@ -45,6 +45,9 @@ dependencies:
   rive: ^0.7.9
   toggle_switch: ^0.1.9
   connectivity: ^3.0.3
+  bubble_tab_indicator: ^0.1.6
+  holding_gesture: ^1.1.0
+  awesome_dialog: ^2.1.0
 
 dev_dependencies:
   flutter_test:

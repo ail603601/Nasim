@@ -49,11 +49,12 @@ class _splashState extends State<splash> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        resizeToAvoidBottomInset: false,
         body: Container(
-      color: Color(0xff181818),
-      child: Center(
-        child: _riveArtboard == null ? const SizedBox() : Rive(artboard: _riveArtboard!),
-      ),
-    ));
+          color: Color(0xff181818),
+          child: Center(
+            child: _riveArtboard == null ? const SizedBox() : Rive(artboard: _riveArtboard!),
+          ),
+        ));
   }
 }

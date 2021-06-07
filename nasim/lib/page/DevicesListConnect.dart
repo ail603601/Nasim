@@ -14,10 +14,12 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class DevicesListConnect extends StatefulWidget {
   @override
-  _DevicesListConnectState createState() => _DevicesListConnectState();
+  DevicesListConnectState createState() => DevicesListConnectState();
 }
 
-class _DevicesListConnectState extends State<DevicesListConnect> {
+class DevicesListConnectState extends State<DevicesListConnect> {
+  static bool flag_only_user = false;
+
   int interval = 500;
   late Timer refresher;
 
@@ -45,22 +47,69 @@ class _DevicesListConnectState extends State<DevicesListConnect> {
     super.dispose();
   }
 
+  Future<bool> check_key_i(i) async {
+    String key_in_dev = await Provider.of<ConnectionManager>(context, listen: false).getRequest(("get${i + 28}"));
+    String serial = SavedDevicesChangeNotifier.selected_device!.serial;
+    String name = SavedDevicesChangeNotifier.selected_device!.username;
+    String local_key = serial + name;
+    if (name == "") return false;
+
+    if ((local_key != "") && key_in_dev.contains(local_key)) {
+      return true;
+    }
+    return false;
+  }
+
+  Future<bool> can_login() async {
+    bool b0 = await check_key_i(0);
+    bool b1 = await check_key_i(1);
+    bool b2 = await check_key_i(2);
+    bool b3 = await check_key_i(3);
+    bool b4 = await check_key_i(4);
+    bool b5 = await check_key_i(5);
+    return b0 || b1 || b2 || b3 || b4 || b5;
+  }
+
   void connect_to_device(Device d) async {
     Provider.of<SavedDevicesChangeNotifier>(context, listen: false).setSelectedDevice(d);
+    // await Navigator.pushNamed(context, "/wizard");
+    // return;
 
     var device_init_state = await Provider.of<ConnectionManager>(context, listen: false).getRequest("get121");
-    if (device_init_state == "timeout") {
-      Utils.alert(context, "Error", "Sync failed,make sure you are connected to the 'BREEZE Air Conditioner' Wifi", () {});
-    } else {
-      if (device_init_state == "0") {
-        //go to wizard
-        if (await Navigator.pushNamed(context, "/wizard") == true) {
-          Navigator.pushNamed(context, "/main_device");
-        }
+
+    refresher.cancel();
+    if (device_init_state == "0") {
+      //go to wizard
+      flag_only_user = false;
+
+      if (await Navigator.pushNamed(context, "/wizard") == true) {
+        Utils.setTimeOut(0, () async {
+          await Navigator.pushNamed(context, "/main_device");
+          refresher = Timer.periodic(new Duration(milliseconds: interval), (timer) {
+            refresh();
+          });
+        });
       }
-      if (device_init_state == "1") {
-        //already initialized
-        Navigator.pushNamed(context, "/main_device");
+    }
+    if (device_init_state == "1") {
+      //already initialized
+
+      if (await can_login()) {
+        await Navigator.pushNamed(context, "/main_device");
+        refresher = Timer.periodic(new Duration(milliseconds: interval), (timer) {
+          refresh();
+        });
+      } else {
+        flag_only_user = true;
+
+        if (await Navigator.pushNamed(context, "/wizard") == true) {
+          Utils.setTimeOut(0, () async {
+            await Navigator.pushNamed(context, "/main_device");
+            refresher = Timer.periodic(new Duration(milliseconds: interval), (timer) {
+              refresh();
+            });
+          });
+        }
       }
     }
   }
@@ -93,6 +142,7 @@ class _DevicesListConnectState extends State<DevicesListConnect> {
     return ChangeNotifierProvider(
       create: (context) => DeviceListFabChangeNotifier(),
       child: Scaffold(
+        resizeToAvoidBottomInset: false,
         appBar: AppBar(
           title: Text(AppLocalizations.of(context)!.devices, style: Theme.of(context).textTheme.headline5!),
           centerTitle: true,

@@ -1,14 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:nasim/page/Wizard/Wizardpage.dart';
 
+import '../../../utils.dart';
+
 class wpage_wellcome extends StatefulWidget {
   @override
   _wpage_wellcomeState createState() => _wpage_wellcomeState();
+
+  bool Function()? Next = null;
 }
 
 class _wpage_wellcomeState extends State<wpage_wellcome> {
   @override
   void initState() {
+    widget.Next = () {
+      return true;
+    };
     WizardPage.can_next = true;
     super.initState();
   }
@@ -34,7 +41,10 @@ class _wpage_wellcomeState extends State<wpage_wellcome> {
           Image.asset(
             "assets/setup.png",
           ),
-          Text("here we go step by step setting up your device for fist time", style: Theme.of(context).textTheme.bodyText1!),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text("here we go step by step setting up your device for fist time", style: Theme.of(context).textTheme.bodyText1!),
+          ),
         ],
       ),
     );

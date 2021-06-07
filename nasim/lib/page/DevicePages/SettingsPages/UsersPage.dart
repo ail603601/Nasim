@@ -21,97 +21,69 @@ class _UsersPageState extends State<UsersPage> {
     super.initState();
 
     cmg = Provider.of<ConnectionManager>(context, listen: false);
-    cs = 0;
-    refresh();
-  }
-
-  add_device(context) async {
-    if (SavedDevicesChangeNotifier.selected_device!.username != "") {
-      Utils.showSnackBar(context, "you can't add your phone again.");
-      return;
-    }
-
-    if (await refresh()) {
-      var lcn = Provider.of<LicenseChangeNotifier>(context, listen: false);
-      for (var i = 0; i < 6; i++) {
-        String name_n = await cmg.getRequest("get${i + 16}");
-        if (!name_n.startsWith("_")) {
-          if (i > 2) {
-            if (!lcn.six_mobiles) {
-              var data = await Utils.ask_serial("only 3 mobiles can be added by free, delete one mobile or provide the 6 mobiles serial number", context);
-              if (data == "") {
-                return;
-              }
-              bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).set_request(78, data);
-              if (is_valid) {
-                lcn.license_6_mobiles();
-              } else {
-                Utils.showSnackBar(context, "Wrong serial number.");
-                return;
-              }
-            }
-          }
-          await _displayTextInputDialog(context, (name) async {
-            name = "_" + name;
-            if (users_found.any((element) => "_" + element.name == name)) {
-              Utils.showSnackBar(context, "this name already exists");
-            } else {
-              if (await cmg.set_request(i + 16, name)) {
-                await Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelecteduser_name(name);
-
-                await refresh();
-                Utils.showSnackBar(context, "Done.");
-              } else {
-                Utils.showSnackBar(context, "cummunication failed");
-              }
-            }
-          });
-          return;
-        }
-      }
-    }
+    Utils.setTimeOut(0, refresh);
   }
 
   late ConnectionManager cmg;
 
-  List<User> users_found = [];
-  Future<bool> refresh() async {
-    users_found = [];
+  Future<void> process_user(i) async {
+    String name_n = await cmg.getRequest("get${i + 16}");
 
-    for (var i = 0; i < 6; i++) {
-      String name_n = await cmg.getRequest("get${i + 16}");
-      if (name_n == 'timeout') {
-        return false;
-      }
-      if (name_n.startsWith("_")) {
-        users_found.add(User(name: name_n.substring(1), id_table: i + 16));
-      }
+    if (name_n.startsWith("_")) {
+      String user_name_to_add = name_n.substring(1);
+
+      if (!users_found.any((element) => element.name == user_name_to_add)) users_found.add(User(name: user_name_to_add, id_table: i + 16));
     }
-    if (!users_found.any((element) => "_" + element.name == SavedDevicesChangeNotifier.selected_device!.username)) {
-      await Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelecteduser_name("");
-    } else {}
-
-    setState(() {});
-    return true;
+    return;
   }
 
-  var last_dialog_text = "moderator 1";
+  List<User> users_found = [];
+  refresh() async {
+    await Utils.show_loading_timed(
+        context: context,
+        done: () async {
+          if (!mounted) {
+            return;
+          }
+          await process_user(0);
+          await process_user(1);
+          await process_user(2);
+          await process_user(3);
+          await process_user(4);
+          await process_user(5);
+
+          if (!users_found.any((element) {
+            if ("_" + element.name == SavedDevicesChangeNotifier.selected_device!.username) {
+              element.is_self = true;
+              return true;
+            }
+            return false;
+          })) {
+            await Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelecteduser_name("");
+          } else {}
+          if (mounted) {
+            setState(() {});
+          }
+        });
+  }
+
+  var last_dialog_text = "manager";
   Future<void> _displayTextInputDialog(BuildContext context, Function(String) cb) async {
-    last_dialog_text = "moderator 1";
+    last_dialog_text = "manager";
     await showDialog(
         context: context,
         builder: (context) {
           return AlertDialog(
             title: Text('Choose a name for this device', style: Theme.of(context).textTheme.bodyText1),
             content: TextField(
-              maxLength: 10,
+              maxLength: 9,
               style: Theme.of(context).textTheme.bodyText1,
               onChanged: (value) {
                 setState(() {
                   last_dialog_text = value;
                 });
               },
-              decoration: InputDecoration(hintText: "moderator 1"),
+              decoration: InputDecoration(hintText: "manager"),
             ),
             actions: <Widget>[
               FlatButton(
@@ -129,7 +101,7 @@ class _UsersPageState extends State<UsersPage> {
                 textColor: Colors.white,
                 child: Text('OK', style: Theme.of(context).textTheme.bodyText1),
                 onPressed: () {
-                  if (last_dialog_text.trim() == "") last_dialog_text = "moderator 1";
+                  if (last_dialog_text.trim() == "") last_dialog_text = "manager";
 
                   cb(last_dialog_text);
                   Navigator.pop(context);
@@ -157,26 +129,22 @@ class _UsersPageState extends State<UsersPage> {
             user.name,
             style: Theme.of(context).textTheme.bodyText1,
           ),
-          subtitle: Text(
-              // user.mac,
-              ""),
-          trailing: FlatButton(
-            child: Text("Delete", style: Theme.of(context).textTheme.bodyText1!.copyWith(color: Colors.red)),
-            onPressed: () async {
-              if (SavedDevicesChangeNotifier.selected_device!.username == user.name) {
-                Utils.alert(context, "Attention", "cannot delete your device.");
-                return;
-                // await Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelecteduser_name("");
-              }
-              await cmg.set_request(user.id_table, "0");
-              refresh();
-            },
-          ),
+          subtitle: Text(user.is_self ? "Current Device" : ""),
+          trailing: (!user.is_self)
+              ? FlatButton(
+                  child: Text("Delete", style: Theme.of(context).textTheme.bodyText1!.copyWith(color: Colors.red)),
+                  onPressed: () async {
+                    await cmg.set_request(user.id_table, "0000000000");
+                    await cmg.set_request(user.id_table + 12, "0000000000");
+                    users_found = [];
+                    refresh();
+                  },
+                )
+              : null,
         ),
       );
 
-  int cs = 0;
-  Widget build_root_view(context) {
+  Widget build_root_view() {
     return Column(
       children: [
         Expanded(
@@ -185,7 +153,7 @@ class _UsersPageState extends State<UsersPage> {
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                buildTitleBox(context),
+                // buildTitleBox(context),
                 // Divider(
                 //   color: Theme.of(context).accentColor,
                 // ),
@@ -199,34 +167,13 @@ class _UsersPageState extends State<UsersPage> {
             ),
           ),
         ),
-        Container(
-          width: double.infinity,
-          margin: EdgeInsets.only(bottom: 15),
-          height: 50,
-          padding: EdgeInsets.symmetric(horizontal: 26),
-          child: OutlinedButton(
-            onPressed: () {
-              add_device(context);
-            },
-            style: OutlinedButton.styleFrom(
-                side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
-                shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
-            child: Text("Add yourphone", style: Theme.of(context).textTheme.bodyText1),
-          ),
-        ),
-        SizedBox(
-          height: 56,
-        )
       ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider<LicenseChangeNotifier>(
-        create: (context) => LicenseChangeNotifier(SavedDevicesChangeNotifier.selected_device!.serial),
-        lazy: false,
-        builder: (context, child) => Container(color: Theme.of(context).canvasColor, child: SafeArea(child: build_root_view(context))));
+    return Container(color: Theme.of(context).canvasColor, child: SafeArea(child: build_root_view()));
 
     // return SafeArea(
     //     child: Navigator(

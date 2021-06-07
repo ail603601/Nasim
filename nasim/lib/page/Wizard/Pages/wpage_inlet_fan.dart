@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:bubble_tab_indicator/bubble_tab_indicator.dart';
 import 'package:day_night_switcher/day_night_switcher.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:holding_gesture/holding_gesture.dart';
+import 'package:nasim/IntroductionScreen/introduction_screen.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,73 +15,154 @@ import '../../../utils.dart';
 
 class wpage_inlet_fan extends StatefulWidget {
   @override
-  _wpage_inlet_fanState createState() => _wpage_inlet_fanState();
+  wpage_inlet_fanState createState() => wpage_inlet_fanState();
+  bool Function()? Next = null;
 }
 
-class _wpage_inlet_fanState extends State<wpage_inlet_fan> {
-  bool is_inlet_fan_available = false;
+class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProviderStateMixin {
+  TabController? _tabController;
+
   bool dialog_show = false;
-  late Timer refresher;
+  // late Timer refresher;
   late ConnectionManager cmg;
   bool refresh_disable = false;
+  static bool is_minimum_day_set = false;
+  static bool is_minimum_night_set = false;
+  static bool is_maximum_day_set = false;
+  static bool is_maximum_night_set = false;
+
+  double minimum_inlet_fan_speed_day = 0;
+  double maximum_inlet_fan_speed_day = 0;
+  double minimum_inlet_fan_speed_night = 0;
+  double maximum_inlet_fan_speed_night = 0;
+
+  UniqueKey? key_min_day = new UniqueKey();
+  static bool expanded_min_day = true;
+
+  UniqueKey? key_min_night = new UniqueKey();
+  static bool expanded_min_night = false;
+
+  UniqueKey? key_max_day = new UniqueKey();
+  static bool expanded_max_day = true;
+
+  UniqueKey? key_max_night = new UniqueKey();
+  static bool expanded_max_night = false;
+
+  static bool is_inlet_fan_available = false;
+
+  toggle_min_day() {
+    setState(() {
+      key_min_day = new UniqueKey();
+      expanded_min_day = !expanded_min_day;
+    });
+  }
+
+  toggle_min_night() {
+    setState(() {
+      key_min_night = new UniqueKey();
+      expanded_min_night = !expanded_min_night;
+    });
+  }
+
+  toggle_max_day() {
+    setState(() {
+      key_max_day = new UniqueKey();
+      expanded_max_day = !expanded_max_day;
+    });
+  }
+
+  toggle_max_night() {
+    setState(() {
+      key_max_night = new UniqueKey();
+      expanded_max_night = !expanded_max_night;
+    });
+  }
 
   refresh() async {
-    if (refresh_disable) {
-      return;
-    }
-    ConnectionManager.Min_Valid_Input_Fan_Speed_Night = await cmg.getRequest("get42");
-    ConnectionManager.Max_Valid_Input_Fan_Speed_Night = await cmg.getRequest("get44");
-    ConnectionManager.Min_Valid_Input_Fan_Speed_Day = await cmg.getRequest("get41");
-    ConnectionManager.Max_Valid_Input_Fan_Speed_Day = await cmg.getRequest("get43");
-    ConnectionManager.Input_Fan_Power = await cmg.getRequest("get45");
+    await Utils.show_loading_timed(
+        context: context,
+        done: () async {
+          ConnectionManager.Min_Valid_Input_Fan_Speed_Night = await cmg.getRequest("get42");
+          ConnectionManager.Max_Valid_Input_Fan_Speed_Night = await cmg.getRequest("get44");
+          ConnectionManager.Min_Valid_Input_Fan_Speed_Day = await cmg.getRequest("get41");
+          ConnectionManager.Max_Valid_Input_Fan_Speed_Day = await cmg.getRequest("get43");
+          // ConnectionManager.Input_Fan_Power = await cmg.getRequest("get45");
 
-    ConnectionManager.Elevation = await cmg.getRequest("get34");
-    ConnectionManager.Pressure = await cmg.getRequest("get35");
+          ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest("get34")) ?? ConnectionManager.Elevation).toString();
+          ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest("get35")) ?? ConnectionManager.Pressure).toString();
 
-    if (mounted) {
-      setState(() {
-        if (is_night) {
-          minimum_inlet_fan_speed = double.tryParse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) ?? minimum_inlet_fan_speed;
-          maximum_inlet_fan_speed = double.tryParse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) ?? maximum_inlet_fan_speed;
-        } else {
-          minimum_inlet_fan_speed = double.tryParse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) ?? minimum_inlet_fan_speed;
-          maximum_inlet_fan_speed = double.tryParse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) ?? maximum_inlet_fan_speed;
-        }
-      });
-    }
+          if (mounted) {
+            setState(() {
+              minimum_inlet_fan_speed_night = double.tryParse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) ?? minimum_inlet_fan_speed_night;
+              maximum_inlet_fan_speed_night = double.tryParse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) ?? maximum_inlet_fan_speed_night;
+              minimum_inlet_fan_speed_day = double.tryParse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) ?? minimum_inlet_fan_speed_day;
+              maximum_inlet_fan_speed_day = double.tryParse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) ?? maximum_inlet_fan_speed_day;
+            });
+          }
+        });
   }
 
   @override
   void initState() {
     super.initState();
+    _tabController = new TabController(vsync: this, length: tabs.length);
 
     cmg = Provider.of<ConnectionManager>(context, listen: false);
-    refresher = Timer.periodic(new Duration(milliseconds: 500), (timer) {
-      refresh();
-    });
+    widget.Next = () {
+      return true;
+    };
 
-    if (is_night) {
-      minimum_inlet_fan_speed = double.tryParse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) ?? 0.0;
-      maximum_inlet_fan_speed = double.tryParse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) ?? 0.0;
-    } else {
-      minimum_inlet_fan_speed = double.tryParse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) ?? 0.0;
-      maximum_inlet_fan_speed = double.tryParse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) ?? 0.0;
+    if (is_inlet_fan_available) {
+      widget.Next = () {
+        // return true;
+        if (_tabController!.index == 0) {
+          if (!is_minimum_day_set) {
+            Utils.alert(context, "", "Please set minimum fan speed for day time.");
+            return false;
+          }
+          if (!is_minimum_night_set) {
+            Utils.alert(context, "", "Please set minimum fan speed for night time.");
+            return false;
+          }
+          _tabController!.animateTo(1);
+        } else if (_tabController!.index == 1) {
+          if (!is_minimum_night_set || !is_minimum_day_set) {
+            Utils.alert(context, "", "Please set minimum fan settings before changing the maximum.");
+
+            return false;
+          }
+
+          if (!is_maximum_day_set) {
+            Utils.alert(context, "", "Please set maxiumum fan speed for day time.");
+            return false;
+          }
+          if (!is_maximum_night_set) {
+            Utils.alert(context, "", "Please set maximum fan speed for night time.");
+            return false;
+          }
+
+          return true;
+        }
+        return false;
+      };
+      Utils.setTimeOut(0, refresh);
     }
-    refresh();
   }
 
   @override
   void dispose() {
-    refresher.cancel();
+    _tabController!.dispose();
+
+    // refresher.cancel();
 
     super.dispose();
   }
 
   showAlertDialog(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
+    // final prefs = await SharedPreferences.getInstance();
 
     // set value
-    is_inlet_fan_available = prefs.getBool('is_inlet_fan_available') ?? false;
+    // is_inlet_fan_available = false;
     // set up the buttons
     Widget cancelButton = FlatButton(
       child: Text("Yes", style: Theme.of(context).textTheme.bodyText1),
@@ -86,17 +170,49 @@ class _wpage_inlet_fanState extends State<wpage_inlet_fan> {
         Navigator.of(context).pop(false);
         setState(() async {
           is_inlet_fan_available = true;
-          final prefs = await SharedPreferences.getInstance();
 
-          // set value
-          is_inlet_fan_available = await prefs.setBool('is_inlet_fan_available', true);
-          setState(() {});
+          widget.Next = () {
+            // return true;
+            if (_tabController!.index == 0) {
+              if (!is_minimum_day_set) {
+                Utils.alert(context, "", "Please set minimum fan speed for day time.");
+                return false;
+              }
+              if (!is_minimum_night_set) {
+                Utils.alert(context, "", "Please set minimum fan speed for night time.");
+                return false;
+              }
+              _tabController!.animateTo(1);
+            } else if (_tabController!.index == 1) {
+              if (!is_minimum_night_set || !is_minimum_day_set) {
+                Utils.alert(context, "", "Please set minimum fan settings before changing the maximum.");
+
+                return false;
+              }
+
+              if (!is_maximum_day_set) {
+                Utils.alert(context, "", "Please set maxiumum fan speed for day time.");
+                return false;
+              }
+              if (!is_maximum_night_set) {
+                Utils.alert(context, "", "Please set maximum fan speed for night time.");
+                return false;
+              }
+
+              return true;
+            }
+            return false;
+          };
+          Utils.setTimeOut(0, refresh);
         });
       },
     );
     Widget continueButton = FlatButton(
       child: Text("No", style: Theme.of(context).textTheme.bodyText1),
       onPressed: () {
+        widget.Next = () {
+          return true;
+        };
         Navigator.of(context).pop(false);
       },
     );
@@ -113,6 +229,7 @@ class _wpage_inlet_fanState extends State<wpage_inlet_fan> {
 
     // show the dialog
     showDialog(
+      barrierDismissible: false,
       context: context,
       builder: (BuildContext context) {
         return alert;
@@ -120,19 +237,6 @@ class _wpage_inlet_fanState extends State<wpage_inlet_fan> {
     );
   }
   // var scanArea = (MediaQuery.of(context).size.width < 400 || MediaQuery.of(context).size.height < 400) ? 150.0 : 300.0;
-
-  List<Widget> make_title(titile) {
-    return [
-      Container(
-        padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
-        alignment: Alignment.centerLeft,
-        child: Text(titile, style: Theme.of(context).textTheme.bodyText1),
-      ),
-      Divider(
-        color: Theme.of(context).accentColor,
-      )
-    ];
-  }
 
   Widget build_boxed_titlebox({required title, required child}) {
     // debugger();
@@ -144,124 +248,222 @@ class _wpage_inlet_fanState extends State<wpage_inlet_fan> {
             child: child));
   }
 
-  Future<bool> set_minimum_inlet_fan_speed(double value) async {
-    if (is_night) {
-      ConnectionManager.Min_Valid_Input_Fan_Speed_Night = value.toInt().toString().padLeft(3, '0');
-      if (!await cmg.set_request(42, ConnectionManager.Min_Valid_Input_Fan_Speed_Night)) {
-        Utils.handleError(context);
-        return false;
-      }
+  Future<bool> set_all_to_board_min() async {
+    if (!expanded_min_day) {
+      toggle_min_day();
+      return false;
     } else {
-      ConnectionManager.Min_Valid_Input_Fan_Speed_Day = value.toInt().toString().padLeft(3, '0');
+      is_minimum_day_set = true;
       if (!await cmg.set_request(41, ConnectionManager.Min_Valid_Input_Fan_Speed_Day)) {
-        Utils.handleError(context);
         return false;
+      }
+      if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5)) {
+        ConnectionManager.Max_Valid_Input_Fan_Speed_Day = (int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5).toString().padLeft(3, '0');
+        if (!await cmg.set_request(43, ConnectionManager.Max_Valid_Input_Fan_Speed_Day)) {
+          return false;
+        }
       }
     }
-    return true;
-  }
-
-  Future<bool> set_maximum_inlet_fan_speed(double value) async {
-    if (is_night) {
-      ConnectionManager.Max_Valid_Input_Fan_Speed_Night = value.toInt().toString().padLeft(3, '0');
-      if (!await cmg.set_request(44, ConnectionManager.Max_Valid_Input_Fan_Speed_Night)) {
-        Utils.handleError(context);
-        return false;
-      }
+    if (!expanded_min_night) {
+      toggle_min_night();
+      return false;
     } else {
-      ConnectionManager.Max_Valid_Input_Fan_Speed_Day = value.toInt().toString().padLeft(3, '0');
+      is_minimum_night_set = true;
+      if (!await cmg.set_request(42, ConnectionManager.Min_Valid_Input_Fan_Speed_Night)) {
+        return false;
+      }
+      if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5)) {
+        ConnectionManager.Max_Valid_Input_Fan_Speed_Night = (int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5).toString().padLeft(3, '0');
+
+        if (!await cmg.set_request(44, ConnectionManager.Max_Valid_Input_Fan_Speed_Night)) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  Future<bool> set_all_to_board_max() async {
+    if (!expanded_max_day) {
+      toggle_max_day();
+      return false;
+    } else {
+      is_maximum_day_set = true;
+      if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5)) {
+        await Utils.alert(context, "", "Day time maximum fan speed must at least be 5 more than minimum.");
+        return false;
+      }
+
       if (!await cmg.set_request(43, ConnectionManager.Max_Valid_Input_Fan_Speed_Day)) {
-        Utils.handleError(context);
+        return false;
+      }
+    }
+    if (!expanded_max_night) {
+      toggle_max_night();
+      return false;
+    } else {
+      if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5)) {
+        await Utils.alert(context, "", "Night time maximum fan speed must at least be 5 more than minimum.");
+        return false;
+      }
+      is_maximum_night_set = true;
+      if (!await cmg.set_request(44, ConnectionManager.Max_Valid_Input_Fan_Speed_Night)) {
         return false;
       }
     }
     return true;
   }
 
-  late double minimum_inlet_fan_speed;
-  Widget build_minimum_inlet_fan_speed() => build_boxed_titlebox(
-        title: "Mimimum",
+  Future<bool> inc_min_inlet_fan(bool is_night) async {
+    if (is_night) {
+      double value = double.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 1;
+      value = min(value, 95);
+      ConnectionManager.Min_Valid_Input_Fan_Speed_Night = value.toInt().toString().padLeft(3, '0');
+      setState(() {
+        minimum_inlet_fan_speed_night = value;
+      });
+    } else {
+      double value = double.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 1;
+      value = min(value, 95);
+      ConnectionManager.Min_Valid_Input_Fan_Speed_Day = value.toInt().toString().padLeft(3, '0');
+
+      setState(() {
+        minimum_inlet_fan_speed_day = value;
+      });
+    }
+    return true;
+  }
+
+  Future<bool> inc_max_inlet_fan(bool is_night) async {
+    if (is_night) {
+      double value = double.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) + 1;
+      value = min(value, 100);
+      ConnectionManager.Max_Valid_Input_Fan_Speed_Night = value.toInt().toString().padLeft(3, '0');
+      setState(() {
+        maximum_inlet_fan_speed_night = value;
+      });
+    } else {
+      double value = double.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) + 1;
+      value = min(value, 100);
+      ConnectionManager.Max_Valid_Input_Fan_Speed_Day = value.toInt().toString().padLeft(3, '0');
+      setState(() {
+        maximum_inlet_fan_speed_day = value;
+      });
+    }
+    return true;
+  }
+
+  Future<bool> dec_min_inlet_fan(bool is_night) async {
+    if (is_night) {
+      double value = double.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) - 1;
+      value = max(value, 0);
+      ConnectionManager.Min_Valid_Input_Fan_Speed_Night = value.toInt().toString().padLeft(3, '0');
+      setState(() {
+        minimum_inlet_fan_speed_night = value;
+      });
+    } else {
+      double value = double.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) - 1;
+      value = max(value, 0);
+      ConnectionManager.Min_Valid_Input_Fan_Speed_Day = value.toInt().toString().padLeft(3, '0');
+      setState(() {
+        minimum_inlet_fan_speed_day = value;
+      });
+    }
+    return true;
+  }
+
+  Future<bool> dec_max_inlet_fan(bool is_night) async {
+    if (is_night) {
+      double value = double.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) - 1;
+      value = max(value, 0);
+      ConnectionManager.Max_Valid_Input_Fan_Speed_Night = value.toInt().toString().padLeft(3, '0');
+      setState(() {
+        maximum_inlet_fan_speed_night = value;
+      });
+    } else {
+      double value = double.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) - 1;
+      value = max(value, 0);
+      ConnectionManager.Max_Valid_Input_Fan_Speed_Day = value.toInt().toString().padLeft(3, '0');
+      setState(() {
+        maximum_inlet_fan_speed_day = value;
+      });
+    }
+    return true;
+  }
+
+  Widget build_fan_speed_row(String title, double value, Function() up_fun, Function() down_fun, {bool is_max95 = false}) => build_boxed_titlebox(
+        title: title,
         child: Column(children: [
           Row(
             children: [
               Text("Inlet Fan Speed: ", style: Theme.of(context).textTheme.bodyText1),
-              Text(minimum_inlet_fan_speed.toString() + " %", style: Theme.of(context).textTheme.bodyText1),
+              Text(value.toString() + " %", style: Theme.of(context).textTheme.bodyText1),
               Expanded(
                 child: CupertinoSlider(
-                  value: minimum_inlet_fan_speed,
+                  value: value,
                   min: 0.0,
-                  max: 100.0,
+                  max: is_max95 ? 95.0 : 100.0,
                   divisions: 100,
-                  onChangeEnd: (double newValue) async {
-                    refresh_disable = false;
-
-                    if (await set_minimum_inlet_fan_speed(newValue.roundToDouble())) {
-                      minimum_inlet_fan_speed = newValue.roundToDouble();
-                    }
-                  },
-                  onChanged: (double newValue) {
-                    refresh_disable = true;
-
-                    setState(() {
-                      minimum_inlet_fan_speed = newValue.round().toDouble();
-                    });
-                  },
+                  onChangeEnd: (double newValue) async {},
+                  onChanged: (double newValue) {},
                 ),
               ),
             ],
           ),
           SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(child: Text("Outlet Fan Power: ", style: Theme.of(context).textTheme.bodyText1)),
-              Expanded(
-                  child: Center(
-                      child: Text((int.tryParse(ConnectionManager.Input_Fan_Power) ?? 0).toString() + " W", style: Theme.of(context).textTheme.bodyText1)))
-            ],
-          ),
-          SizedBox(height: 16),
+          // Row(
+          //   children: [
+          //     Expanded(child: Text("Inlet Fan Power: ", style: Theme.of(context).textTheme.bodyText1)),
+          //     Expanded(
+          //         child: Center(
+          //             child: Text((int.tryParse(ConnectionManager.Input_Fan_Power) ?? 0).toString() + " W", style: Theme.of(context).textTheme.bodyText1)))
+          //   ],
+          // ),
+          // SizedBox(height: 16),
           Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-            Material(
-              clipBehavior: Clip.hardEdge,
-              borderRadius: BorderRadius.circular(45.0),
-              child: Ink(
-                decoration: ShapeDecoration(
-                  color: Theme.of(context).primaryColor,
-                  shape: CircleBorder(),
-                ),
-                child: IconButton(
-                  icon: Icon(Icons.keyboard_arrow_up),
-                  iconSize: 35,
-                  color: Colors.white,
-                  onPressed: () async {
-                    if (await set_minimum_inlet_fan_speed(min(minimum_inlet_fan_speed.roundToDouble() + 1.0, 100))) {
-                      setState(() {
-                        minimum_inlet_fan_speed = min(minimum_inlet_fan_speed.roundToDouble() + 1.0, 100);
-                      });
-                    }
-                  },
+            Expanded(
+              child: Material(
+                clipBehavior: Clip.hardEdge,
+                borderRadius: BorderRadius.circular(5.0),
+                child: Ink(
+                  decoration: const ShapeDecoration(
+                    color: Colors.blue,
+                    shape: Border(),
+                  ),
+                  child: HoldDetector(
+                    onHold: () {
+                      up_fun();
+                      up_fun();
+                    },
+                    holdTimeout: Duration(milliseconds: 1000),
+                    // enableHapticFeedback: true,
+                    child: IconButton(icon: Icon(Icons.keyboard_arrow_up), iconSize: 50, color: Colors.white, onPressed: up_fun),
+                  ),
                 ),
               ),
             ),
-            Material(
-              clipBehavior: Clip.hardEdge,
-              borderRadius: BorderRadius.circular(45.0),
-              child: Ink(
-                decoration: ShapeDecoration(
-                  color: Theme.of(context).primaryColor,
-                  shape: CircleBorder(),
-                ),
-                child: IconButton(
-                  icon: Icon(Icons.keyboard_arrow_down),
-                  iconSize: 35,
-                  color: Colors.white,
-                  onPressed: () async {
-                    if (await set_minimum_inlet_fan_speed(max(minimum_inlet_fan_speed.roundToDouble() - 1.0, 0))) {
-                      setState(() {
-                        minimum_inlet_fan_speed = max(minimum_inlet_fan_speed.roundToDouble() - 1.0, 0);
-                      });
-                    }
-                  },
+            SizedBox(
+              width: 40,
+            ),
+            Expanded(
+              child: Material(
+                clipBehavior: Clip.hardEdge,
+                borderRadius: BorderRadius.circular(5.0),
+                child: Ink(
+                  decoration: const ShapeDecoration(
+                    color: Colors.blue,
+                    shape: Border(),
+                  ),
+                  child: HoldDetector(
+                    onHold: () {
+                      down_fun();
+                      down_fun();
+                    },
+                    holdTimeout: Duration(milliseconds: 1000),
+                    // enableHapticFeedback: true,
+                    child: IconButton(icon: Icon(Icons.keyboard_arrow_down), iconSize: 50, color: Colors.white, onPressed: down_fun),
+                  ),
                 ),
               ),
             ),
@@ -270,101 +472,13 @@ class _wpage_inlet_fanState extends State<wpage_inlet_fan> {
         ]),
       );
 
-  late double maximum_inlet_fan_speed;
-  Widget build_maximum_inlet_fan_speed() => build_boxed_titlebox(
-        title: "Maximum",
-        child: Column(children: [
-          Row(
-            children: [
-              Text("Inlet Fan Speed: ", style: Theme.of(context).textTheme.bodyText1),
-              Text(maximum_inlet_fan_speed.toString() + " %", style: Theme.of(context).textTheme.bodyText1),
-              Expanded(
-                child: CupertinoSlider(
-                  value: maximum_inlet_fan_speed,
-                  min: 0.0,
-                  max: 100.0,
-                  divisions: 100,
-                  onChangeEnd: (double newValue) async {
-                    if (await set_maximum_inlet_fan_speed(newValue.roundToDouble())) {
-                      maximum_inlet_fan_speed = newValue.roundToDouble();
-                    }
-                    refresh_disable = false;
-                  },
-                  onChanged: (double newValue) {
-                    refresh_disable = true;
-
-                    setState(() {
-                      maximum_inlet_fan_speed = newValue.round().toDouble();
-                    });
-                  },
-                ),
-              ),
-            ],
-          ),
-          SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(child: Text("Outlet Fan Power: ", style: Theme.of(context).textTheme.bodyText1)),
-              Expanded(
-                  child: Center(
-                      child: Text((int.tryParse(ConnectionManager.Input_Fan_Power) ?? 0).toString() + " W", style: Theme.of(context).textTheme.bodyText1)))
-            ],
-          ),
-          SizedBox(height: 16),
-          Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-            Material(
-              clipBehavior: Clip.hardEdge,
-              borderRadius: BorderRadius.circular(45.0),
-              child: Ink(
-                decoration: ShapeDecoration(
-                  color: Theme.of(context).primaryColor,
-                  shape: CircleBorder(),
-                ),
-                child: IconButton(
-                  icon: Icon(Icons.keyboard_arrow_up),
-                  iconSize: 35,
-                  color: Colors.white,
-                  onPressed: () async {
-                    if (await set_maximum_inlet_fan_speed(min(maximum_inlet_fan_speed.roundToDouble() + 1.0, 100))) {
-                      setState(() {
-                        maximum_inlet_fan_speed = min(maximum_inlet_fan_speed.roundToDouble() + 1.0, 100).roundToDouble();
-                      });
-                    }
-                  },
-                ),
-              ),
-            ),
-            Material(
-              clipBehavior: Clip.hardEdge,
-              borderRadius: BorderRadius.circular(45.0),
-              child: Ink(
-                decoration: ShapeDecoration(
-                  color: Theme.of(context).primaryColor,
-                  shape: CircleBorder(),
-                ),
-                child: IconButton(
-                  icon: Icon(Icons.keyboard_arrow_down),
-                  iconSize: 35,
-                  color: Colors.white,
-                  onPressed: () async {
-                    if (await set_maximum_inlet_fan_speed(max(maximum_inlet_fan_speed.roundToDouble() - 1.0, 0))) {
-                      setState(() {
-                        maximum_inlet_fan_speed = max(maximum_inlet_fan_speed.roundToDouble() - 1.0, 0);
-                      });
-                    }
-                  },
-                ),
-              ),
-            ),
-          ])
-        ]),
-      );
-
   void start() async {
-    final prefs = await SharedPreferences.getInstance();
+    // final prefs = await SharedPreferences.getInstance();
 
     // set value
-    is_inlet_fan_available = prefs.getBool('is_inlet_fan_available') ?? false;
+    // is_inlet_fan_available = prefs.getBool('is_inlet_fan_available') ?? false;
+    is_inlet_fan_available = await Provider.of<ConnectionManager>(context, listen: false).getRequest("get122") == "1";
+
     if (!is_inlet_fan_available) {
       Future.delayed(Duration.zero, () => showAlertDialog(context));
     }
@@ -373,25 +487,41 @@ class _wpage_inlet_fanState extends State<wpage_inlet_fan> {
   }
 
   bool is_night = true;
-  build_day_night_switch() => Container(
-        color: Color(0xff181818),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: Row(children: [
-            Expanded(child: Text("Settings for ${is_night ? "Night" : "Day"} Time ", style: Theme.of(context).textTheme.headline6)),
-            DayNightSwitcher(
-              isDarkModeEnabled: is_night,
-              onStateChanged: (is_night) {
-                setState(() {
-                  this.is_night = is_night;
-                  refresh();
-                });
-              },
-            )
-          ]),
+  // build_day_night_switch() => Container(
+  //       color: Color(0xff181818),
+  //       child: Padding(
+  //         padding: const EdgeInsets.symmetric(horizontal: 8.0),
+  //         child: Row(children: [
+  //           Expanded(child: Text("Settings for ${is_night ? "Night" : "Day"} Time ", style: Theme.of(context).textTheme.headline6)),
+  //           DayNightSwitcher(
+  //             isDarkModeEnabled: is_night,
+  //             onStateChanged: (is_night) {
+  //               setState(() {
+  //                 this.is_night = is_night;
+  //                 refresh();
+  //               });
+  //             },
+  //           )
+  //         ]),
+  //       ),
+  //     );
+  build_apply_button(click) => Align(
+        alignment: Alignment.bottomCenter,
+        child: Container(
+          width: double.infinity,
+          margin: EdgeInsets.only(bottom: 15),
+          height: 50,
+          padding: EdgeInsets.symmetric(horizontal: 8),
+          child: OutlinedButton(
+            onPressed: click,
+            style: OutlinedButton.styleFrom(
+                padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
+                side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
+                shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
+            child: Text("Apply", style: Theme.of(context).textTheme.bodyText1),
+          ),
         ),
       );
-
   build_reset_button() => Align(
         alignment: Alignment.bottomCenter,
         child: Container(
@@ -436,6 +566,15 @@ class _wpage_inlet_fanState extends State<wpage_inlet_fan> {
         ),
       );
 
+  final List<Tab> tabs = <Tab>[
+    new Tab(
+      text: "Minimum",
+    ),
+    new Tab(
+      text: "Maximum",
+    ),
+  ];
+
   @override
   Widget build(BuildContext context) {
     if (!dialog_show) {
@@ -443,38 +582,201 @@ class _wpage_inlet_fanState extends State<wpage_inlet_fan> {
       start();
     }
     return is_inlet_fan_available
-        ? Container(
-            padding: const EdgeInsets.only(bottom: 64),
-            color: Theme.of(context).canvasColor,
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              ...make_title("Inlet Fan Speed"),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      build_elevation_presure(),
-                      build_day_night_switch(),
-                      SizedBox(
-                        height: 16,
+        ? Scaffold(
+            body: Column(
+            children: [
+              Container(
+                color: Colors.black12,
+                padding: EdgeInsets.symmetric(horizontal: 8),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: TabBar(
+                          isScrollable: false,
+                          unselectedLabelColor: Colors.grey,
+                          labelColor: Colors.white,
+                          indicatorSize: TabBarIndicatorSize.tab,
+                          indicator: new BubbleTabIndicator(
+                            indicatorHeight: 25.0,
+                            indicatorColor: Colors.blueAccent,
+                            tabBarIndicatorSize: TabBarIndicatorSize.tab,
+                            // Other flags
+                            // indicatorRadius: 1,
+                            // insets: EdgeInsets.all(1),
+                            // padding: EdgeInsets.all(10)
+                          ),
+                          labelStyle: Theme.of(context).textTheme.bodyText1,
+                          tabs: tabs,
+                          controller: _tabController,
+                        ),
                       ),
-                      build_minimum_inlet_fan_speed(),
-                      SizedBox(
-                        height: 18,
-                      ),
-                      build_maximum_inlet_fan_speed(),
-                      SizedBox(
-                        height: 18,
-                      ),
-                    ],
-                  ),
+                    ),
+                    Expanded(child: Text("Inlet Fan Speed", style: Theme.of(context).textTheme.bodyText1)),
+                  ],
                 ),
               ),
+              build_elevation_presure(),
+              Expanded(
+                child: new TabBarView(controller: _tabController, physics: NeverScrollableScrollPhysics(), children: [
+                  SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        ExpansionTile(
+                            key: key_min_day,
+                            initiallyExpanded: expanded_min_day,
+                            tilePadding: EdgeInsets.only(right: 16),
+                            title: ListTile(
+                              onTap: toggle_min_day,
+                              title: Text("Day Time", style: Theme.of(context).textTheme.bodyText1!),
+                              leading: DayNightSwitcherIcon(
+                                isDarkModeEnabled: false,
+                                onStateChanged: (isDarkModeEnabled) {
+                                  setState(() {});
+                                },
+                              ),
+                            ),
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: build_fan_speed_row("Minimum", minimum_inlet_fan_speed_day, () {
+                                  inc_min_inlet_fan(false);
+                                }, () {
+                                  dec_min_inlet_fan(false);
+                                }, is_max95: true),
+                              ),
+                            ]),
+                        Divider(
+                          height: 0,
+                        ),
+                        ExpansionTile(
+                            key: key_min_night,
+                            initiallyExpanded: expanded_min_night,
+                            tilePadding: EdgeInsets.only(right: 16),
+                            title: ListTile(
+                              onTap: toggle_min_night,
+                              title: Text("Night Time", style: Theme.of(context).textTheme.bodyText1!),
+                              leading: DayNightSwitcherIcon(
+                                isDarkModeEnabled: true,
+                                onStateChanged: (isDarkModeEnabled) {
+                                  setState(() {});
+                                },
+                              ),
+                            ),
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: build_fan_speed_row("Minimum", minimum_inlet_fan_speed_night, () {
+                                  inc_min_inlet_fan(true);
+                                }, () {
+                                  dec_min_inlet_fan(true);
+                                }, is_max95: true),
+                              ),
+                            ]),
+                      ],
+                    ),
+                  ),
+                  if (!is_minimum_day_set || !is_minimum_night_set)
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Align(
+                        alignment: Alignment.topCenter,
+                        child: Container(
+                            width: double.infinity,
+                            padding: EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                                color: Colors.pink[600]!,
+                                border: Border.all(
+                                  color: Colors.pink[600]!,
+                                ),
+                                borderRadius: BorderRadius.all(Radius.circular(8))),
+                            child: Container(
+                                child: Text("Please set minimum fan speed before changing maximum fan speed.", style: Theme.of(context).textTheme.headline6))),
+                      ),
+                    )
+                  else
+                    SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          ExpansionTile(
+                              key: key_max_day,
+                              initiallyExpanded: expanded_max_day,
+                              tilePadding: EdgeInsets.only(right: 16),
+                              title: ListTile(
+                                onTap: toggle_max_day,
+                                title: Text("Day Time", style: Theme.of(context).textTheme.bodyText1!),
+                                leading: DayNightSwitcherIcon(
+                                  isDarkModeEnabled: false,
+                                  onStateChanged: (isDarkModeEnabled) {
+                                    setState(() {});
+                                  },
+                                ),
+                              ),
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: build_fan_speed_row("Maximum", maximum_inlet_fan_speed_day, () {
+                                    inc_max_inlet_fan(false);
+                                  }, () {
+                                    dec_max_inlet_fan(false);
+                                  }),
+                                ),
+                              ]),
+                          Divider(
+                            height: 0,
+                          ),
+                          ExpansionTile(
+                              key: key_max_night,
+                              initiallyExpanded: expanded_max_night,
+                              tilePadding: EdgeInsets.only(right: 16),
+                              title: ListTile(
+                                onTap: toggle_max_night,
+                                title: Text("Night Time", style: Theme.of(context).textTheme.bodyText1!),
+                                leading: DayNightSwitcherIcon(
+                                  isDarkModeEnabled: true,
+                                  onStateChanged: (isDarkModeEnabled) {
+                                    setState(() {});
+                                  },
+                                ),
+                              ),
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: build_fan_speed_row("Maximum", maximum_inlet_fan_speed_night, () {
+                                    inc_max_inlet_fan(true);
+                                  }, () {
+                                    dec_max_inlet_fan(true);
+                                  }),
+                                ),
+                              ]),
+                        ],
+                      ),
+                    )
+                ]),
+              ),
+              build_apply_button(() async {
+                await Provider.of<ConnectionManager>(context, listen: false).set_request(122, "1");
+                if (_tabController!.index == 0) {
+                  await set_all_to_board_min();
+                  await refresh();
+                  return;
+                } else {
+                  await set_all_to_board_max();
+                  await refresh();
+                  return;
+                }
 
+                // await refresh();
+
+                // IntroductionScreenState.force_next();
+              }),
               build_reset_button(),
-              // Divider(
-              //   color: Theme.of(context).accentColor,
-              // ),
-            ]))
+              SizedBox(
+                height: 64,
+              )
+            ],
+          ))
         : Container(
             color: Theme.of(context).canvasColor,
             alignment: Alignment.center,

@@ -19,7 +19,7 @@ class IntroductionScreen extends StatefulWidget {
   final VoidCallback? onDone;
 
   /// Callback when next button is pressed
-  final bool Function() onNext;
+  final bool Function(int) onNext;
 
   /// Done button
   final Widget? done;
@@ -223,6 +223,7 @@ class IntroductionScreenState extends State<IntroductionScreen> {
   double _currentPage = 0.0;
   bool _isSkipPressed = false;
   bool _isScrolling = false;
+  static Function() force_next = () {};
 
   PageController get controller => _pageController;
 
@@ -232,6 +233,8 @@ class IntroductionScreenState extends State<IntroductionScreen> {
     int initialPage = min(widget.initialPage, getPagesLength() - 1);
     _currentPage = initialPage.toDouble();
     _pageController = PageController(initialPage: initialPage);
+
+    force_next = next;
   }
 
   int getPagesLength() {
@@ -239,8 +242,16 @@ class IntroductionScreenState extends State<IntroductionScreen> {
   }
 
   void next() {
-    if (widget.onNext()) {
+    if (widget.onNext(_currentPage.round())) {
       animateScroll(_currentPage.round() + 1);
+      setState(() => _currentPage = _currentPage.round() + 1);
+    }
+  }
+
+  void back() {
+    if (_currentPage.round() > 0) {
+      animateScroll(_currentPage.round() - 1);
+      setState(() => _currentPage = _currentPage.round() - 1);
     }
   }
 
@@ -278,7 +289,7 @@ class IntroductionScreenState extends State<IntroductionScreen> {
     final metrics = notification.metrics;
     if (metrics is PageMetrics && metrics.page != null) {
       if (mounted) {
-        setState(() => _currentPage = metrics.page!);
+        // setState(() => _currentPage = metrics.page!);
       }
     }
     return false;
@@ -310,8 +321,16 @@ class IntroductionScreenState extends State<IntroductionScreen> {
       color: widget.doneColor ?? widget.color,
       onPressed: widget.showDoneButton && !_isScrolling ? widget.onDone : null,
     );
-
+    final backBtn = IntroButton(
+      child: (Icon(
+        Icons.arrow_back,
+        // size: 36,
+      )),
+      color: widget.nextColor ?? widget.color,
+      onPressed: back,
+    );
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: widget.globalBackgroundColor,
       body: Stack(
         children: [
@@ -356,9 +375,13 @@ class IntroductionScreenState extends State<IntroductionScreen> {
                   decoration: widget.dotsContainerDecorator,
                   child: Row(
                     children: [
+                      // Expanded(
+                      //   flex: widget.skipFlex,
+                      //   child: _toggleBtn(skipBtn, isSkipBtn),
+                      // ),
                       Expanded(
                         flex: widget.skipFlex,
-                        child: _toggleBtn(skipBtn, isSkipBtn),
+                        child: backBtn,
                       ),
                       Expanded(
                         flex: widget.dotsFlex,

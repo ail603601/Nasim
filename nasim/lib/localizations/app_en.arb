@@ -45,7 +45,7 @@
     "internetConnectionTitle": "Internet Connection",
     "internetConnectionDescription": "if you have pervoisly configured your device for online connection",
     "searchingAvailableDevices": "Searching...",
-    "searchingUserHint":"in order to find your device, stand near it and make sure it is turned On; then open your wifi settings and connect to a wifi named 'BREEZE Air Conditoner' \n Note: turn off your mobile data if you coudnt find your device.",
+    "searchingUserHint":"in order to find your device, stand near it and make sure it is turned On; then open your wifi settings and connect to a wifi named 'BREEZE Air Conditoner' \n Note: turn off your mobile data if you could not find your device.",
     "searchingNothingFound":"nothing found yet..",
     "scanQrCode":"Scan Bar Code",
     "serialNumberRequired":"you need to provide device's serial number",
@@ -55,7 +55,7 @@
     "controll":"Controll",
     "settings":"Settings",
     "licenses":"Licenses",
-    "usersPageDescription":"this page shows all mobile phones that can acceess this device,in order to controll the air condtioner, you must add your phone to the list, maximum 3 devices can be added by free ",
+    "usersPageDescription":"this page shows all mobile phones that can access this device,in order to control the air conditioner, you must add your phone to the list, maximum 3 devices can be added by free.,",
 
     "hello": "Hello {username}",
     "@hello": {

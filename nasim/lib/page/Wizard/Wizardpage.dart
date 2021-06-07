@@ -8,6 +8,7 @@ import 'package:nasim/provider/SavedevicesChangeNofiter.dart';
 import 'package:provider/provider.dart';
 
 import '../../utils.dart';
+import '../DevicesListConnect.dart';
 import 'Pages/wpage_temperature.dart';
 import 'Pages/wpage_wellcome.dart';
 import 'Pages/wpage_license.dart';
@@ -18,19 +19,81 @@ import 'Pages/wpage_humidity.dart';
 import 'Pages/wpage_air_quality.dart';
 import 'Pages/wpage_light.dart';
 
-class WizardPage extends StatelessWidget {
+class WizardPage extends StatefulWidget {
+  const WizardPage({Key? key}) : super(key: key);
+
+  @override
+  _WizardPageState createState() => _WizardPageState();
+}
+
+class _WizardPageState extends State<WizardPage> {
+  @override
+  void initState() {
+    super.initState();
+
+    wpage_outlet_fanState.is_maximum_set = false;
+    wpage_outlet_fanState.is_minimum_set = false;
+    wpage_inlet_fanState.is_maximum_day_set = false;
+    wpage_inlet_fanState.is_maximum_night_set = false;
+    wpage_inlet_fanState.is_minimum_day_set = false;
+    wpage_inlet_fanState.is_minimum_night_set = false;
+
+    wpage_temperatureState.is_day_set = false;
+    wpage_temperatureState.is_night_set = false;
+
+    wpage_humidityState.is_day_set = false;
+    wpage_humidityState.is_night_set = false;
+
+    wpage_air_qualityState.is_day_set = false;
+    wpage_air_qualityState.is_night_set = false;
+    // wpage_license.
+    // wpage_users.
+    // wpage_outlet_fan.is
+    // wpage_inlet_fan.
+    // wpage_temperature.
+    // wpage_humidity.
+    // wpage_air_quality.
+    // wpage_light.
+  }
+
   static bool can_next = true;
+  static void wizardEnded(context) async {
+    if (DevicesListConnectState.flag_only_user == true) {
+      if (wpage_usersState.can_next) {
+        await Provider.of<ConnectionManager>(context, listen: false).set_request(121, "1");
+        Navigator.pop(context, true);
+      }
+    } else {
+      await Provider.of<ConnectionManager>(context, listen: false).set_request(121, "1");
+      Navigator.pop(context, true);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    void wizardEnded() async {
-      if (!await Provider.of<ConnectionManager>(context, listen: false).set_request(121, "1")) {
-        Utils.handleError(context);
-        return;
-      }
-      Navigator.pop(context, true);
+    dynamic raw_pages = [
+      wpage_wellcome(),
+      wpage_license(),
+      wpage_users(),
+      wpage_outlet_fan(),
+      wpage_inlet_fan(),
+      wpage_temperature(),
+      wpage_humidity(),
+      wpage_air_quality(),
+      wpage_light()
+    ];
+    bool can_next(int i) {
+      return raw_pages[i].Next();
+    }
+
+    if (DevicesListConnectState.flag_only_user == true) {
+      raw_pages = [
+        wpage_users(),
+      ];
     }
 
     return Scaffold(
+        resizeToAvoidBottomInset: false,
         appBar: AppBar(
           title: Text(SavedDevicesChangeNotifier.selected_device!.name, style: Theme.of(context).textTheme.headline5!),
           centerTitle: true,
@@ -39,25 +102,17 @@ class WizardPage extends StatelessWidget {
           create: (context) => LicenseChangeNotifier(context),
           lazy: false,
           child: IntroductionScreen(
-            onNext: () => can_next,
-            rawPages: [
-              wpage_wellcome(),
-              wpage_license(),
-              wpage_users(),
-              wpage_outlet_fan(),
-              wpage_inlet_fan(),
-              wpage_temperature(),
-              wpage_humidity(),
-              wpage_air_quality(),
-              wpage_light()
-            ],
+            onNext: can_next,
+            rawPages: raw_pages,
             next: Icon(Icons.arrow_forward),
             done: Text(
               "Done",
               style: Theme.of(context).textTheme.bodyText1,
             ),
             freeze: true,
-            onDone: wizardEnded,
+            onDone: () {
+              wizardEnded(context);
+            },
             isProgressTap: false,
             nextFlex: 0,
             skipFlex: 0,

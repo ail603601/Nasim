@@ -23,7 +23,7 @@ class AppIntroductionScreen extends StatelessWidget {
 
     return SafeArea(
         child: IntroductionScreen(
-      onNext: () => true,
+      onNext: (i) => true,
       pages: [page1(context, _decoration), page2(context, _decoration), page3(context, _decoration)],
       next: Icon(Icons.arrow_forward),
       done: Text(

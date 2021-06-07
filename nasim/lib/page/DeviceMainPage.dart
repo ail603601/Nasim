@@ -21,6 +21,7 @@ class DeivceMainPage extends StatelessWidget {
       MenuInfo(MenuType.Licenses, title: AppLocalizations.of(context)!.licenses, imageSource: Icons.assignment)
     ];
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Row(
         children: <Widget>[
           Column(
@@ -32,35 +33,39 @@ class DeivceMainPage extends StatelessWidget {
             width: 1,
           ),
           Expanded(
-            child: Container(
-              decoration: new BoxDecoration(),
-              clipBehavior: Clip.hardEdge,
-              child: Consumer<MenuInfo>(
-                builder: (BuildContext context, MenuInfo value, Widget? child) {
-                  if (value.menuType == MenuType.Overview)
-                    return OverviePage();
-                  else if (value.menuType == MenuType.Controll)
-                    return ControllPage();
-                  else if (value.menuType == MenuType.Settings)
-                    return SettingsPage();
-                  else if (value.menuType == MenuType.Licenses)
-                    return LicensesPage();
-                  else
-                    return Container(
-                      child: RichText(
-                        text: TextSpan(
-                          style: TextStyle(fontSize: 20),
-                          children: <TextSpan>[
-                            TextSpan(text: 'Upcoming \n'),
-                            TextSpan(
-                              text: value.title,
-                              style: TextStyle(fontSize: 48),
-                            ),
-                          ],
+            child: ChangeNotifierProvider<LicenseChangeNotifier>(
+              create: (context) => LicenseChangeNotifier(context),
+              lazy: false,
+              child: Container(
+                decoration: new BoxDecoration(),
+                clipBehavior: Clip.hardEdge,
+                child: Consumer<MenuInfo>(
+                  builder: (BuildContext context, MenuInfo value, Widget? child) {
+                    if (value.menuType == MenuType.Overview)
+                      return new OverviePage();
+                    else if (value.menuType == MenuType.Controll)
+                      return new ControllPage();
+                    else if (value.menuType == MenuType.Settings)
+                      return new SettingsPage();
+                    else if (value.menuType == MenuType.Licenses)
+                      return new LicensesPage();
+                    else
+                      return Container(
+                        child: RichText(
+                          text: TextSpan(
+                            style: TextStyle(fontSize: 20),
+                            children: <TextSpan>[
+                              TextSpan(text: 'Upcoming \n'),
+                              TextSpan(
+                                text: value.title,
+                                style: TextStyle(fontSize: 48),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    );
-                },
+                      );
+                  },
+                ),
               ),
             ),
           ),

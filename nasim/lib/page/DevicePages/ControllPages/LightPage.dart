@@ -11,10 +11,16 @@ class LightPage extends StatefulWidget {
 
 class _LightPageState extends State<LightPage> {
   late ConnectionManager cmg;
+  static bool is_both_set = false;
+
   refresh() async {
-    ConnectionManager.Min_Day_Lux = Utils.int_str(await cmg.getRequest("get74"), ConnectionManager.Min_Day_Lux);
-    ConnectionManager.Max_Night_Lux = Utils.int_str(await cmg.getRequest("get75"), ConnectionManager.Max_Night_Lux);
-    setState(() {});
+    await Utils.show_loading_timed(
+        context: context,
+        done: () async {
+          ConnectionManager.Min_Day_Lux = (await cmg.getRequest("get74"));
+          ConnectionManager.Max_Night_Lux = (await cmg.getRequest("get75"));
+          setState(() {});
+        });
   }
 
   @override
@@ -23,18 +29,21 @@ class _LightPageState extends State<LightPage> {
 
     cmg = Provider.of<ConnectionManager>(context, listen: false);
 
-    refresh();
+    Utils.setTimeOut(0, refresh);
   }
 
   apply() async {
-    if (!await cmg.set_request(74, Utils.lim_0_9999(ConnectionManager.Min_Day_Lux))) {
-      Utils.handleError(context);
-      return;
+    if (int.parse(ConnectionManager.Min_Day_Lux) + 50 >= int.parse(ConnectionManager.Max_Night_Lux)) {
+      Utils.alert(context, "", "'Minimum must be 50 lower than maximum.");
+      return false;
     }
 
-    await cmg.set_request(75, Utils.lim_0_9999(ConnectionManager.Max_Night_Lux));
+    await cmg.set_request(74, Utils.lim_0_9999(ConnectionManager.Min_Day_Lux));
 
-    refresh();
+    await cmg.set_request(75, Utils.lim_0_9999(ConnectionManager.Max_Night_Lux));
+    is_both_set = true;
+
+    await refresh();
   }
 
   build_apply_button() => Align(
@@ -81,13 +90,14 @@ class _LightPageState extends State<LightPage> {
             Expanded(child: Text("Max Light")),
             Expanded(
               child: TextField(
+                maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
                 controller: TextEditingController()..text = ConnectionManager.Max_Night_Lux,
                 onChanged: (value) {
                   ConnectionManager.Max_Night_Lux = value;
                 },
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(suffix: Text("Lux")),
+                decoration: InputDecoration(suffix: Text("Lux"), counterText: ""),
               ),
             )
           ],
@@ -101,13 +111,14 @@ class _LightPageState extends State<LightPage> {
             Expanded(child: Text("Min Light")),
             Expanded(
               child: TextField(
+                maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
                 controller: TextEditingController()..text = ConnectionManager.Min_Day_Lux,
                 onChanged: (value) {
                   ConnectionManager.Min_Day_Lux = value;
                 },
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(suffix: Text("Lux")),
+                decoration: InputDecoration(suffix: Text("Lux"), counterText: ""),
               ),
             )
           ],
@@ -139,33 +150,36 @@ class _LightPageState extends State<LightPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        padding: EdgeInsets.only(top: 10),
-        color: Theme.of(context).canvasColor,
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          ...make_title("Light levels"),
-          SizedBox(
-            height: 16,
-          ),
-          build_boxed_titlebox(
-              title: "Day",
-              child: Center(
-                child: min_lux(),
-              )),
-          SizedBox(height: 16),
-          build_boxed_titlebox(
-              title: "Night",
-              child: Center(
-                child: max_lux(),
-              )),
-          Expanded(
-              child: Align(
-            alignment: Alignment.bottomCenter,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [build_apply_button(), build_reset_button()],
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 0),
+      child: Container(
+          padding: EdgeInsets.only(top: 10),
+          color: Theme.of(context).canvasColor,
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            ...make_title("Light levels"),
+            SizedBox(
+              height: 16,
             ),
-          ))
-        ]));
+            build_boxed_titlebox(
+                title: "Day",
+                child: Center(
+                  child: min_lux(),
+                )),
+            SizedBox(height: 16),
+            build_boxed_titlebox(
+                title: "Night",
+                child: Center(
+                  child: max_lux(),
+                )),
+            Expanded(
+                child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [build_apply_button(), build_reset_button()],
+              ),
+            ))
+          ])),
+    );
   }
 }

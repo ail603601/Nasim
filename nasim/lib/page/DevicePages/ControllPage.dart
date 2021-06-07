@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:nasim/Model/Device.dart';
 import 'package:nasim/Model/menu_info.dart';
 import 'package:nasim/page/DevicePages/ControllPages/AirSpeedPage.dart';
+import 'package:nasim/page/DevicePages/ControllPages/HumidityPage.dart';
 import 'package:nasim/page/DevicePages/ControllPages/InletFanSpeedPage.dart';
 import 'package:nasim/page/DevicePages/ControllPages/LightPage.dart';
 import 'package:nasim/page/DevicePages/ControllPages/TemperaturePage.dart';
@@ -154,11 +155,11 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
           ),
         ),
       );
-  Widget build_temperatutre_humidity_card(context) => Card(
+  Widget build_temperatutre_card(context) => Card(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15.0),
         ),
-        color: Colors.purple[200],
+        color: Colors.orange[200],
         elevation: 10,
         child: InkWell(
           borderRadius: BorderRadius.circular(15.0),
@@ -172,9 +173,36 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
               children: <Widget>[
                 ListTile(
                   leading: Image.asset("assets/thermometer.png"),
-                  title: Text('Temperature & Humidity', style: Theme.of(context).textTheme.bodyText1),
+                  title: Text('Temperature', style: Theme.of(context).textTheme.bodyText1),
                   trailing: Icon(Icons.arrow_forward_ios),
                   // subtitle: Text('TWICE', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+  Widget build_humidity_card(context) => Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.0),
+        ),
+        color: Colors.purple[200],
+        elevation: 10,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(15.0),
+          onTap: () {
+            Navigator.pushNamed(context, "/humidity");
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                ListTile(
+                  leading: Image.asset("assets/humidity_icon.png"),
+                  title: Text(' Humidity', style: Theme.of(context).textTheme.bodyText1),
+                  trailing: Icon(Icons.arrow_forward_ios),
                 ),
               ],
             ),
@@ -259,7 +287,8 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
                       children: [
                         build_air_speed_animated_card(context),
                         build_inlet_fan_speed_animated_card(context),
-                        build_temperatutre_humidity_card(context),
+                        build_temperatutre_card(context),
+                        build_humidity_card(context),
                         build_air_quality_card(context),
                         build_light_level_card(context)
                       ],
@@ -273,6 +302,9 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
           }
           if (settings.name == "/temperature") {
             return CupertinoPageRoute(builder: (context) => TemperaturePage());
+          }
+          if (settings.name == "/humidity") {
+            return CupertinoPageRoute(builder: (context) => HumidityPage());
           }
           if (settings.name == "/airquality") {
             return CupertinoPageRoute(builder: (context) => AirQualityPage());

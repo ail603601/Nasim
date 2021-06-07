@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nasim/IntroductionScreen/introduction_screen.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
 import 'package:nasim/provider/LicenseChangeNotifier.dart';
 import 'package:nasim/utils.dart';
@@ -9,6 +10,8 @@ import '../Wizardpage.dart';
 class wpage_license extends StatefulWidget {
   @override
   _wpage_licenseState createState() => _wpage_licenseState();
+
+  bool Function()? Next = null;
 }
 
 class _wpage_licenseState extends State<wpage_license> {
@@ -16,8 +19,12 @@ class _wpage_licenseState extends State<wpage_license> {
   bool expanded_initialy = false;
   @override
   void initState() {
-    WizardPage.can_next = false;
-
+    widget.Next = () {
+      if (!can_go_next) {
+        Utils.alert(context, "Error", "you have to provide Power Box and Room temperature 0 licenses in order to turn your device On.");
+      }
+      return can_go_next;
+    };
     checkifnexyallowed(Provider.of<LicenseChangeNotifier>(context, listen: false));
     super.initState();
   }
@@ -25,7 +32,7 @@ class _wpage_licenseState extends State<wpage_license> {
   hintbox() => Container(
         padding: EdgeInsets.all(16),
         color: Theme.of(context).hintColor,
-        child: Text("Before we continue setting things up , you have to provide thes rquired licenses in order to turn your device On.",
+        child: Text("Before we continue setting things up , you have to provide required licenses in order to turn your device On.",
             style: Theme.of(context).textTheme.headline6!),
       );
   license_gsm_modem_row(LicenseChangeNotifier lcn) => ListTile(
@@ -91,8 +98,7 @@ class _wpage_licenseState extends State<wpage_license> {
           if (data == "" && data != "null") {
             return;
           }
-          //TODO: THIS ID IS NOT CORRECT
-          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).set_request(4, data);
+          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).set_request(15, data);
           if (is_valid) {
             lcn.license_outdoor_temp();
             setState(() {});
@@ -186,9 +192,6 @@ class _wpage_licenseState extends State<wpage_license> {
           license_room_temp_row_other(8, lcn.room_temp_8, () async {
             await lcn.license_room_temp(8);
           }),
-          license_room_temp_row_other(9, lcn.room_temp_9, () async {
-            await lcn.license_room_temp(9);
-          }),
         ],
       );
 
@@ -270,15 +273,17 @@ class _wpage_licenseState extends State<wpage_license> {
         },
       );
 
+  bool can_go_next = false;
+
   checkifnexyallowed(LicenseChangeNotifier lcn) {
     if (lcn.power_box && lcn.room_temp_0) {
-      WizardPage.can_next = true;
+      can_go_next = true;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    checkifnexyallowed(Provider.of<LicenseChangeNotifier>(context, listen: false));
+    // checkifnexyallowed(Provider.of<LicenseChangeNotifier>(context, listen: false));
 
     return Container(
         padding: const EdgeInsets.only(bottom: 64),

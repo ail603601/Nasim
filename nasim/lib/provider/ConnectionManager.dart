@@ -15,7 +15,7 @@ import '../enums.dart';
 
 class ConnectionManager extends ChangeNotifier {
   List<Device> found_devices = [];
-  late RawDatagramSocket udpSocket;
+  static RawDatagramSocket? udpSocket;
   static final Map<String, TimedRequest> requests = {};
   var uuid = Uuid();
 
@@ -32,10 +32,10 @@ class ConnectionManager extends ChangeNotifier {
     RawDatagramSocket.bind(InternetAddress.anyIPv4, 9315).then(
       (RawDatagramSocket _udpSocket) {
         udpSocket = _udpSocket;
-        udpSocket.broadcastEnabled = true;
+        udpSocket!.broadcastEnabled = true;
 
-        udpSocket.listen((e) {
-          Datagram? dg = udpSocket.receive();
+        udpSocket!.listen((e) {
+          Datagram? dg = udpSocket!.receive();
           if (dg != null) {
             last_sender_host = dg.address.host;
             String string_received = AsciiCodec().decode(dg.data);
@@ -55,7 +55,10 @@ class ConnectionManager extends ChangeNotifier {
           }
         }, onError: (dg) {
           print("received error: ${dg}"); //dg.address.host
-          CreateSocket();
+          found_devices = [];
+          udpSocket = null;
+
+          // CreateSocket();
         });
       },
     );
@@ -63,19 +66,28 @@ class ConnectionManager extends ChangeNotifier {
 
   ConnectionManager() {
     CreateSocket();
-    timeoutTimer = Timer(Duration(milliseconds: 0), () {});
+    // timeoutTimer = Timer(Duration(milliseconds: 0), () {});
   }
 
-  sendDiscoverSignal() async {
+  Future<void> sendDiscoverSignal() async {
+    found_devices = [];
+
+    if (udpSocket == null) {
+      CreateSocket();
+      return;
+    }
+
     String result = await getRequest('_DISCOVER', "255.255.255.255");
     var arr = result.split(',');
 
     const String discover_symbol = "_INFO";
     if (arr[0] == discover_symbol) {
       //add device to list
-      Device device = Device(name: arr[1], serial: arr[2], ip: last_sender_host, connectionState: ConnectionStatus.connected_close);
+      Device device = Device(wifiname: arr[1], name: arr[1], serial: arr[2], ip: last_sender_host, connectionState: ConnectionStatus.connected_close);
       if (!found_devices.contains(device)) {
         found_devices.add(device);
+      } else {
+        found_devices[found_devices.indexOf(device)].wifiname = device.name;
       }
       return;
     }
@@ -97,20 +109,22 @@ class ConnectionManager extends ChangeNotifier {
     return res;
   }
 
-  Future<bool> getRequestAutoCheck(String request, context) async {
-    String result = await getRequest(request);
-    if (result == "timeout") {
-      return false;
-    } else
-      return true;
+  // late Timer timeoutTimer;
+  // late Future<String> last_future;
+
+  Future<String> getRequest_non0(String request, [ip]) async {
+    String results = await getRequest(request, ip);
+
+    while (results.startsWith('0')) {
+      results = results.substring(1);
+    }
+    return results;
   }
 
-  late Timer timeoutTimer;
-  // late Future<String> last_future;
   Future<String> getRequest(String request, [ip]) async {
     final requestId = uuid.v1();
 
-    requests[requestId] = new TimedRequest(requestId);
+    requests[requestId] = new TimedRequest(requestId, request, ip);
 
     execute(id: requestId, request_data: request, ip: ip);
     return requests[requestId]!.start();
@@ -130,14 +144,14 @@ class ConnectionManager extends ChangeNotifier {
     }
   }
 
-  void execute({id, request_data, ip}) {
+  static void execute({id, request_data, ip}) {
     assert(SavedDevicesChangeNotifier.selected_device != null || ip != null);
 
     ip = ip ?? SavedDevicesChangeNotifier.selected_device!.ip;
     InternetAddress DESTINATION_ADDRESS = InternetAddress(ip);
     String discover_symbol = id + "/" + request_data;
     List<int> data = AsciiCodec().encode(discover_symbol);
-    udpSocket.send(data, DESTINATION_ADDRESS, 9315);
+    udpSocket!.send(data, DESTINATION_ADDRESS, 9315);
   }
 
   static String DeviceName = "";

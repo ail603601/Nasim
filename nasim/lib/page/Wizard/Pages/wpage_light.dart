@@ -14,36 +14,52 @@ import '../Wizardpage.dart';
 class wpage_light extends StatefulWidget {
   @override
   _wpage_lightState createState() => _wpage_lightState();
+
+  bool Function()? Next = null;
 }
 
 class _wpage_lightState extends State<wpage_light> {
   late ConnectionManager cmg;
+  static bool is_both_set = false;
+
   refresh() async {
-    ConnectionManager.Min_Day_Lux = Utils.int_str(await cmg.getRequest("get74"), ConnectionManager.Min_Day_Lux);
-    ConnectionManager.Max_Night_Lux = Utils.int_str(await cmg.getRequest("get75"), ConnectionManager.Max_Night_Lux);
-    setState(() {});
+    await Utils.show_loading_timed(
+        context: context,
+        done: () async {
+          ConnectionManager.Min_Day_Lux = (await cmg.getRequest("get74"));
+          ConnectionManager.Max_Night_Lux = (await cmg.getRequest("get75"));
+          setState(() {});
+        });
   }
 
   @override
   void initState() {
     super.initState();
-    WizardPage.can_next = false;
-
+    widget.Next = () {
+      if (!is_both_set) {
+        Utils.alert(context, " ", "Please apply values.");
+      }
+      return is_both_set;
+    };
     cmg = Provider.of<ConnectionManager>(context, listen: false);
 
-    refresh();
+    Utils.setTimeOut(0, refresh);
   }
 
   apply() async {
-    if (!await cmg.set_request(74, Utils.lim_0_9999(ConnectionManager.Min_Day_Lux))) {
-      Utils.handleError(context);
-      return;
+    if (int.parse(ConnectionManager.Min_Day_Lux) + 50 >= int.parse(ConnectionManager.Max_Night_Lux)) {
+      Utils.alert(context, "", "'Minimum must be 50 lower than maximum.");
+      return false;
     }
 
-    await cmg.set_request(75, Utils.lim_0_9999(ConnectionManager.Max_Night_Lux));
-    WizardPage.can_next = true;
+    await cmg.set_request(74, Utils.lim_0_9999(ConnectionManager.Min_Day_Lux));
 
-    refresh();
+    await cmg.set_request(75, Utils.lim_0_9999(ConnectionManager.Max_Night_Lux));
+    is_both_set = true;
+    Utils.show_done_dialog(context, "Settings finsihed successfuly.", "your device is set up and ready to use.", () {
+      WizardPage.wizardEnded(context);
+    });
+    await refresh();
   }
 
   build_apply_button() => Align(
@@ -90,13 +106,14 @@ class _wpage_lightState extends State<wpage_light> {
             Expanded(child: Text("Max Light")),
             Expanded(
               child: TextField(
+                maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
-                controller: TextEditingController()..text = ConnectionManager.Max_Night_Lux,
+                controller: TextEditingController()..text = (int.tryParse(ConnectionManager.Max_Night_Lux) ?? 0).toString(),
                 onChanged: (value) {
                   ConnectionManager.Max_Night_Lux = value;
                 },
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(suffix: Text("Lux")),
+                decoration: InputDecoration(suffix: Text("Lux"), counterText: ""),
               ),
             )
           ],
@@ -110,13 +127,14 @@ class _wpage_lightState extends State<wpage_light> {
             Expanded(child: Text("Min Light")),
             Expanded(
               child: TextField(
+                maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
-                controller: TextEditingController()..text = ConnectionManager.Min_Day_Lux,
+                controller: TextEditingController()..text = (int.tryParse(ConnectionManager.Min_Day_Lux) ?? 0).toString(),
                 onChanged: (value) {
                   ConnectionManager.Min_Day_Lux = value;
                 },
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(suffix: Text("Lux")),
+                decoration: InputDecoration(suffix: Text("Lux"), counterText: ""),
               ),
             )
           ],
@@ -136,13 +154,14 @@ class _wpage_lightState extends State<wpage_light> {
   List<Widget> make_title(titile) {
     return [
       Container(
-        padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
+        padding: EdgeInsets.all(15),
         alignment: Alignment.centerLeft,
+        color: Colors.black12,
         child: Text(titile, style: Theme.of(context).textTheme.bodyText1),
       ),
-      Divider(
-        color: Theme.of(context).accentColor,
-      )
+      // Divider(
+      //   color: Theme.of(context).accentColor,
+      // )
     ];
   }
 
@@ -151,7 +170,7 @@ class _wpage_lightState extends State<wpage_light> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 64),
       child: Container(
-          padding: EdgeInsets.only(top: 10),
+          padding: EdgeInsets.only(top: 0),
           color: Theme.of(context).canvasColor,
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             ...make_title("Light levels"),
