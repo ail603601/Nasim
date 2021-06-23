@@ -94,15 +94,21 @@ class ConnectionManager extends ChangeNotifier {
   }
 
   Future<int> pingDevice(Device d) async {
+    if (udpSocket == null) {
+      CreateSocket();
+      return -1;
+    }
     _pingtimer.reset();
     _pingtimer.start();
 
     var answer = await getRequest('_PING', d.ip);
+
     //Eleapsed time
     int res = _pingtimer.elapsedMilliseconds; //returns a Duration
     _pingtimer.stop();
 
-    if ('timeout' == answer) {
+    if (d.serial == answer) {
+    } else {
       res = -1;
     }
 

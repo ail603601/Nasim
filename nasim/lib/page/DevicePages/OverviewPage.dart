@@ -27,39 +27,47 @@ class _OverviePageState extends State<OverviePage> {
     });
     cmg = Provider.of<ConnectionManager>(context, listen: false);
     lcn = Provider.of<LicenseChangeNotifier>(context, listen: false);
-    refresh();
+    Utils.setTimeOut(0, () {
+      Utils.show_loading_timed(
+          context: context,
+          done: () async {
+            await refresh();
+          });
+    });
   }
 
   refresh() async {
     if (!mounted) return;
 
-    ConnectionManager.Real_Room_Temp_0 = await cmg.getRequest("get79");
-    ConnectionManager.Real_Room_Temp_1 = await cmg.getRequest("get80");
-    ConnectionManager.Real_Room_Temp_2 = await cmg.getRequest("get81");
-    ConnectionManager.Real_Room_Temp_3 = await cmg.getRequest("get82");
-    ConnectionManager.Real_Room_Temp_4 = await cmg.getRequest("get83");
-    ConnectionManager.Real_Room_Temp_5 = await cmg.getRequest("get84");
-    ConnectionManager.Real_Room_Temp_6 = await cmg.getRequest("get85");
-    ConnectionManager.Real_Room_Temp_7 = await cmg.getRequest("get86");
-    ConnectionManager.Real_Room_Temp_8 = await cmg.getRequest("get87");
-    ConnectionManager.Real_Outdoor_Temp = await cmg.getRequest("get89");
+    ConnectionManager.Real_Room_Temp_0 = (int.tryParse(await cmg.getRequest_non0("get79")) ?? 0).toString();
+    ConnectionManager.Real_Room_Temp_1 = (int.tryParse(await cmg.getRequest_non0("get80")) ?? 0).toString();
+    ConnectionManager.Real_Room_Temp_2 = (int.tryParse(await cmg.getRequest_non0("get81")) ?? 0).toString();
+    ConnectionManager.Real_Room_Temp_3 = (int.tryParse(await cmg.getRequest_non0("get82")) ?? 0).toString();
+    ConnectionManager.Real_Room_Temp_4 = (int.tryParse(await cmg.getRequest_non0("get83")) ?? 0).toString();
+    ConnectionManager.Real_Room_Temp_5 = (int.tryParse(await cmg.getRequest_non0("get84")) ?? 0).toString();
+    ConnectionManager.Real_Room_Temp_6 = (int.tryParse(await cmg.getRequest_non0("get85")) ?? 0).toString();
+    ConnectionManager.Real_Room_Temp_7 = (int.tryParse(await cmg.getRequest_non0("get86")) ?? 0).toString();
+    ConnectionManager.Real_Room_Temp_8 = (int.tryParse(await cmg.getRequest_non0("get87")) ?? 0).toString();
+    ConnectionManager.Real_Outdoor_Temp = (int.tryParse(await cmg.getRequest_non0("get89")) ?? 0).toString();
+    ConnectionManager.Real_Negative_Pressure_ = (int.tryParse(await cmg.getRequest_non0("get90")) ?? 0).toString();
+    ConnectionManager.Real_Humidity = (int.tryParse(await cmg.getRequest_non0("get91")) ?? 0).toString();
+    ConnectionManager.IAQ_Flag = (int.tryParse(await cmg.getRequest_non0("get64")) ?? 0).toString();
+    iaq_or_co = (ConnectionManager.IAQ_Flag == "1");
 
-    ConnectionManager.Real_Negative_Pressure_ = await cmg.getRequest("get90");
-    ConnectionManager.Real_Humidity = await cmg.getRequest("get91");
-    ConnectionManager.IAQ_Flag = await cmg.getRequest("get64");
-    ConnectionManager.CO2_Flag = await cmg.getRequest("get69");
-    ConnectionManager.Real_IAQ = await cmg.getRequest("get92");
-    ConnectionManager.Real_CO2 = await cmg.getRequest("get93");
-
-    ConnectionManager.Real_Light_Level = await cmg.getRequest("get94");
-    ConnectionManager.Real_Input_Fan_Speed = await cmg.getRequest("get95");
-    ConnectionManager.Input_Fan_Power = await cmg.getRequest("get45");
-    ConnectionManager.Real_Output_Fan_Speed = await cmg.getRequest("get96");
-    ConnectionManager.Real_Output_Fan_Power = await cmg.getRequest("get39");
-    ConnectionManager.Cooler_Status = await cmg.getRequest("get97");
-    ConnectionManager.Heater_Status = await cmg.getRequest("get98");
-    ConnectionManager.Air_Purifier_Status = await cmg.getRequest("get99");
-    ConnectionManager.Humidity_Controller_Status = await cmg.getRequest("get100");
+    ConnectionManager.CO2_Flag = (int.tryParse(await cmg.getRequest_non0("get69")) ?? 0).toString();
+    if (iaq_or_co) {
+      ConnectionManager.Real_IAQ = (int.tryParse(await cmg.getRequest_non0("get92")) ?? 0).toString();
+    } else {
+      ConnectionManager.Real_CO2 = (int.tryParse(await cmg.getRequest_non0("get93")) ?? 0).toString();
+    }
+    ConnectionManager.Real_Light_Level = (int.tryParse(await cmg.getRequest_non0("get94")) ?? 0).toString();
+    ConnectionManager.Real_Input_Fan_Speed = (int.tryParse(await cmg.getRequest_non0("get95")) ?? 0).toString();
+    ConnectionManager.Real_Output_Fan_Speed = (int.tryParse(await cmg.getRequest_non0("get96")) ?? 0).toString();
+    ConnectionManager.Real_Output_Fan_Power = (int.tryParse(await cmg.getRequest_non0("get39")) ?? 0).toString();
+    ConnectionManager.Cooler_Status = await cmg.getRequest_non0("get97");
+    ConnectionManager.Heater_Status = await cmg.getRequest_non0("get98");
+    ConnectionManager.Air_Purifier_Status = await cmg.getRequest_non0("get99");
+    ConnectionManager.Humidity_Controller_Status = await cmg.getRequest_non0("get100");
 
     if (mounted) setState(() {});
   }
@@ -110,13 +118,13 @@ class _OverviePageState extends State<OverviePage> {
             if (lcn.room_temp_8) ...build_text_row(title: "Room Temperature 8", value: ConnectionManager.Real_Room_Temp_8),
             if (lcn.outdoor_temp) ...build_text_row(title: "Outdoor Temperature", value: ConnectionManager.Real_Outdoor_Temp),
             ...build_text_row(title: "Negative Pressure", value: ConnectionManager.Real_Negative_Pressure_, suffix: 'hpa'),
-            ...build_text_row(title: "HUmiditoy", value: ConnectionManager.Real_Humidity, suffix: '%'),
+            ...build_text_row(title: "Humiditoy", value: ConnectionManager.Real_Humidity, suffix: '%'),
             ...iaq_or_co
                 ? (build_text_row(title: "IAQ", value: ConnectionManager.Real_IAQ, suffix: 'ppm'))
                 : (build_text_row(title: "Co2", value: ConnectionManager.Real_CO2, suffix: 'ppm')),
             ...build_text_row(title: "Light level", value: ConnectionManager.Real_Light_Level, suffix: 'Lux'),
             ...build_text_row(title: "Inlet Fan Speed", value: ConnectionManager.Real_Input_Fan_Speed, suffix: '%'),
-            ...build_text_row(title: "Inlet Fan Power", value: ConnectionManager.Input_Fan_Power, suffix: 'W'),
+            // ...build_text_row(title: "Inlet Fan Power", value: ConnectionManager.Input_Fan_Power, suffix: 'W'),
             ...build_text_row(title: "Outlet Fan Speed", value: ConnectionManager.Real_Output_Fan_Speed, suffix: '%'),
             ...build_text_row(title: "Outlet Fan Power", value: ConnectionManager.Real_Output_Fan_Power, suffix: 'W'),
             ...build_text_row(title: "Cooler", value: ConnectionManager.Cooler_Status == "1" ? "on" : "off", suffix: ''),

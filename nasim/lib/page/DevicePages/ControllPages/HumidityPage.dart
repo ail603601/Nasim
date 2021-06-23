@@ -4,6 +4,7 @@ import 'package:bubble_tab_indicator/bubble_tab_indicator.dart';
 import 'package:day_night_switcher/day_night_switcher.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:holding_gesture/holding_gesture.dart';
 import 'package:nasim/Model/Device.dart';
 import 'package:nasim/Model/menu_info.dart';
@@ -20,6 +21,7 @@ class HumidityPage extends StatefulWidget {
 class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderStateMixin {
   late ConnectionManager cmg;
   TabController? _tabController;
+
   @override
   void initState() {
     super.initState();
@@ -28,7 +30,7 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
 
     _tabController!.addListener(() {
       is_night = _tabController!.index == 1;
-      // refresh();
+      refresh();
     });
     cmg = Provider.of<ConnectionManager>(context, listen: false);
 
@@ -85,9 +87,10 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
             Expanded(child: Text("Min: ")),
             Expanded(
               child: TextField(
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   maxLength: 3,
                   style: Theme.of(context).textTheme.bodyText1,
-                  controller: TextEditingController()..text = value,
+                  controller: TextEditingController()..text = (int.tryParse(value) ?? 0).toString(),
                   onChanged: (value) {
                     humidity_min = Utils.lim_0_100(value);
                     if (is_night) {
@@ -96,7 +99,7 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
                       ConnectionManager.Min_Day_Humidity = int.parse(humidity_min).toString().padLeft(3, '0');
                     }
                   },
-                  keyboardType: TextInputType.number,
+                  keyboardType: TextInputType.numberWithOptions(decimal: false, signed: false),
                   decoration: InputDecoration(suffix: Text(' %'), counterText: "")),
             ),
           ],
@@ -110,9 +113,10 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
             Expanded(child: Text("Max: ")),
             Expanded(
               child: TextField(
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 maxLength: 3,
                 style: Theme.of(context).textTheme.bodyText1,
-                controller: TextEditingController()..text = value,
+                controller: TextEditingController()..text = (int.tryParse(value) ?? 0).toString(),
                 onChanged: (value) {
                   humidity_max = Utils.lim_0_100(value);
                   if (is_night) {
@@ -121,7 +125,7 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
                     ConnectionManager.Max_Day_Humidity = int.parse(humidity_max).toString().padLeft(3, '0');
                   }
                 },
-                keyboardType: TextInputType.number,
+                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: false),
                 decoration: InputDecoration(suffix: Text(' %'), counterText: ""),
               ),
             )
@@ -211,7 +215,7 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
 
   apply_humidity() async {
     try {
-      if (int.parse(humidity_min) + 5 >= int.parse(humidity_max)) {
+      if (int.parse(humidity_min) + 5 > int.parse(humidity_max)) {
         Utils.alert(context, "Error", "Humidity min and max must have more than 5 diffrentiate , and be positive.");
         return;
       }
@@ -228,12 +232,10 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
 
       Utils.showSnackBar(context, "Done.");
       if (_tabController!.index == 0) {
-        await refresh();
+        // await refresh();
 
         return;
-      } else if (_tabController!.index == 1) {
-        await refresh();
-      }
+      } else if (_tabController!.index == 1) {}
     } catch (e) {
       Utils.alert(context, "Error", "please check your input and try again.");
     }
@@ -244,7 +246,7 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
       child: Column(
         children: [
           ListTile(
-            title: Text('Humiditfire', style: Theme.of(context).textTheme.bodyText1),
+            title: Text('Humidifier', style: Theme.of(context).textTheme.bodyText1),
             onTap: () {
               setState(() {
                 ConnectionManager.Humidity_Controller = "0"; //means humidifer
@@ -325,7 +327,7 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
                     ),
                   ),
                 ),
-                Expanded(child: Text("Himudity", style: Theme.of(context).textTheme.bodyText1)),
+                Expanded(child: Text("Humidity", style: Theme.of(context).textTheme.bodyText1)),
               ],
             ),
           ),

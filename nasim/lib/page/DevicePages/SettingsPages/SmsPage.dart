@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:nasim/Widgets/NumericStepButton.dart';
@@ -16,19 +18,44 @@ class _SmsPageState extends State<SmsPage> {
   PhoneNumber number = PhoneNumber(isoCode: 'IR');
   late ConnectionManager cmg;
   late LicenseChangeNotifier lcn;
+  late Timer soft_reftresh_timer;
+
   @override
   void initState() {
     super.initState();
+    soft_reftresh_timer = Timer.periodic(new Duration(seconds: 1), (timer) async {
+      // soft_refresh();
+    });
 
     cmg = Provider.of<ConnectionManager>(context, listen: false);
     lcn = Provider.of<LicenseChangeNotifier>(context, listen: false);
     if (!lcn.gsm_modem) {
-      Utils.show_error_dialog(context, "No License", "you must provide gsm modem license. use the license tab", () {
-        Navigator.pop(context);
-      });
+      Utils.setTimeOut(
+          0,
+          () => Utils.show_error_dialog(context, "No License", "Gsm modem license is required. use the license tab", () {}).then((value) {
+                Navigator.pop(context);
+              }));
     }
 
     refresh();
+  }
+
+  @override
+  void dispose() {
+    soft_reftresh_timer.cancel();
+
+    // refresher.cancel();
+    super.dispose();
+  }
+
+  void soft_refresh() async {
+    ConnectionManager.GSM_SIM_Number = await cmg.getRequest("get108");
+
+    ConnectionManager.GSM_Signal_Power = (int.tryParse(await cmg.getRequest("get107")) ?? 0).toString();
+    ConnectionManager.GSM_SIM_Balance = (int.tryParse(await cmg.getRequest("get109")) ?? 0).toString();
+    ConnectionManager.SMS_Priorities_State = await cmg.getRequest("get110");
+
+    if (mounted) setState(() {});
   }
 
   refresh() async {
@@ -58,12 +85,11 @@ class _SmsPageState extends State<SmsPage> {
     }
 
     ConnectionManager.GSM_SIM_Number = await cmg.getRequest("get108");
-    ConnectionManager.GSM_Signal_Power = await cmg.getRequest("get107");
-    ConnectionManager.GSM_SIM_Balance = await cmg.getRequest("get109");
-
+    ConnectionManager.GSM_Signal_Power = (int.tryParse(await cmg.getRequest("get107")) ?? 0).toString();
+    ConnectionManager.GSM_SIM_Balance = (int.tryParse(await cmg.getRequest("get109")) ?? 0).toString();
     ConnectionManager.SMS_Priorities_State = await cmg.getRequest("get110");
 
-    setState(() {});
+    if (mounted) setState(() {});
   }
 
   apply() async {
@@ -91,51 +117,77 @@ class _SmsPageState extends State<SmsPage> {
     return oldString.substring(0, index) + newChar + oldString.substring(index + 1);
   }
 
-  Widget phone_number_input(int i) => InternationalPhoneNumberInput(
-        onInputChanged: (PhoneNumber number) {
-          print(number.phoneNumber);
-          if (number.phoneNumber != null)
-            switch (i) {
-              case 0:
-                ConnectionManager.Mobile_Number_0 = number.phoneNumber!;
-                break;
-              case 1:
-                ConnectionManager.Mobile_Number_1 = number.phoneNumber!;
-                break;
-              case 2:
-                ConnectionManager.Mobile_Number_2 = number.phoneNumber!;
-                break;
-              case 3:
-                ConnectionManager.Mobile_Number_3 = number.phoneNumber!;
-                break;
-              case 4:
-                ConnectionManager.Mobile_Number_4 = number.phoneNumber!;
-                break;
-              case 5:
-                ConnectionManager.Mobile_Number_5 = number.phoneNumber!;
-                break;
-            }
-        },
-        onInputValidated: (bool value) {
-          print(value);
-        },
-        selectorConfig: SelectorConfig(
-          selectorType: PhoneInputSelectorType.BOTTOM_SHEET,
-        ),
-        ignoreBlank: false,
-        autoValidateMode: AutovalidateMode.disabled,
-        selectorTextStyle: Theme.of(context).textTheme.bodyText1,
-        initialValue: number,
-        textStyle: Theme.of(context).textTheme.bodyText1,
-        // textFieldController: controller,
-        formatInput: false,
-        keyboardType: TextInputType.numberWithOptions(signed: true, decimal: true),
-        inputBorder: OutlineInputBorder(),
+  Widget phone_number_input(int i) {
+    String def_val = "";
+    switch (i) {
+      case 0:
+        def_val = ConnectionManager.Mobile_Number_0;
+        break;
+      case 1:
+        def_val = ConnectionManager.Mobile_Number_1;
+        break;
+      case 2:
+        def_val = ConnectionManager.Mobile_Number_2;
+        break;
+      case 3:
+        def_val = ConnectionManager.Mobile_Number_3;
+        break;
+      case 4:
+        def_val = ConnectionManager.Mobile_Number_4;
+        break;
+      case 5:
+        def_val = ConnectionManager.Mobile_Number_5;
+        break;
+    }
+    PhoneNumber newnumber = PhoneNumber(isoCode: 'IR', phoneNumber: def_val);
 
-        onSaved: (PhoneNumber number) {
-          print('On Saved: $number');
-        },
-      );
+    return InternationalPhoneNumberInput(
+      onInputChanged: (PhoneNumber number) {
+        print(number.phoneNumber);
+        if (number.phoneNumber != null)
+          switch (i) {
+            case 0:
+              ConnectionManager.Mobile_Number_0 = number.phoneNumber!;
+              break;
+            case 1:
+              ConnectionManager.Mobile_Number_1 = number.phoneNumber!;
+              break;
+            case 2:
+              ConnectionManager.Mobile_Number_2 = number.phoneNumber!;
+              break;
+            case 3:
+              ConnectionManager.Mobile_Number_3 = number.phoneNumber!;
+              break;
+            case 4:
+              ConnectionManager.Mobile_Number_4 = number.phoneNumber!;
+              break;
+            case 5:
+              ConnectionManager.Mobile_Number_5 = number.phoneNumber!;
+              break;
+          }
+      },
+      onInputValidated: (bool value) {
+        print(value);
+      },
+      selectorConfig: SelectorConfig(
+        selectorType: PhoneInputSelectorType.BOTTOM_SHEET,
+      ),
+      ignoreBlank: false,
+      autoValidateMode: AutovalidateMode.disabled,
+      selectorTextStyle: Theme.of(context).textTheme.bodyText1,
+      initialValue: newnumber,
+      textStyle: Theme.of(context).textTheme.bodyText1,
+      // textFieldController: TextEditingController()..text = def_val,
+      // textFieldController: controller,
+      formatInput: false,
+      keyboardType: TextInputType.numberWithOptions(signed: true, decimal: true),
+      inputBorder: OutlineInputBorder(),
+
+      onSaved: (PhoneNumber number) {
+        print('On Saved: $number');
+      },
+    );
+  }
 
   int current_mobile_sms_count = 1;
   List<Widget> gen_phone_row(count) {
@@ -165,6 +217,7 @@ class _SmsPageState extends State<SmsPage> {
                       Expanded(child: Text("Count:")),
                       NumericStepButton(
                         minValue: 1,
+                        current: current_mobile_sms_count,
                         maxValue: 6,
                         onChanged: (value) {
                           setState(() {
@@ -192,7 +245,7 @@ class _SmsPageState extends State<SmsPage> {
                   ),
                   ListTile(
                     leading: Text("Signal Power:", style: Theme.of(context).textTheme.bodyText1),
-                    title: Text(ConnectionManager.GSM_Signal_Power, style: Theme.of(context).textTheme.bodyText1),
+                    title: Text(ConnectionManager.GSM_Signal_Power + " db", style: Theme.of(context).textTheme.bodyText1),
                   ),
                   ListTile(
                     leading: Text("Sim Number:", style: Theme.of(context).textTheme.bodyText1),
@@ -200,7 +253,7 @@ class _SmsPageState extends State<SmsPage> {
                   ),
                   ListTile(
                     leading: Text("Sim Balance:", style: Theme.of(context).textTheme.bodyText1),
-                    title: Text(ConnectionManager.GSM_SIM_Balance, style: Theme.of(context).textTheme.bodyText1),
+                    title: Text(ConnectionManager.GSM_SIM_Balance + " \$", style: Theme.of(context).textTheme.bodyText1),
                   ),
                 ],
               )),

@@ -5,6 +5,7 @@ import 'package:bubble_tab_indicator/bubble_tab_indicator.dart';
 import 'package:day_night_switcher/day_night_switcher.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:nasim/IntroductionScreen/introduction_screen.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
 import 'package:provider/provider.dart';
@@ -55,7 +56,6 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
       is_night = _tabController!.index == 1;
       refresh();
     });
-    WizardPage.can_next = false;
 
     cmg = Provider.of<ConnectionManager>(context, listen: false);
 
@@ -116,27 +116,27 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
       int _heater_stop_temp = int.parse(heater_stop_temp);
 
       if (!(_cooler_start_temp > _cooler_stop_temp && _cooler_start_temp > (_room_temp + _room_temp_sensivity))) {
-        Utils.alert(context, "Error", "cooler start temperature must be higher than favorite room temperature and cooler stop temperature.");
+        Utils.alert(context, "Error", "Cooler start temperature must be higher than favorite room temperature and cooler stop temperature.");
         return;
       }
       if (!(_cooler_stop_temp > (_room_temp + _room_temp_sensivity))) {
-        Utils.alert(context, "Error", "cooler stop temperature must be higher than favorite room temperature.");
+        Utils.alert(context, "Error", "Cooler stop temperature must be higher than favorite room temperature.");
         return;
       }
       if (!(_room_temp_sensivity > 0)) {
-        Utils.alert(context, "Error", "sensivity must be positive.");
+        Utils.alert(context, "Error", "Sensetivity must be positive.");
         return;
       }
       if (!(_room_temp_sensivity <= 2)) {
-        Utils.alert(context, "Error", "sensivity maximum is 2.");
+        Utils.alert(context, "Error", "Sensetivity maximum is 2.");
         return;
       }
       if (!(_heater_start_temp < _heater_stop_temp && _heater_start_temp < (_room_temp - _room_temp_sensivity))) {
-        Utils.alert(context, "Error", "heater start temperature must be lower than favorite room temperature and heater stop temperature.");
+        Utils.alert(context, "Error", "Heater start temperature must be lower than favorite room temperature and heater stop temperature.");
         return;
       }
       if (!(_heater_stop_temp < (_room_temp - _room_temp_sensivity))) {
-        Utils.alert(context, "Error", "heater stop temperature must be lower than favorite room temperature.");
+        Utils.alert(context, "Error", "Heater stop temperature must be lower than favorite room temperature.");
         return;
       }
 
@@ -157,7 +157,7 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
       await cmg.set_request(57, Utils.sign_int_100(ConnectionManager.Heater_Start_Temp_Night));
       await cmg.set_request(52, Utils.sign_int_100(ConnectionManager.Heater_Stop_Temp_Day));
       await cmg.set_request(58, Utils.sign_int_100(ConnectionManager.Heater_Stop_Temp_Night));
-      WizardPage.can_next = true;
+
       Utils.showSnackBar(context, "Done.");
       if (_tabController!.index == 0) {
         is_day_set = true;
@@ -204,6 +204,7 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
             Expanded(child: Text("Room Temp:")),
             Expanded(
               child: TextField(
+                // // inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
                 controller: TextEditingController()..text = (int.tryParse(value) ?? 0).toString(),
@@ -215,7 +216,7 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
                     ConnectionManager.Favourite_Room_Temp_Day_ = int.parse(value).toString().padLeft(3, '0');
                   }
                 },
-                keyboardType: TextInputType.number,
+                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 decoration: InputDecoration(suffix: Text(' °C'), counterText: ""),
               ),
             )
@@ -228,9 +229,10 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
-            Expanded(child: Text("Room Temp Sensivity:")),
+            Expanded(child: Text("Room Temp Sensetivity:")),
             Expanded(
               child: TextField(
+                // // inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
                 controller: TextEditingController()..text = value,
@@ -243,7 +245,7 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
                     ConnectionManager.Room_Temp_Sensitivity_Day = max(0, min((val_f), 2)).toString().padLeft(3, '0');
                   }
                 },
-                keyboardType: TextInputType.number,
+                keyboardType: TextInputType.numberWithOptions(decimal: true, signed: false),
                 decoration: InputDecoration(suffix: Text(' °C'), counterText: ""),
               ),
             )
@@ -259,6 +261,7 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
             Expanded(child: Text("Cooler Start Temp: ")),
             Expanded(
               child: TextField(
+                // inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
                 controller: TextEditingController()..text = (int.tryParse(value) ?? 0).toString(),
@@ -270,7 +273,7 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
                     ConnectionManager.Cooler_Start_Temp_Day = int.parse(value).toString().padLeft(3, '0');
                   }
                 },
-                keyboardType: TextInputType.number,
+                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 decoration: InputDecoration(suffix: Text(' °C'), counterText: ""),
               ),
             )
@@ -285,6 +288,7 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
             Expanded(child: Text("Cooler Stop Temp: ")),
             Expanded(
               child: TextField(
+                // inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
                 controller: TextEditingController()..text = (int.tryParse(value) ?? 0).toString(),
@@ -296,7 +300,7 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
                     ConnectionManager.Cooler_Stop_Temp_Day = int.parse(cooler_stop_temp).toString().padLeft(3, '0');
                   }
                 },
-                keyboardType: TextInputType.number,
+                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 decoration: InputDecoration(suffix: Text(' °C'), counterText: ""),
               ),
             )
@@ -311,6 +315,7 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
             Expanded(child: Text("Heater Start Temp: ")),
             Expanded(
               child: TextField(
+                // inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
                 controller: TextEditingController()..text = (int.tryParse(value) ?? 0).toString(),
@@ -323,7 +328,7 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
                     ConnectionManager.Heater_Start_Temp_Day = int.parse(heater_start_temp).toString().padLeft(3, '0');
                   }
                 },
-                keyboardType: TextInputType.number,
+                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 decoration: InputDecoration(suffix: Text(' °C'), counterText: ""),
               ),
             )
@@ -338,6 +343,7 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
             Expanded(child: Text("Heater Stop Temp: ")),
             Expanded(
               child: TextField(
+                // inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
                 controller: TextEditingController()..text = (int.tryParse(value) ?? 0).toString(),
@@ -349,7 +355,7 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
                     ConnectionManager.Heater_Stop_Temp_Day = int.parse(heater_stop_temp).toString().padLeft(3, '0');
                   }
                 },
-                keyboardType: TextInputType.number,
+                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 decoration: InputDecoration(suffix: Text(' °C'), counterText: ""),
               ),
             )

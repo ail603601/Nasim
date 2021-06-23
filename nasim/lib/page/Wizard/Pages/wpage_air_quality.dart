@@ -5,6 +5,7 @@ import 'package:bubble_tab_indicator/bubble_tab_indicator.dart';
 import 'package:day_night_switcher/day_night_switcher.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:nasim/IntroductionScreen/introduction_screen.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
 import 'package:provider/provider.dart';
@@ -149,6 +150,7 @@ class wpage_air_qualityState extends State<wpage_air_quality> with SingleTickerP
             Expanded(child: Text("Max IAQ", style: Theme.of(context).textTheme.bodyText1)),
             Expanded(
               child: TextField(
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
                 controller: TextEditingController()
@@ -162,7 +164,7 @@ class wpage_air_qualityState extends State<wpage_air_quality> with SingleTickerP
                     ConnectionManager.Max_Day_IAQ = newvalue;
                   }
                 },
-                keyboardType: TextInputType.number,
+                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: false),
                 decoration: InputDecoration(suffix: Text("ppm", style: Theme.of(context).textTheme.bodyText1), counterText: ""),
               ),
             )
@@ -177,6 +179,7 @@ class wpage_air_qualityState extends State<wpage_air_quality> with SingleTickerP
             Expanded(child: Text("Min IAQ", style: Theme.of(context).textTheme.bodyText1)),
             Expanded(
               child: TextField(
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
                 controller: TextEditingController()
@@ -190,7 +193,7 @@ class wpage_air_qualityState extends State<wpage_air_quality> with SingleTickerP
                     ConnectionManager.Min_Day_IAQ = newvalue;
                   }
                 },
-                keyboardType: TextInputType.number,
+                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: false),
                 decoration: InputDecoration(suffix: Text("ppm", style: Theme.of(context).textTheme.bodyText1), counterText: ""),
               ),
             )
@@ -206,6 +209,7 @@ class wpage_air_qualityState extends State<wpage_air_quality> with SingleTickerP
             Expanded(child: Text("Max co2", style: Theme.of(context).textTheme.bodyText1)),
             Expanded(
               child: TextField(
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
                 controller: TextEditingController()
@@ -219,7 +223,7 @@ class wpage_air_qualityState extends State<wpage_air_quality> with SingleTickerP
                     ConnectionManager.Max_Day_CO2 = newvalue;
                   }
                 },
-                keyboardType: TextInputType.number,
+                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: false),
                 decoration: InputDecoration(suffix: Text("ppm", style: Theme.of(context).textTheme.bodyText1), counterText: ""),
               ),
             )
@@ -234,6 +238,7 @@ class wpage_air_qualityState extends State<wpage_air_quality> with SingleTickerP
             Expanded(child: Text("Min co2", style: Theme.of(context).textTheme.bodyText1)),
             Expanded(
               child: TextField(
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
                 controller: TextEditingController()
@@ -247,7 +252,7 @@ class wpage_air_qualityState extends State<wpage_air_quality> with SingleTickerP
                     ConnectionManager.Min_Day_CO2 = newvalue;
                   }
                 },
-                keyboardType: TextInputType.number,
+                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: false),
                 decoration: InputDecoration(suffix: Text("ppm", style: Theme.of(context).textTheme.bodyText1), counterText: ""),
               ),
             )
@@ -276,7 +281,7 @@ class wpage_air_qualityState extends State<wpage_air_quality> with SingleTickerP
                 labelText: title,
                 labelStyle: Theme.of(context).textTheme.bodyText1,
                 border: OutlineInputBorder(borderSide: BorderSide(color: Colors.yellow))),
-            child: value_id == radio_gid ? child : Center(child: Text("disbaled", style: Theme.of(context).textTheme.bodyText1))));
+            child: value_id == radio_gid ? child : Center(child: Text("Disabled", style: Theme.of(context).textTheme.bodyText1))));
   }
 
   bool is_night = false;

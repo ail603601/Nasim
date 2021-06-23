@@ -23,10 +23,10 @@ class WizardPage extends StatefulWidget {
   const WizardPage({Key? key}) : super(key: key);
 
   @override
-  _WizardPageState createState() => _WizardPageState();
+  WizardPageState createState() => WizardPageState();
 }
 
-class _WizardPageState extends State<WizardPage> {
+class WizardPageState extends State<WizardPage> {
   @override
   void initState() {
     super.initState();
@@ -46,44 +46,42 @@ class _WizardPageState extends State<WizardPage> {
 
     wpage_air_qualityState.is_day_set = false;
     wpage_air_qualityState.is_night_set = false;
-    // wpage_license.
-    // wpage_users.
-    // wpage_outlet_fan.is
-    // wpage_inlet_fan.
-    // wpage_temperature.
-    // wpage_humidity.
-    // wpage_air_quality.
-    // wpage_light.
   }
 
   static bool can_next = true;
   static void wizardEnded(context) async {
-    if (DevicesListConnectState.flag_only_user == true) {
-      if (wpage_usersState.can_next) {
-        await Provider.of<ConnectionManager>(context, listen: false).set_request(121, "1");
-        Navigator.pop(context, true);
-      }
-    } else {
-      await Provider.of<ConnectionManager>(context, listen: false).set_request(121, "1");
-      Navigator.pop(context, true);
+    // if (DevicesListConnectState.flag_only_user == true) {
+    // if (wpage_usersState.can_next) {
+    //   await Provider.of<ConnectionManager>(context, listen: false).set_request(121, "1");
+    //   Navigator.pop(context, true);
+    // }
+    // } else {
+    await Provider.of<ConnectionManager>(context, listen: false).set_request(121, "1");
+    Navigator.pop(context, true);
+    // }
+  }
+
+  List<Widget> raw_pages = [
+    wpage_wellcome(),
+    wpage_license(),
+    wpage_users(),
+    wpage_outlet_fan(),
+    wpage_inlet_fan(),
+    wpage_temperature(),
+    wpage_humidity(),
+    wpage_air_quality(),
+    wpage_light()
+  ];
+  void wizard_done() {
+    if ((raw_pages.last as dynamic).Next()) {
+      wizardEnded(context);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    dynamic raw_pages = [
-      wpage_wellcome(),
-      wpage_license(),
-      wpage_users(),
-      wpage_outlet_fan(),
-      wpage_inlet_fan(),
-      wpage_temperature(),
-      wpage_humidity(),
-      wpage_air_quality(),
-      wpage_light()
-    ];
     bool can_next(int i) {
-      return raw_pages[i].Next();
+      return (raw_pages[i] as dynamic).Next();
     }
 
     if (DevicesListConnectState.flag_only_user == true) {
@@ -103,7 +101,7 @@ class _WizardPageState extends State<WizardPage> {
           lazy: false,
           child: IntroductionScreen(
             onNext: can_next,
-            rawPages: raw_pages,
+            rawPages: raw_pages as List<Widget>,
             next: Icon(Icons.arrow_forward),
             done: Text(
               "Done",
@@ -111,7 +109,7 @@ class _WizardPageState extends State<WizardPage> {
             ),
             freeze: true,
             onDone: () {
-              wizardEnded(context);
+              wizard_done();
             },
             isProgressTap: false,
             nextFlex: 0,

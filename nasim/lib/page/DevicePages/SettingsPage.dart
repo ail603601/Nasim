@@ -9,6 +9,8 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'dart:math';
 import 'package:nasim/page/DevicePages/SettingsPages/ControllersStatusPage.dart';
 
+import 'SettingsPages/DeviceinfoPage.dart';
+
 class SettingsPage extends StatefulWidget {
   final GlobalKey<NavigatorState> navigatorKey = new GlobalKey();
 
@@ -88,7 +90,7 @@ class _SettingsPageState extends State<SettingsPage> {
               children: <Widget>[
                 ListTile(
                   leading: Image.asset("assets/controllers-status.png"),
-                  title: Text('Controllers status', style: Theme.of(context).textTheme.bodyText1),
+                  title: Text('Controllers Status', style: Theme.of(context).textTheme.bodyText1),
                   trailing: Icon(Icons.arrow_forward_ios),
                   // subtitle: Text('TWICE', style: TextStyle(color: Colors.white)),
                 ),
@@ -126,6 +128,33 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
       );
 
+  Widget build_device_info_card(context) => Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.0),
+        ),
+        color: Colors.lightBlue[700],
+        elevation: 10,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(15.0),
+          onTap: () {
+            Navigator.pushNamed(context, "/dinfo");
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                ListTile(
+                  leading: Image.asset("assets/info.png"),
+                  title: Text('Device Information', style: Theme.of(context).textTheme.bodyText1),
+                  trailing: Icon(Icons.arrow_forward_ios),
+                  // subtitle: Text('TWICE', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
   Future<bool> didPopRoute() async {
     final NavigatorState navigator = widget.navigatorKey.currentState!;
     assert(navigator != null);
@@ -150,7 +179,8 @@ class _SettingsPageState extends State<SettingsPage> {
                         build_temperatutre_humidity_card(context),
                         build_internet_card(context),
                         build_conterollers_status_card(context),
-                        build_users_status_card(context)
+                        build_users_status_card(context),
+                        build_device_info_card(context)
                       ],
                     ));
           }
@@ -162,6 +192,9 @@ class _SettingsPageState extends State<SettingsPage> {
           }
           if (settings.name == "/users") {
             return CupertinoPageRoute(builder: (context) => UsersPage());
+          }
+          if (settings.name == "/dinfo") {
+            return CupertinoPageRoute(builder: (context) => DeviceInfoPage());
           }
 
           return CupertinoPageRoute(builder: (context) => build_temperatutre_humidity_card(context));

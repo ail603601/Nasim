@@ -32,7 +32,7 @@ class RootView extends StatelessWidget {
           ChangeNotifierProvider<ThemeChangeNotifer>(create: (context) => ThemeChangeNotifer()),
 
           ChangeNotifierProvider<FirstTimeUsageChangeNotifier>(create: (context) => FirstTimeUsageChangeNotifier()),
-          ChangeNotifierProvider<MenuInfo>(create: (context) => MenuInfo(MenuType.Licenses, title: "Licenses")),
+          ChangeNotifierProvider<MenuInfo>(create: (context) => MenuInfo(MenuType.Overview, title: "Overview")),
           ChangeNotifierProvider<ConnectionManager>(
             create: (context) => ConnectionManager(),
             lazy: false,

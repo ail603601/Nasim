@@ -1,5 +1,6 @@
 import 'package:day_night_switcher/day_night_switcher.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
 import 'package:nasim/utils.dart';
 import 'package:provider/provider.dart';
@@ -90,13 +91,14 @@ class _LightPageState extends State<LightPage> {
             Expanded(child: Text("Max Light")),
             Expanded(
               child: TextField(
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
-                controller: TextEditingController()..text = ConnectionManager.Max_Night_Lux,
+                controller: TextEditingController()..text = (int.tryParse(ConnectionManager.Max_Night_Lux) ?? 0).toString(),
                 onChanged: (value) {
                   ConnectionManager.Max_Night_Lux = value;
                 },
-                keyboardType: TextInputType.number,
+                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: false),
                 decoration: InputDecoration(suffix: Text("Lux"), counterText: ""),
               ),
             )
@@ -111,13 +113,14 @@ class _LightPageState extends State<LightPage> {
             Expanded(child: Text("Min Light")),
             Expanded(
               child: TextField(
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
-                controller: TextEditingController()..text = ConnectionManager.Min_Day_Lux,
+                controller: TextEditingController()..text = (int.tryParse(ConnectionManager.Min_Day_Lux) ?? 0).toString(),
                 onChanged: (value) {
                   ConnectionManager.Min_Day_Lux = value;
                 },
-                keyboardType: TextInputType.number,
+                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: false),
                 decoration: InputDecoration(suffix: Text("Lux"), counterText: ""),
               ),
             )
@@ -138,13 +141,14 @@ class _LightPageState extends State<LightPage> {
   List<Widget> make_title(titile) {
     return [
       Container(
-        padding: EdgeInsets.fromLTRB(5, 0, 0, 0),
+        padding: EdgeInsets.all(15),
         alignment: Alignment.centerLeft,
+        color: Colors.black12,
         child: Text(titile, style: Theme.of(context).textTheme.bodyText1),
       ),
-      Divider(
-        color: Theme.of(context).accentColor,
-      )
+      // Divider(
+      //   color: Theme.of(context).accentColor,
+      // )
     ];
   }
 
@@ -153,7 +157,7 @@ class _LightPageState extends State<LightPage> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 0),
       child: Container(
-          padding: EdgeInsets.only(top: 10),
+          padding: EdgeInsets.only(top: 0),
           color: Theme.of(context).canvasColor,
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             ...make_title("Light levels"),

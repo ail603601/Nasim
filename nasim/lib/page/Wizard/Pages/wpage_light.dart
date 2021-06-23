@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:day_night_switcher/day_night_switcher.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -48,7 +49,7 @@ class _wpage_lightState extends State<wpage_light> {
 
   apply() async {
     if (int.parse(ConnectionManager.Min_Day_Lux) + 50 >= int.parse(ConnectionManager.Max_Night_Lux)) {
-      Utils.alert(context, "", "'Minimum must be 50 lower than maximum.");
+      Utils.alert(context, "", "Minimum must be 50 lower than maximum.");
       return false;
     }
 
@@ -56,8 +57,8 @@ class _wpage_lightState extends State<wpage_light> {
 
     await cmg.set_request(75, Utils.lim_0_9999(ConnectionManager.Max_Night_Lux));
     is_both_set = true;
-    Utils.show_done_dialog(context, "Settings finsihed successfuly.", "your device is set up and ready to use.", () {
-      WizardPage.wizardEnded(context);
+    Utils.show_done_dialog(context, "Settings finsihed successfuly.", "Your device is set up and ready to use.", () {
+      WizardPageState.wizardEnded(context);
     });
     await refresh();
   }
@@ -106,13 +107,14 @@ class _wpage_lightState extends State<wpage_light> {
             Expanded(child: Text("Max Light")),
             Expanded(
               child: TextField(
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
                 controller: TextEditingController()..text = (int.tryParse(ConnectionManager.Max_Night_Lux) ?? 0).toString(),
                 onChanged: (value) {
                   ConnectionManager.Max_Night_Lux = value;
                 },
-                keyboardType: TextInputType.number,
+                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: false),
                 decoration: InputDecoration(suffix: Text("Lux"), counterText: ""),
               ),
             )
@@ -127,13 +129,14 @@ class _wpage_lightState extends State<wpage_light> {
             Expanded(child: Text("Min Light")),
             Expanded(
               child: TextField(
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
                 controller: TextEditingController()..text = (int.tryParse(ConnectionManager.Min_Day_Lux) ?? 0).toString(),
                 onChanged: (value) {
                   ConnectionManager.Min_Day_Lux = value;
                 },
-                keyboardType: TextInputType.number,
+                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: false),
                 decoration: InputDecoration(suffix: Text("Lux"), counterText: ""),
               ),
             )

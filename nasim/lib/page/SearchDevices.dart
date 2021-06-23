@@ -59,7 +59,7 @@ class _SearchDevicesState extends State<SearchDevices> {
   Widget buildTextField(BuildContext context) => TextField(
         style: Theme.of(context).textTheme.bodyText1!,
         // controller: controller,
-        keyboardType: TextInputType.number,
+        keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
         onChanged: (value) {
           text_field_value = value;
         },
@@ -146,13 +146,14 @@ class _SearchDevicesState extends State<SearchDevices> {
           return AlertDialog(
             title: Text('Set Device Name', style: Theme.of(context).textTheme.bodyText1),
             content: TextField(
+              maxLength: 10,
               style: Theme.of(context).textTheme.bodyText1,
               onChanged: (value) {
                 setState(() {
                   last_dialog_text = value;
                 });
               },
-              decoration: InputDecoration(hintText: "BREEZE N25"),
+              decoration: InputDecoration(hintText: "BREEZE N25", counterText: ""),
             ),
             actions: <Widget>[
               FlatButton(
@@ -229,7 +230,7 @@ class _SearchDevicesState extends State<SearchDevices> {
               ),
             ),
             Container(
-                color: Theme.of(context).cardColor,
+                color: Colors.black12,
                 padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16),
                 child: Text(AppLocalizations.of(context)!.searchingUserHint, style: Theme.of(context).textTheme.bodyText2!)),
             Expanded(
@@ -238,7 +239,9 @@ class _SearchDevicesState extends State<SearchDevices> {
                         padding: const EdgeInsets.all(8.0),
                         child: found_devices_list_view,
                       )
-                    : Center(child: Text(AppLocalizations.of(context)!.searchingNothingFound, style: Theme.of(context).textTheme.bodyText1!)))
+                    : Center(
+                        child: Text(AppLocalizations.of(context)!.searchingNothingFound,
+                            style: Theme.of(context).textTheme.bodyText1!.copyWith(color: Colors.white))))
           ],
         ));
   }

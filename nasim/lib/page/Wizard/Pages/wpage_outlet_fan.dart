@@ -29,6 +29,7 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
   double minimum_negative_presure_fan_speed = 0;
   double maximum_negative_presure_fan_speed = 0;
   int real_output_fan_power = 0;
+  late Timer soft_reftresh_timer;
 
   static bool is_minimum_set = false;
   static bool is_maximum_set = false;
@@ -36,9 +37,26 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
   List<String> fan_power_licenses = ["600 W", "900 W", "1200 W", "1500 W", "1800 W", "2100 W"];
 
   late String current_license_selected;
+
+  void soft_refresh() async {
+    ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest("get34")) ?? ConnectionManager.Elevation).toString();
+    ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest("get35")) ?? ConnectionManager.Pressure).toString();
+    ConnectionManager.Pressure_change = await cmg.getRequest("get36");
+
+    if (mounted)
+      setState(() {
+        real_output_fan_power = (int.tryParse(ConnectionManager.Real_Output_Fan_Power) ?? real_output_fan_power).toInt();
+      });
+  }
+
   @override
   void initState() {
     super.initState();
+
+    soft_reftresh_timer = Timer.periodic(new Duration(seconds: 1), (timer) async {
+      soft_refresh();
+    });
+
     widget.Next = () {
       if (_tabController!.index == 0) {
         if (!is_minimum_set) {
@@ -115,11 +133,11 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
     return 0;
   }
 
-  Future<void> wait_for_fan_power() async {
+  Future<bool> wait_for_fan_power() async {
     await Utils.show_loading(context, () async {
       await Utils.waitMsec(10 * 1000);
     }, title: "waiting for fan power...");
-    await Utils.waitMsec(10 * 1000);
+    // await Utils.waitMsec(10 * 1000);
 
     int device_fan_power = int.parse(await cmg.getRequest("get3"));
     int output_fan_power = int.parse(await cmg.getRequest("get39"));
@@ -132,14 +150,16 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
         if (serial != "") {
           int index_selected = fan_power_licenses.indexOf(selected_option);
           await cmg.set_request(76, index_selected);
-          if (await cmg.set_request(77, serial)) {
-            await Utils.alert_license_invalid(context);
+          bool isvalid = await cmg.set_request(77, serial);
+          if (isvalid) {
+            await Utils.alert_license_valid(context);
           } else {
             await Utils.alert_license_invalid(context);
           }
         }
       });
     }
+    return false;
   }
 
   List<Widget> make_title(titile) {
@@ -494,6 +514,7 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
   @override
   void dispose() {
     _tabController!.dispose();
+    soft_reftresh_timer.cancel();
 
     // refresher.cancel();
     super.dispose();
@@ -564,9 +585,10 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
           } else {
             await set_air_speed_max_negative_pressure(maximum_negative_presure_fan_speed);
           }
-          await wait_for_fan_power();
+          wait_for_fan_power().then((value) {
+            refresh();
+          });
 
-          await refresh();
           // Utils.setTimeOut(100, IntroductionScreenState.force_next);
         }),
         build_reset_button(),

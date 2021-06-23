@@ -3,19 +3,23 @@ import 'package:flutter/material.dart';
 class NumericStepButton extends StatefulWidget {
   final int minValue;
   final int maxValue;
-
+  final int current;
   final ValueChanged<int> onChanged;
 
-  NumericStepButton({Key? key, this.minValue = 0, this.maxValue = 10, required this.onChanged}) : super(key: key);
+  NumericStepButton({Key? key, this.minValue = 0, this.current = 0, this.maxValue = 10, required this.onChanged}) : super(key: key);
 
   @override
   State<NumericStepButton> createState() {
-    return _NumericStepButtonState();
+    return _NumericStepButtonState(current);
   }
 }
 
 class _NumericStepButtonState extends State<NumericStepButton> {
-  int counter = 1;
+  int counter = 0;
+
+  _NumericStepButtonState(int c) {
+    counter = c;
+  }
 
   @override
   Widget build(BuildContext context) {

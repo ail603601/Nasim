@@ -48,7 +48,7 @@ class wpage_usersState extends State<wpage_users> {
 
     if (users_found.length > 2) {
       if (!lcn.six_mobiles) {
-        var data = await Utils.ask_serial("only 3 mobiles can be added by free, delete one mobile or provide the 6 mobiles serial number", context);
+        var data = await Utils.ask_serial("Only 3 mobiles can be added by free, delete one mobile or provide the 6 mobiles serial number", context);
         if (data == "") {
           return;
         }
@@ -90,8 +90,9 @@ class wpage_usersState extends State<wpage_users> {
 
   Future<void> process_user(i) async {
     String name_n = await cmg.getRequest_non0("get${i + 16}");
+    String user_key = await cmg.getRequest("get${i + 16 + 12}");
 
-    if (name_n != "") {
+    if (name_n != "" && user_key.contains(SavedDevicesChangeNotifier.selected_device!.serial + name_n)) {
       String user_name_to_add = name_n;
 
       if (!users_found.any((element) => element.name == user_name_to_add)) users_found.add(User(name: user_name_to_add, id_table: i + 16));
@@ -120,6 +121,8 @@ class wpage_usersState extends State<wpage_users> {
             await Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelecteduser_name("");
             can_next = false;
           } else {
+            // if( SavedDevicesChangeNotifier.selected_device!.serial +SavedDevicesChangeNotifier.selected_device!.name == )
+
             can_next = true;
           }
           if (mounted) {
@@ -135,7 +138,7 @@ class wpage_usersState extends State<wpage_users> {
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text('Choose a name for this device', style: Theme.of(context).textTheme.bodyText1),
+            title: Text('Choose a name ', style: Theme.of(context).textTheme.bodyText1),
             content: TextField(
               maxLength: 9,
               style: Theme.of(context).textTheme.bodyText1,
@@ -180,7 +183,7 @@ class wpage_usersState extends State<wpage_users> {
   DeleteUser(User user) async {
     if (SavedDevicesChangeNotifier.selected_device!.username == user.name) {
       await Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelecteduser_name("");
-      Provider.of<SavedDevicesChangeNotifier>(context, listen: false).removeDevice(SavedDevicesChangeNotifier.selected_device!);
+      // Provider.of<SavedDevicesChangeNotifier>(context, listen: false).removeDevice(SavedDevicesChangeNotifier.selected_device!);
       can_next = false;
     }
     await cmg.set_request(user.id_table, "00000000000");
@@ -190,9 +193,9 @@ class wpage_usersState extends State<wpage_users> {
   }
 
   Widget buildTitleBox(context) => Container(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.fromLTRB(2, 2, 5, 2),
         color: Theme.of(context).hintColor,
-        child: Text(AppLocalizations.of(context)!.usersPageDescription, style: Theme.of(context).textTheme.headline6!),
+        child: Text(AppLocalizations.of(context)!.usersPageDescription, style: Theme.of(context).textTheme.bodyText1!.copyWith(color: Colors.white)),
       );
 
   Widget buildUserPhoneListTile(User user) => Padding(

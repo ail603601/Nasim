@@ -122,7 +122,7 @@ class Utils {
       btnOkOnPress: done,
       onDissmissCallback: (blabla) {
         completer.complete();
-        if (done != null) done();
+        // if (done != null) done();
       },
     )..show();
     return completer.future;
@@ -140,7 +140,7 @@ class Utils {
       desc: msg,
       onDissmissCallback: (blabla) {
         completer.complete();
-        if (done != null) done();
+        // if (done != null) done();
       },
     )..show();
     return completer.future;
@@ -196,7 +196,7 @@ class Utils {
           style: Theme.of(context).textTheme.bodyText1!,
           // controller: controller,
           maxLength: 10,
-          keyboardType: TextInputType.number,
+          keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
           onChanged: (value) {
             return_value = value;
           },
@@ -248,8 +248,8 @@ class Utils {
     return return_value;
   }
 
-  static Future<void> ask_license_type_serial(
-      context, String title, String subtitle, List<String> Options, String Option_selected, Function(String serial, String selected_option) done) async {
+  static Future<void> ask_license_type_serial(context, String title, String subtitle, List<String> Options, String Option_selected,
+      Future<void> Function(String serial, String selected_option) done) async {
     String return_value = "";
 
     List<DropdownMenuItem<String>> _dropDownMenuItems = [];
@@ -261,7 +261,7 @@ class Utils {
           style: Theme.of(context).textTheme.bodyText1!,
           // controller: controller,
           maxLength: 10,
-          keyboardType: TextInputType.number,
+          keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
           onChanged: (value) {
             return_value = value;
           },
@@ -327,7 +327,7 @@ class Utils {
               ),
             ]));
 
-    done(return_value, Option_selected);
+    await done(return_value, Option_selected);
   }
 
   static Future<void> show_loading(context, Future<void> Function() done, {String? title = "please wait"}) async {
@@ -356,7 +356,7 @@ class Utils {
       },
     );
     await done();
-    Navigator.pop(context); //pop dialog
+    Navigator.of(context, rootNavigator: true).pop(); //pop dialog
   }
 
   static Future<void> show_loading_timed({context, String title = "Fetching data...", int duration = 5000, required Future<void> Function() done}) async {

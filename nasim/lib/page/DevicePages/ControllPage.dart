@@ -95,7 +95,7 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15.0),
         ),
-        color: Colors.pink,
+        color: Colors.blue[200],
         elevation: 10,
         child: InkWell(
           borderRadius: BorderRadius.circular(15.0),
@@ -127,7 +127,7 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15.0),
         ),
-        color: Colors.blueGrey[700],
+        color: Colors.brown[400],
         elevation: 10,
         child: InkWell(
           borderRadius: BorderRadius.circular(15.0),

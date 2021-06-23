@@ -5,6 +5,7 @@ import 'package:bubble_tab_indicator/bubble_tab_indicator.dart';
 import 'package:day_night_switcher/day_night_switcher.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:nasim/IntroductionScreen/introduction_screen.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
 import 'package:provider/provider.dart';
@@ -109,6 +110,7 @@ class wpage_humidityState extends State<wpage_humidity> with SingleTickerProvide
             Expanded(child: Text("Min: ")),
             Expanded(
               child: TextField(
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   maxLength: 3,
                   style: Theme.of(context).textTheme.bodyText1,
                   controller: TextEditingController()..text = (int.tryParse(value) ?? 0).toString(),
@@ -120,7 +122,7 @@ class wpage_humidityState extends State<wpage_humidity> with SingleTickerProvide
                       ConnectionManager.Min_Day_Humidity = int.parse(humidity_min).toString().padLeft(3, '0');
                     }
                   },
-                  keyboardType: TextInputType.number,
+                  keyboardType: TextInputType.numberWithOptions(decimal: false, signed: false),
                   decoration: InputDecoration(suffix: Text(' %'), counterText: "")),
             ),
           ],
@@ -134,6 +136,7 @@ class wpage_humidityState extends State<wpage_humidity> with SingleTickerProvide
             Expanded(child: Text("Max: ")),
             Expanded(
               child: TextField(
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 maxLength: 3,
                 style: Theme.of(context).textTheme.bodyText1,
                 controller: TextEditingController()..text = (int.tryParse(value) ?? 0).toString(),
@@ -145,7 +148,7 @@ class wpage_humidityState extends State<wpage_humidity> with SingleTickerProvide
                     ConnectionManager.Max_Day_Humidity = int.parse(humidity_max).toString().padLeft(3, '0');
                   }
                 },
-                keyboardType: TextInputType.number,
+                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: false),
                 decoration: InputDecoration(suffix: Text(' %'), counterText: ""),
               ),
             )
@@ -235,7 +238,7 @@ class wpage_humidityState extends State<wpage_humidity> with SingleTickerProvide
 
   apply_humidity() async {
     try {
-      if (int.parse(humidity_min) + 5 >= int.parse(humidity_max)) {
+      if (int.parse(humidity_min) + 5 > int.parse(humidity_max)) {
         Utils.alert(context, "Error", "Humidity min and max must have more than 5 diffrentiate , and be positive.");
         return;
       }
@@ -249,7 +252,7 @@ class wpage_humidityState extends State<wpage_humidity> with SingleTickerProvide
       await cmg.set_request(63, Utils.lim_0_100(ConnectionManager.Min_Night_Humidity));
       await cmg.set_request(60, Utils.lim_0_100(ConnectionManager.Max_Day_Humidity));
       await cmg.set_request(62, Utils.lim_0_100(ConnectionManager.Max_Night_Humidity));
-      WizardPage.can_next = true;
+
       Utils.showSnackBar(context, "Done.");
       if (_tabController!.index == 0) {
         is_night_set = true;
@@ -271,7 +274,7 @@ class wpage_humidityState extends State<wpage_humidity> with SingleTickerProvide
       child: Column(
         children: [
           ListTile(
-            title: Text('Humiditfire', style: Theme.of(context).textTheme.bodyText1),
+            title: Text('Humidifier', style: Theme.of(context).textTheme.bodyText1),
             onTap: () {
               setState(() {
                 ConnectionManager.Humidity_Controller = "0"; //means humidifer
@@ -352,7 +355,7 @@ class wpage_humidityState extends State<wpage_humidity> with SingleTickerProvide
                     ),
                   ),
                 ),
-                Expanded(child: Text("Himudity", style: Theme.of(context).textTheme.bodyText1)),
+                Expanded(child: Text("Humidity", style: Theme.of(context).textTheme.bodyText1)),
               ],
             ),
           ),

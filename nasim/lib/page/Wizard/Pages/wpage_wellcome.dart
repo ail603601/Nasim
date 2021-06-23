@@ -16,7 +16,7 @@ class _wpage_wellcomeState extends State<wpage_wellcome> {
     widget.Next = () {
       return true;
     };
-    WizardPage.can_next = true;
+
     super.initState();
   }
 
@@ -43,7 +43,7 @@ class _wpage_wellcomeState extends State<wpage_wellcome> {
           ),
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Text("here we go step by step setting up your device for fist time", style: Theme.of(context).textTheme.bodyText1!),
+            child: Text("Here we go step by step setting up your device for fist time.", style: Theme.of(context).textTheme.bodyText1!),
           ),
         ],
       ),

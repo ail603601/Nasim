@@ -30,6 +30,7 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
   static bool is_minimum_night_set = false;
   static bool is_maximum_day_set = false;
   static bool is_maximum_night_set = false;
+  late Timer soft_reftresh_timer;
 
   double minimum_inlet_fan_speed_day = 0;
   double maximum_inlet_fan_speed_day = 0;
@@ -78,6 +79,13 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
     });
   }
 
+  void soft_refresh() async {
+    ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest("get34")) ?? ConnectionManager.Elevation).toString();
+    ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest("get35")) ?? ConnectionManager.Pressure).toString();
+
+    if (mounted) setState(() {});
+  }
+
   refresh() async {
     await Utils.show_loading_timed(
         context: context,
@@ -102,17 +110,18 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
         });
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _tabController = new TabController(vsync: this, length: tabs.length);
+  Future<void> start() async {
+    is_inlet_fan_available = await Provider.of<ConnectionManager>(context, listen: false).getRequest("get122") == "1";
 
-    cmg = Provider.of<ConnectionManager>(context, listen: false);
-    widget.Next = () {
-      return true;
-    };
+    if (!is_inlet_fan_available) {
+      await showAlertDialog(context);
+    }
 
     if (is_inlet_fan_available) {
+      await Provider.of<ConnectionManager>(context, listen: false).set_request(122, "1");
+
+      refresh();
+
       widget.Next = () {
         // return true;
         if (_tabController!.index == 0) {
@@ -150,8 +159,23 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
   }
 
   @override
+  void initState() {
+    super.initState();
+    _tabController = new TabController(vsync: this, length: tabs.length);
+    soft_reftresh_timer = Timer.periodic(new Duration(seconds: 1), (timer) async {
+      soft_refresh();
+    });
+    cmg = Provider.of<ConnectionManager>(context, listen: false);
+    widget.Next = () {
+      return true;
+    };
+    start();
+  }
+
+  @override
   void dispose() {
     _tabController!.dispose();
+    soft_reftresh_timer.cancel();
 
     // refresher.cancel();
 
@@ -168,43 +192,7 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
       child: Text("Yes", style: Theme.of(context).textTheme.bodyText1),
       onPressed: () {
         Navigator.of(context).pop(false);
-        setState(() async {
-          is_inlet_fan_available = true;
-
-          widget.Next = () {
-            // return true;
-            if (_tabController!.index == 0) {
-              if (!is_minimum_day_set) {
-                Utils.alert(context, "", "Please set minimum fan speed for day time.");
-                return false;
-              }
-              if (!is_minimum_night_set) {
-                Utils.alert(context, "", "Please set minimum fan speed for night time.");
-                return false;
-              }
-              _tabController!.animateTo(1);
-            } else if (_tabController!.index == 1) {
-              if (!is_minimum_night_set || !is_minimum_day_set) {
-                Utils.alert(context, "", "Please set minimum fan settings before changing the maximum.");
-
-                return false;
-              }
-
-              if (!is_maximum_day_set) {
-                Utils.alert(context, "", "Please set maxiumum fan speed for day time.");
-                return false;
-              }
-              if (!is_maximum_night_set) {
-                Utils.alert(context, "", "Please set maximum fan speed for night time.");
-                return false;
-              }
-
-              return true;
-            }
-            return false;
-          };
-          Utils.setTimeOut(0, refresh);
-        });
+        is_inlet_fan_available = true;
       },
     );
     Widget continueButton = FlatButton(
@@ -228,7 +216,7 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
     );
 
     // show the dialog
-    showDialog(
+    await showDialog(
       barrierDismissible: false,
       context: context,
       builder: (BuildContext context) {
@@ -472,20 +460,6 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
         ]),
       );
 
-  void start() async {
-    // final prefs = await SharedPreferences.getInstance();
-
-    // set value
-    // is_inlet_fan_available = prefs.getBool('is_inlet_fan_available') ?? false;
-    is_inlet_fan_available = await Provider.of<ConnectionManager>(context, listen: false).getRequest("get122") == "1";
-
-    if (!is_inlet_fan_available) {
-      Future.delayed(Duration.zero, () => showAlertDialog(context));
-    }
-    setState(() {});
-    // !is_inlet_fan_available && showAlertDialog(context);
-  }
-
   bool is_night = true;
   // build_day_night_switch() => Container(
   //       color: Color(0xff181818),
@@ -577,10 +551,6 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
 
   @override
   Widget build(BuildContext context) {
-    if (!dialog_show) {
-      dialog_show = true;
-      start();
-    }
     return is_inlet_fan_available
         ? Scaffold(
             body: Column(
@@ -756,7 +726,6 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
                 ]),
               ),
               build_apply_button(() async {
-                await Provider.of<ConnectionManager>(context, listen: false).set_request(122, "1");
                 if (_tabController!.index == 0) {
                   await set_all_to_board_min();
                   await refresh();

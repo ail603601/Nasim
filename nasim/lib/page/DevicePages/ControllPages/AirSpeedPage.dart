@@ -23,6 +23,43 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
   double minimum_negative_presure_fan_speed = 0;
   double maximum_negative_presure_fan_speed = 0;
   int real_output_fan_power = 0;
+  late Timer soft_reftresh_timer;
+
+  List<String> fan_power_licenses = ["600 W", "900 W", "1200 W", "1500 W", "1800 W", "2100 W"];
+
+  late String current_license_selected;
+
+  void soft_refresh() async {
+    ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest("get34")) ?? ConnectionManager.Elevation).toString();
+    ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest("get35")) ?? ConnectionManager.Pressure).toString();
+    ConnectionManager.Pressure_change = await cmg.getRequest("get36");
+
+    if (mounted)
+      setState(() {
+        real_output_fan_power = (int.tryParse(ConnectionManager.Real_Output_Fan_Power) ?? real_output_fan_power).toInt();
+      });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    soft_reftresh_timer = Timer.periodic(new Duration(seconds: 1), (timer) async {
+      soft_refresh();
+    });
+
+    cmg = Provider.of<ConnectionManager>(context, listen: false);
+    // refresher = Timer.periodic(new Duration(milliseconds: 500), (timer) {
+    //   refresh();
+    // });
+    minimum_negative_presure_fan_speed = (int.tryParse(ConnectionManager.Min_Valid_Output_Fan_Speed) ?? 0.0).toDouble();
+    maximum_negative_presure_fan_speed = (int.tryParse(ConnectionManager.Max_Valid_Output_Fan_Speed) ?? 0.0).toDouble();
+
+    _tabController = new TabController(vsync: this, length: tabs.length);
+
+    current_license_selected = fan_power_licenses[0];
+    Utils.setTimeOut(0, refresh);
+  }
 
   refresh() async {
     await Utils.show_loading_timed(
@@ -46,6 +83,46 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
                   (int.tryParse(ConnectionManager.Max_Valid_Output_Fan_Speed) ?? maximum_negative_presure_fan_speed).toDouble();
             });
         });
+  }
+
+  int parse_device_fan(int i) {
+    if (i == 0) return 600;
+    if (i == 1) return 900;
+    if (i == 2) return 1200;
+    if (i == 3) return 1500;
+    if (i == 4) return 1800;
+    if (i == 5) return 2100;
+
+    return 0;
+  }
+
+  Future<bool> wait_for_fan_power() async {
+    await Utils.show_loading(context, () async {
+      await Utils.waitMsec(10 * 1000);
+    }, title: "waiting for fan power...");
+    // await Utils.waitMsec(10 * 1000);
+
+    int device_fan_power = int.parse(await cmg.getRequest("get3"));
+    int output_fan_power = int.parse(await cmg.getRequest("get39"));
+    device_fan_power = parse_device_fan(device_fan_power);
+
+    if (device_fan_power < output_fan_power) {
+      await Utils.ask_license_type_serial(
+          context, "You must provide license in order to increase your fan power limit", "Fan power to:", fan_power_licenses, fan_power_licenses[0],
+          (String serial, String selected_option) async {
+        if (serial != "") {
+          int index_selected = fan_power_licenses.indexOf(selected_option);
+          await cmg.set_request(76, index_selected);
+          bool isvalid = await cmg.set_request(77, serial);
+          if (isvalid) {
+            await Utils.alert_license_valid(context);
+          } else {
+            await Utils.alert_license_invalid(context);
+          }
+        }
+      });
+    }
+    return false;
   }
 
   List<Widget> make_title(titile) {
@@ -375,27 +452,13 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
           ),
         ),
       );
+
   TabController? _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-
-    cmg = Provider.of<ConnectionManager>(context, listen: false);
-    // refresher = Timer.periodic(new Duration(milliseconds: 500), (timer) {
-    //   refresh();
-    // });
-    minimum_negative_presure_fan_speed = (int.tryParse(ConnectionManager.Min_Valid_Output_Fan_Speed) ?? 0.0).toDouble();
-    maximum_negative_presure_fan_speed = (int.tryParse(ConnectionManager.Max_Valid_Output_Fan_Speed) ?? 0.0).toDouble();
-
-    _tabController = new TabController(vsync: this, length: tabs.length);
-
-    Utils.setTimeOut(0, refresh);
-  }
 
   @override
   void dispose() {
     _tabController!.dispose();
+    soft_reftresh_timer.cancel();
 
     // refresher.cancel();
     super.dispose();
@@ -462,17 +525,14 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
         ),
         build_apply_button(() async {
           if (_tabController!.index == 0) {
-            if (!await set_air_speed_min_negative_pressure(minimum_negative_presure_fan_speed)) {
-              await refresh();
-              return;
-            }
+            await set_air_speed_min_negative_pressure(minimum_negative_presure_fan_speed);
           } else {
-            if (!await set_air_speed_max_negative_pressure(maximum_negative_presure_fan_speed)) {
-              await refresh();
-              return;
-            }
+            await set_air_speed_max_negative_pressure(maximum_negative_presure_fan_speed);
           }
-          await refresh();
+          wait_for_fan_power().then((value) {
+            refresh();
+          });
+
           // Utils.setTimeOut(100, IntroductionScreenState.force_next);
         }),
         build_reset_button(),

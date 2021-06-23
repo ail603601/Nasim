@@ -21,7 +21,7 @@ class _wpage_licenseState extends State<wpage_license> {
   void initState() {
     widget.Next = () {
       if (!can_go_next) {
-        Utils.alert(context, "Error", "you have to provide Power Box and Room temperature 0 licenses in order to turn your device On.");
+        Utils.alert(context, "Error", "You have to provide Power Box and Room temperature 0 licenses in order to turn your device On.");
       }
       return can_go_next;
     };
@@ -33,7 +33,7 @@ class _wpage_licenseState extends State<wpage_license> {
         padding: EdgeInsets.all(16),
         color: Theme.of(context).hintColor,
         child: Text("Before we continue setting things up , you have to provide required licenses in order to turn your device On.",
-            style: Theme.of(context).textTheme.headline6!),
+            style: Theme.of(context).textTheme.bodyText1!.copyWith(color: Colors.white)),
       );
   license_gsm_modem_row(LicenseChangeNotifier lcn) => ListTile(
         title: Text("GSM Modem License", style: Theme.of(context).textTheme.bodyText1!),
