@@ -35,7 +35,7 @@ class ConnectionManager extends ChangeNotifier {
         udpSocket!.broadcastEnabled = true;
 
         udpSocket!.listen((e) {
-          Datagram? dg = udpSocket!.receive();
+          Datagram? dg = udpSocket?.receive();
           if (dg != null) {
             last_sender_host = dg.address.host;
             String string_received = AsciiCodec().decode(dg.data);
