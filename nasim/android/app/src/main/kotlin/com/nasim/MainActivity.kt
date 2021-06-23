@@ -1,4 +1,4 @@
-package com.example.nasim
+package com.nasim
 
 import io.flutter.embedding.android.FlutterActivity
 
