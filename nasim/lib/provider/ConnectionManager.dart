@@ -55,6 +55,7 @@ class ConnectionManager extends ChangeNotifier {
                   String id = str_splited[0];
                   stringReceived = str_splited[1];
 
+<<<<<<< HEAD
                   if (stringReceived.contains("_INFO")) {
                     // answer of discover packet
                     //custom handle for discoveer requests because it will be answered by multiple devices
@@ -96,6 +97,34 @@ class ConnectionManager extends ChangeNotifier {
               udpSocket = null;
               Utils.setTimeOut(1000, udpCreateSocket);
             });
+=======
+        udpSocket!.listen((e) {
+          Datagram? dg = udpSocket?.receive();
+          if (dg != null) {
+            last_sender_host = dg.address.host;
+            String string_received = AsciiCodec().decode(dg.data);
+            if (string_received[string_received.length - 1] == '\n') {
+              string_received = string_received.substring(0, string_received.length - 1);
+            }
+            //subtract id
+            var str_splited = string_received.split('*');
+            if (str_splited.length == 2) {
+              String id = str_splited[0];
+              string_received = str_splited[1];
+              requests[id]?.complete(string_received);
+            }
+
+            print("received ${string_received}"); //dg.address.host
+
+          }
+        }, onError: (dg) {
+          print("received error: ${dg}"); //dg.address.host
+          found_devices = [];
+          udpSocket = null;
+
+          // CreateSocket();
+        });
+>>>>>>> 6a1544a0c624afc7d005fd05dd7b3c319ded1c17
       },
     ).onError((error, stackTrace) {
       found_devices = [];
