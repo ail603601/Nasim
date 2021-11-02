@@ -1,16 +1,20 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:nasim/Model/Device.dart';
+import 'package:nasim/Model/menu_info.dart';
 import 'package:nasim/Widgets/TabBarMaterialWidget.Dart';
+import 'package:nasim/enums.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
 import 'package:nasim/provider/DeviceListFabChangeNotifier.dart';
 import 'package:nasim/provider/SavedevicesChangeNofiter.dart';
 import 'package:nasim/utils.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:awesome_dialog/awesome_dialog.dart';
 
 class DevicesListConnect extends StatefulWidget {
   @override
@@ -20,23 +24,47 @@ class DevicesListConnect extends StatefulWidget {
 class DevicesListConnectState extends State<DevicesListConnect> {
   static bool flag_only_user = false;
 
-  int interval = 500;
+  int interval = 1500;
   late Timer refresher;
 
+  bool timer_run = true;
   @override
   void initState() {
     super.initState();
     refresher = Timer.periodic(new Duration(milliseconds: interval), (timer) {
-      refresh();
+      if (timer_run) refresh();
     });
   }
 
   refresh() {
-    if (mounted) {
+    // return;
+    if (mounted && timer_run) {
       Provider.of<SavedDevicesChangeNotifier>(context, listen: false).saved_devices.forEach((element) async {
-        element.ping = await Provider.of<ConnectionManager>(context, listen: false).pingDevice(element);
+        try {
+          Provider.of<ConnectionManager>(context, listen: false).CheckConnectivityToDevice(element);
+          Provider.of<SavedDevicesChangeNotifier>(context, listen: false).setSelectedDevice(element);
+          String last_name = element.name;
+          element.name = await Provider.of<ConnectionManager>(context, listen: false).getRequest(0);
+          if (element.name != last_name) Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelectedDeviceName(element.name);
+          if (["", null, false, 0].contains(element.name)) {
+            element.name = "New Air Conditioner (un named)";
+          }
+        } catch (e) {
+          print(e);
+        }
       });
       setState(() {});
+
+      // for (var i = 0; i < Provider.of<SavedDevicesChangeNotifier>(context, listen: false).saved_devices.length; i++) {
+      //   Provider.of<ConnectionManager>(context, listen: false)
+      //       .CheckConnectivityToDevice(Provider.of<SavedDevicesChangeNotifier>(context, listen: false).saved_devices[i])
+      //       .then((Device? d) {
+      //     if (d != null && mounted) Provider.of<SavedDevicesChangeNotifier>(context, listen: false).saved_devices[i] = d;
+      //   });
+
+      // List device_after_ping = Provider.of<SavedDevicesChangeNotifier>(context, listen: falsec).saved_devices;
+      // setState(() {});
+      //   // }
     }
   }
 
@@ -47,13 +75,73 @@ class DevicesListConnectState extends State<DevicesListConnect> {
     super.dispose();
   }
 
-  Future<bool> check_key_i(i) async {
-    String key_in_dev = await Provider.of<ConnectionManager>(context, listen: false).getRequest(("get${i + 28}"));
-    String serial = SavedDevicesChangeNotifier.selected_device!.serial;
-    String name = SavedDevicesChangeNotifier.selected_device!.username;
-    String local_key = serial + name;
-    if (name == "") return false;
+  var babycheckDialogInputValue = "";
+  Future<bool> babyCheck(BuildContext context) async {
+    var rng = new Random();
+    var num1 = rng.nextInt(10);
+    var num2 = rng.nextInt(10);
+    var math_res = (num1 * num2).toString();
+    Completer<bool> dialog_beify_answer = new Completer<bool>();
+    await showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("Result of  $num1 * $num2 ?", style: Theme.of(context).textTheme.bodyText1),
+            content: TextField(
+              maxLength: 10,
+              style: Theme.of(context).textTheme.bodyText1,
+              keyboardType: TextInputType.number,
+              onChanged: (value) {
+                if (math_res == value)
+                  setState(() {
+                    babycheckDialogInputValue = value;
+                  });
+              },
+              decoration: InputDecoration(hintText: "", counterText: ""),
+            ),
+            actions: <Widget>[
+              FlatButton(
+                // color: Colors.red,
+                textColor: Colors.black,
+                child: Text('CANCEL', style: Theme.of(context).textTheme.bodyText1),
+                onPressed: () {
+                  dialog_beify_answer.complete(false);
+                  Navigator.pop(context);
+                },
+              ),
+              FlatButton(
+                // color: Colors.green,
+                textColor: Colors.black,
+                child: Text('OK', style: Theme.of(context).textTheme.bodyText1),
+                onPressed: () async {
+                  if (math_res == babycheckDialogInputValue) {
+                    dialog_beify_answer.complete(true);
+                    Navigator.pop(context);
+                  } else {
+                    dialog_beify_answer.complete(false);
+                    Navigator.pop(context);
+                  }
+                },
+              ),
+            ],
+          );
+        });
+    if (!dialog_beify_answer.isCompleted) dialog_beify_answer.complete(false);
+    // print(dialog_beify_answer.isCompleted);
 
+    return dialog_beify_answer.future;
+  }
+
+  Future<bool> check_key_i(i) async {
+    // String name_n = await Provider.of<ConnectionManager>(context, listen: false).getRequest(${i + 16}");
+    // return SavedDevicesChangeNotifier.getSelectedDevice()!.name == name_n;
+
+    String key_in_dev = await Provider.of<ConnectionManager>(context, listen: false).getRequest(i + 28);
+    String serial = SavedDevicesChangeNotifier.getSelectedDevice()!.serial;
+    String name = SavedDevicesChangeNotifier.getSelectedDevice()!.username;
+    String local_key = serial + name;
+
+    if (name == "") return false;
     if ((local_key != "") && key_in_dev.contains(local_key)) {
       return true;
     }
@@ -71,47 +159,79 @@ class DevicesListConnectState extends State<DevicesListConnect> {
   }
 
   void connect_to_device(Device d) async {
-    Provider.of<SavedDevicesChangeNotifier>(context, listen: false).setSelectedDevice(d);
+    // Provider.of<SavedDevicesChangeNotifier>(context, listen: false).setSelectedDevice(d);
     // await Navigator.pushNamed(context, "/wizard");
     // return;
 
-    var device_init_state = await Provider.of<ConnectionManager>(context, listen: false).getRequest("get121");
+    var device_init_state = await Provider.of<ConnectionManager>(context, listen: false).getRequest(121);
 
-    refresher.cancel();
-    if (device_init_state == "0") {
+    if (device_init_state == "") {
       //go to wizard
-      flag_only_user = false;
+      if (SavedDevicesChangeNotifier.getSelectedDevice()!.accessibility == DeviceAccessibility.AccessibleInternet) {
+        Utils.show_error_dialog(context, "Permission Denied.", "This device is Uninitialized. Initialization is not allowed over internet connection.", null);
+        timer_run = true;
 
+        return;
+      }
+
+      flag_only_user = false;
+      timer_run = false;
       if (await Navigator.pushNamed(context, "/wizard") == true) {
-        Utils.setTimeOut(0, () async {
-          await Navigator.pushNamed(context, "/main_device");
-          refresher = Timer.periodic(new Duration(milliseconds: interval), (timer) {
-            refresh();
-          });
-        });
+        await Navigator.pushNamed(context, "/main_device");
+        timer_run = true;
       }
     }
     if (device_init_state == "1") {
+      if (!await babyCheck(context)) {
+        return;
+      }
+
       //already initialized
+      Provider.of<MenuInfo>(context, listen: false).updateMenu(MenuInfo(MenuType.Licenses));
+      timer_run = false;
 
       if (await can_login()) {
+        await Provider.of<SavedDevicesChangeNotifier>(context, listen: false)
+          ..addDevice(SavedDevicesChangeNotifier.getSelectedDevice()!);
+
         await Navigator.pushNamed(context, "/main_device");
-        refresher = Timer.periodic(new Duration(milliseconds: interval), (timer) {
-          refresh();
-        });
+        timer_run = true;
       } else {
+        if (SavedDevicesChangeNotifier.getSelectedDevice()!.accessibility == DeviceAccessibility.AccessibleInternet) {
+          timer_run = true;
+
+          Utils.show_error_dialog(
+              context,
+              "Permission Denied.",
+              "Your phone is not defined in users list or might have been removed by another user. in order to access your device; connect to it locally and add your phone again.",
+              null);
+
+          return;
+        }
         flag_only_user = true;
 
         if (await Navigator.pushNamed(context, "/wizard") == true) {
           Utils.setTimeOut(0, () async {
             await Navigator.pushNamed(context, "/main_device");
-            refresher = Timer.periodic(new Duration(milliseconds: interval), (timer) {
-              refresh();
-            });
+            timer_run = true;
           });
         }
       }
     }
+  }
+
+  void ask_remove_device(Device d) {
+    AwesomeDialog(
+      context: context,
+      dialogType: DialogType.WARNING,
+      animType: AnimType.BOTTOMSLIDE,
+      title: "Confirm",
+      desc: "Remove this device from your list?",
+      btnOkOnPress: () {
+        Provider.of<SavedDevicesChangeNotifier>(context, listen: false).removeDevice(d);
+      },
+      btnCancelOnPress: () {},
+    )..show();
   }
 
   @override
@@ -119,13 +239,11 @@ class DevicesListConnectState extends State<DevicesListConnect> {
     Widget leading_icon(Device device) => Column(
           children: [
             Icon(Icons.network_check),
-            Text("${device.ping == -1 ? "InAccessible" : 'Available'} ",
-                style: Theme.of(context).textTheme.bodyText2!.copyWith(
-                    color: device.ping < 0
-                        ? Colors.red[300]
-                        : ((0 <= device.ping) && (device.ping < 400))
-                            ? Colors.green[300]
-                            : Colors.red[300]))
+            Text("${device.accessibility == DeviceAccessibility.InAccessible ? "InAccessible" : 'Available'} ",
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyText2!
+                    .copyWith(color: device.accessibility == DeviceAccessibility.InAccessible ? Colors.red[300] : Colors.green[300]))
           ],
           crossAxisAlignment: CrossAxisAlignment.center,
         );
@@ -135,6 +253,9 @@ class DevicesListConnectState extends State<DevicesListConnect> {
           subtitle: Text(d.ip, style: Theme.of(context).textTheme.bodyText2!),
           onTap: () {
             connect_to_device(d);
+          },
+          onLongPress: () {
+            ask_remove_device(d);
           },
           trailing: leading_icon(d),
         );
@@ -149,13 +270,13 @@ class DevicesListConnectState extends State<DevicesListConnect> {
         ),
         extendBody: true,
         body: Consumer<SavedDevicesChangeNotifier>(
-            builder: (context, value, child) => Column(children: value.saved_devices.map((e) => generate_device_row(e)).toList())),
+            builder: (context, value, child) => Center(child: Column(children: value.saved_devices.map((e) => generate_device_row(e)).toList()))),
         bottomNavigationBar: TabBarMaterialWidget(),
         floatingActionButton: FloatingActionButton(
             child: Icon(Icons.add),
             onPressed: () async {
               if (await Navigator.pushNamed(context, '/search_devices') == 1) {
-                connect_to_device(SavedDevicesChangeNotifier.selected_device!);
+                connect_to_device(SavedDevicesChangeNotifier.getSelectedDevice()!);
               }
             }),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,

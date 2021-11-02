@@ -12,7 +12,7 @@ class LightTheme {
       accentColor: Colors.green,
       canvasColor: Colors.white,
       visualDensity: VisualDensity.adaptivePlatformDensity,
-
+      // scaffoldBackgroundColor: const Color(0x00000000), //glass
       // Define the default font family.
       fontFamily: 'Georgia',
 

@@ -35,30 +35,37 @@ class _DeviceInfoPageState extends State<DeviceInfoPage> {
   refresh() async {
     if (!mounted) return;
 
-    ConnectionManager.Device_Model = await cmg.getRequest_non0("get2");
-    ConnectionManager.Real_Output_Fan_Power = (int.tryParse(await cmg.getRequest_non0("get39")) ?? 0).toString();
+    ConnectionManager.Device_Model = await cmg.getRequest(2);
+    ConnectionManager.Real_Output_Fan_Power = (int.tryParse(await cmg.getRequest(39)) ?? 0).toString();
   }
 
-  List<Widget> build_text_row({title, value}) => [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6),
-          child: Row(
-            children: [
-              Expanded(child: Text(title, style: Theme.of(context).textTheme.bodyText1!.copyWith(fontSize: 13))),
-              Expanded(
-                child: Text(
-                  value,
-                  style: Theme.of(context).textTheme.bodyText1,
-                  textAlign: TextAlign.right,
-                ),
-              )
-            ],
-          ),
+  bool bg_dark = true;
+
+  Widget build_text_row({title, value}) {
+    bg_dark = !bg_dark;
+    return Column(children: [
+      Container(
+        color: bg_dark ? Colors.white : Colors.black12,
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6),
+        child: Row(
+          children: [
+            Expanded(child: Text(title, style: Theme.of(context).textTheme.bodyText1!.copyWith(fontSize: 13))),
+            Expanded(
+              child: Text(
+                value,
+                style: Theme.of(context).textTheme.bodyText1,
+                textAlign: TextAlign.right,
+              ),
+            )
+          ],
         ),
-        Divider(
-          color: Theme.of(context).accentColor,
-        ),
-      ];
+      ),
+      Divider(
+        height: 1,
+        color: Theme.of(context).accentColor,
+      ),
+    ]);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,13 +74,13 @@ class _DeviceInfoPageState extends State<DeviceInfoPage> {
         child: SafeArea(
             child: SingleChildScrollView(
           child: Column(mainAxisSize: MainAxisSize.max, children: [
-            ...build_text_row(title: "Manufacture Company", value: "Fotrousi Electrnics"),
-            ...build_text_row(title: "Serial Number", value: SavedDevicesChangeNotifier.selected_device!.serial),
-            ...build_text_row(title: "Model", value: ConnectionManager.Device_Model),
-            ...build_text_row(title: "Outlet Fan Power", value: ConnectionManager.Real_Output_Fan_Power + " W"),
-            ...build_text_row(title: "Application Version", value: "0.16"),
+            build_text_row(title: "Company", value: "Fotrousi Electrnics"),
+            build_text_row(title: "Serial Number", value: SavedDevicesChangeNotifier.getSelectedDevice()!.serial),
+            build_text_row(title: "Model", value: ConnectionManager.Device_Model),
+            build_text_row(title: "Outlet Fan Power", value: ConnectionManager.Real_Output_Fan_Power + " W"),
+            build_text_row(title: "Application Version", value: "0.16"),
             Center(
-              child: Text("Get full information at:", style: Theme.of(context).textTheme.bodyText1),
+              child: Text("more information at:", style: Theme.of(context).textTheme.bodyText1),
             ),
             Center(
               child: Padding(

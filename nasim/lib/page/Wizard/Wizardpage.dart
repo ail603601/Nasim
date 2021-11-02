@@ -30,7 +30,10 @@ class WizardPageState extends State<WizardPage> {
   @override
   void initState() {
     super.initState();
+  }
 
+  static bool can_next = true;
+  static void wizardEnded(context) async {
     wpage_outlet_fanState.is_maximum_set = false;
     wpage_outlet_fanState.is_minimum_set = false;
     wpage_inlet_fanState.is_maximum_day_set = false;
@@ -46,17 +49,13 @@ class WizardPageState extends State<WizardPage> {
 
     wpage_air_qualityState.is_day_set = false;
     wpage_air_qualityState.is_night_set = false;
-  }
-
-  static bool can_next = true;
-  static void wizardEnded(context) async {
     // if (DevicesListConnectState.flag_only_user == true) {
     // if (wpage_usersState.can_next) {
-    //   await Provider.of<ConnectionManager>(context, listen: false).set_request(121, "1");
+    //   await Provider.of<ConnectionManager>(context, listen: false).setRequest(121, "1");
     //   Navigator.pop(context, true);
     // }
     // } else {
-    await Provider.of<ConnectionManager>(context, listen: false).set_request(121, "1");
+    await Provider.of<ConnectionManager>(context, listen: false).setRequest(121, "1");
     Navigator.pop(context, true);
     // }
   }
@@ -93,7 +92,7 @@ class WizardPageState extends State<WizardPage> {
     return Scaffold(
         resizeToAvoidBottomInset: false,
         appBar: AppBar(
-          title: Text(SavedDevicesChangeNotifier.selected_device!.name, style: Theme.of(context).textTheme.headline5!),
+          title: Text(SavedDevicesChangeNotifier.getSelectedDevice()!.name, style: Theme.of(context).textTheme.headline5!),
           centerTitle: true,
         ),
         body: ChangeNotifierProvider<LicenseChangeNotifier>(

@@ -30,9 +30,10 @@ class _wpage_licenseState extends State<wpage_license> {
   }
 
   hintbox() => Container(
+        width: double.infinity,
         padding: EdgeInsets.all(16),
         color: Theme.of(context).hintColor,
-        child: Text("Before we continue setting things up , you have to provide required licenses in order to turn your device On.",
+        child: Text("In order to continue:\nyou have to provide required licenses.\nyou can provide other licenses later.",
             style: Theme.of(context).textTheme.bodyText1!.copyWith(color: Colors.white)),
       );
   license_gsm_modem_row(LicenseChangeNotifier lcn) => ListTile(
@@ -62,9 +63,9 @@ class _wpage_licenseState extends State<wpage_license> {
           if (data == "" && data != "null") {
             return;
           }
-          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).set_request(5, data);
+          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(5, data);
           if (is_valid) {
-            lcn.license_gsm_modem();
+            lcn.license_gsm_modem(context);
 
             setState(() {});
             checkifnexyallowed(lcn);
@@ -98,9 +99,9 @@ class _wpage_licenseState extends State<wpage_license> {
           if (data == "" && data != "null") {
             return;
           }
-          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).set_request(15, data);
+          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(15, data);
           if (is_valid) {
-            lcn.license_outdoor_temp();
+            lcn.license_outdoor_temp(context);
             setState(() {});
             checkifnexyallowed(lcn);
           } else {
@@ -136,9 +137,9 @@ class _wpage_licenseState extends State<wpage_license> {
           if (data == "" && data != "null") {
             return;
           }
-          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).set_request(4, data);
+          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(4, data);
           if (is_valid) {
-            lcn.license_power_box();
+            lcn.license_power_box(context);
 
             setState(() {});
             checkifnexyallowed(lcn);
@@ -160,7 +161,7 @@ class _wpage_licenseState extends State<wpage_license> {
         key: keytile,
         tilePadding: EdgeInsets.only(right: 16),
         title: ListTile(
-          title: Text("Room Temperature License", style: Theme.of(context).textTheme.bodyText1!),
+          title: Text("Room Temperature Licenses", style: Theme.of(context).textTheme.bodyText1!),
           leading: Icon(Icons.thermostat_rounded),
           onTap: () {
             togletile();
@@ -169,28 +170,28 @@ class _wpage_licenseState extends State<wpage_license> {
         children: [
           license_room_temp_row_0(lcn),
           license_room_temp_row_other(1, lcn.room_temp_1, () async {
-            await lcn.license_room_temp(1);
+            await lcn.license_room_temp(1, context);
           }),
           license_room_temp_row_other(2, lcn.room_temp_2, () async {
-            await lcn.license_room_temp(2);
+            await lcn.license_room_temp(2, context);
           }),
           license_room_temp_row_other(3, lcn.room_temp_3, () async {
-            await lcn.license_room_temp(3);
+            await lcn.license_room_temp(3, context);
           }),
           license_room_temp_row_other(4, lcn.room_temp_4, () async {
-            await lcn.license_room_temp(4);
+            await lcn.license_room_temp(4, context);
           }),
           license_room_temp_row_other(5, lcn.room_temp_5, () async {
-            await lcn.license_room_temp(5);
+            await lcn.license_room_temp(5, context);
           }),
           license_room_temp_row_other(6, lcn.room_temp_6, () async {
-            await lcn.license_room_temp(6);
+            await lcn.license_room_temp(6, context);
           }),
           license_room_temp_row_other(7, lcn.room_temp_7, () async {
-            await lcn.license_room_temp(7);
+            await lcn.license_room_temp(7, context);
           }),
           license_room_temp_row_other(8, lcn.room_temp_8, () async {
-            await lcn.license_room_temp(8);
+            await lcn.license_room_temp(8, context);
           }),
         ],
       );
@@ -223,9 +224,9 @@ class _wpage_licenseState extends State<wpage_license> {
           if (data == "" && data != "null") {
             return;
           }
-          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).set_request(6, data);
+          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(6, data);
           if (is_valid) {
-            await lcn.license_room_temp(0);
+            await lcn.license_room_temp(0, context);
 
             checkifnexyallowed(lcn);
             setState(() {});
@@ -262,7 +263,7 @@ class _wpage_licenseState extends State<wpage_license> {
           if (data == "" && data != "null") {
             return;
           }
-          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).set_request((num + 6), data);
+          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest((num + 6), data);
           if (is_valid) {
             onvalidated();
 

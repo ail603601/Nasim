@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:nasim/enums.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
 import 'package:nasim/provider/SavedevicesChangeNofiter.dart';
 import 'package:provider/provider.dart';
@@ -73,9 +74,9 @@ class _LicensesPageState extends State<LicensesPage> {
           if (data == "" && data != "null") {
             return;
           }
-          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).set_request(5, data);
+          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(5, data);
           if (is_valid) {
-            lcn.license_gsm_modem();
+            lcn.license_gsm_modem(context);
 
             setState(() {});
           } else {
@@ -108,9 +109,9 @@ class _LicensesPageState extends State<LicensesPage> {
           if (data == "" && data != "null") {
             return;
           }
-          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).set_request(15, data);
+          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(15, data);
           if (is_valid) {
-            lcn.license_outdoor_temp();
+            lcn.license_outdoor_temp(context);
             setState(() {});
           } else {
             Utils.showSnackBar(context, "Wrong serial number.");
@@ -145,9 +146,9 @@ class _LicensesPageState extends State<LicensesPage> {
           if (data == "" && data != "null") {
             return;
           }
-          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).set_request(4, data);
+          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(4, data);
           if (is_valid) {
-            lcn.license_power_box();
+            lcn.license_power_box(context);
 
             setState(() {});
           } else {
@@ -177,28 +178,28 @@ class _LicensesPageState extends State<LicensesPage> {
         children: [
           license_room_temp_row_0(lcn),
           license_room_temp_row_other(1, lcn.room_temp_1, () async {
-            await lcn.license_room_temp(1);
+            await lcn.license_room_temp(1, context);
           }),
           license_room_temp_row_other(2, lcn.room_temp_2, () async {
-            await lcn.license_room_temp(2);
+            await lcn.license_room_temp(2, context);
           }),
           license_room_temp_row_other(3, lcn.room_temp_3, () async {
-            await lcn.license_room_temp(3);
+            await lcn.license_room_temp(3, context);
           }),
           license_room_temp_row_other(4, lcn.room_temp_4, () async {
-            await lcn.license_room_temp(4);
+            await lcn.license_room_temp(4, context);
           }),
           license_room_temp_row_other(5, lcn.room_temp_5, () async {
-            await lcn.license_room_temp(5);
+            await lcn.license_room_temp(5, context);
           }),
           license_room_temp_row_other(6, lcn.room_temp_6, () async {
-            await lcn.license_room_temp(6);
+            await lcn.license_room_temp(6, context);
           }),
           license_room_temp_row_other(7, lcn.room_temp_7, () async {
-            await lcn.license_room_temp(7);
+            await lcn.license_room_temp(7, context);
           }),
           license_room_temp_row_other(8, lcn.room_temp_8, () async {
-            await lcn.license_room_temp(8);
+            await lcn.license_room_temp(8, context);
           }),
         ],
       );
@@ -231,9 +232,9 @@ class _LicensesPageState extends State<LicensesPage> {
           if (data == "" && data != "null") {
             return;
           }
-          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).set_request(6, data);
+          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(6, data);
           if (is_valid) {
-            await lcn.license_room_temp(0);
+            await lcn.license_room_temp(0, context);
 
             setState(() {});
           } else {
@@ -269,7 +270,7 @@ class _LicensesPageState extends State<LicensesPage> {
           if (data == "" && data != "null") {
             return;
           }
-          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).set_request((num + 6), data);
+          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest((num + 6), data);
           if (is_valid) {
             onvalidated();
 
@@ -299,12 +300,20 @@ class _LicensesPageState extends State<LicensesPage> {
           padding: EdgeInsets.symmetric(horizontal: 8),
           child: OutlinedButton(
             onPressed: () {
+              if (SavedDevicesChangeNotifier.getSelectedDevice()!.accessibility == DeviceAccessibility.AccessibleInternet) {
+                Utils.setTimeOut(
+                    0,
+                    () => Utils.show_error_dialog(context, "Not Available", "users can't set licenses via internt.", () {}).then((value) {
+                          // Navigator.pop(context);
+                        }));
+                return;
+              }
               Utils.ask_license_type_serial(context, "Choose your license", "license:", _license_types, _license_types[0],
                   (String serial, String selected_option) async {
                 if (serial != "") {
                   int index_selected = _license_types.indexOf(selected_option);
-                  await Provider.of<ConnectionManager>(context, listen: false).set_request(76, index_selected);
-                  if (await Provider.of<ConnectionManager>(context, listen: false).set_request(77, serial)) {
+                  await Provider.of<ConnectionManager>(context, listen: false).setRequest(76, index_selected.toString());
+                  if (await Provider.of<ConnectionManager>(context, listen: false).setRequest(77, serial)) {
                     Utils.showSnackBar(context, "License accepted.");
                   } else {
                     Utils.showSnackBar(context, "License not accepted.");

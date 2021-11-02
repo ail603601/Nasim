@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:math';
 
 import 'package:awesome_dialog/awesome_dialog.dart';
@@ -151,13 +152,18 @@ class Utils {
     Completer<void> completer = new Completer<void>();
 
     AwesomeDialog(
-      context: context,
+      context: Navigator.of(context, rootNavigator: true).context,
       dialogType: DialogType.INFO,
       animType: AnimType.BOTTOMSLIDE,
       title: title,
+      dismissOnBackKeyPress: true,
       desc: msg,
+      // useRootNavigator: true,
       // btnCancelOnPress: () {},
-      btnOkOnPress: () {},
+      btnOkOnPress: () {
+        // Navigator.of(context).pop(false);
+        // Navigator.of(context, rootNavigator: true).pop(); //pop dialog
+      },
       onDissmissCallback: (type) {
         if (andthen != null) {
           andthen();
@@ -333,6 +339,7 @@ class Utils {
   static Future<void> show_loading(context, Future<void> Function() done, {String? title = "please wait"}) async {
     showDialog(
       context: context,
+      useRootNavigator: true,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return WillPopScope(
@@ -363,6 +370,7 @@ class Utils {
     showDialog(
       context: context,
       barrierDismissible: false,
+      useRootNavigator: true,
       builder: (BuildContext context) {
         return WillPopScope(
           onWillPop: () async => false,
@@ -385,10 +393,8 @@ class Utils {
       },
     );
     Timer t = Timer(Duration(milliseconds: duration), () {
-      Navigator.pop(context); //pop dialog
-      alert(context, "Disconnected", "Connection lost, check your wifi connection to the air conditioner.");
+      Navigator.of(context, rootNavigator: true).pop(); //pop dialog
     });
-    // and later, before the timer goes off...
 
     await done();
     if (t.isActive) {

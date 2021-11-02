@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:nasim/page/AppIntroductionScreen.dart';
 import 'package:nasim/page/BarCodeScanPage.dart';
@@ -17,12 +16,10 @@ import 'provider/ThemeChangeNotifer.dart';
 import 'localizations/L10n.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'splash.dart';
 
 void main() {
   runApp(RootView());
-  // runApp(splash());
 }
 
 class RootView extends StatelessWidget {
@@ -30,7 +27,6 @@ class RootView extends StatelessWidget {
   Widget build(BuildContext context) => MultiProvider(
         providers: [
           ChangeNotifierProvider<ThemeChangeNotifer>(create: (context) => ThemeChangeNotifer()),
-
           ChangeNotifierProvider<FirstTimeUsageChangeNotifier>(create: (context) => FirstTimeUsageChangeNotifier()),
           ChangeNotifierProvider<MenuInfo>(create: (context) => MenuInfo(MenuType.Overview, title: "Overview")),
           ChangeNotifierProvider<ConnectionManager>(
@@ -41,8 +37,6 @@ class RootView extends StatelessWidget {
             create: (context) => SavedDevicesChangeNotifier(),
             lazy: false,
           )
-          // Provider<SomethingElse>(create: (_) => SomethingElse()),
-          // Provider<AnotherThing>(create: (_) => AnotherThing()),
         ],
         child: MyApp(),
       );
@@ -53,56 +47,47 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // SystemChrome.setEnabledSystemUIOverlays([]);
-
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: title,
-      theme: Provider.of<ThemeChangeNotifer>(context, listen: true).current,
-      supportedLocales: L10n.all,
-      localizationsDelegates: [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ],
-      // home: sample(),,
-      initialRoute: '/splash',
-      // routes: {
-      //   // When navigating to the "/" route, build the FirstScreen widget.
-      //   '/': (context) => sample(),+
-      //   // When navigating to the "/second" route, build the SecondScreen widget.
-      //   '/search_devices': (context) => SearchDevices(),
-      //   '/scan_barcode': (context) => BarcodeScanPage(),
-      //   '/main_device': (context) => DeivceMainPage(),
-      // },
-      onGenerateRoute: (settings) {
-        if (settings.name == "/search_devices") {
-          return CupertinoPageRoute(builder: (context) => SearchDevices());
-        }
-        if (settings.name == "/scan_barcode") {
-          return CupertinoPageRoute(builder: (context) => BarcodeScanPage());
-        }
-        if (settings.name == "/main_device") {
-          return CupertinoPageRoute(builder: (context) => DeivceMainPage());
-        }
-        if (settings.name == "/wizard") {
-          return CupertinoPageRoute(builder: (context) => WizardPage());
-        }
-        if (settings.name == "/splash") {
-          return PageRouteBuilder(
-            pageBuilder: (context, animation1, animation2) => splash(),
-            transitionDuration: Duration(seconds: 0),
-          );
-        }
-        // unknown route
-        return CupertinoPageRoute(builder: (context) => sample());
-      },
-    );
+        debugShowCheckedModeBanner: false,
+        title: title,
+        theme: Provider.of<ThemeChangeNotifer>(context, listen: true).current,
+        supportedLocales: L10n.all,
+        localizationsDelegates: [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        initialRoute: '/splash',
+        onGenerateRoute: (settings) {
+          if (settings.name == "/search_devices") {
+            return CupertinoPageRoute(builder: (context) => SearchDevices());
+          }
+          if (settings.name == "/scan_barcode") {
+            return CupertinoPageRoute(builder: (context) => BarcodeScanPage());
+          }
+          if (settings.name == "/main_device") {
+            return CupertinoPageRoute(builder: (context) => DeivceMainPage());
+          }
+          if (settings.name == "/wizard") {
+            return CupertinoPageRoute(builder: (context) => WizardPage());
+          }
+          if (settings.name == "/splash") {
+            return PageRouteBuilder(
+              pageBuilder: (context, animation1, animation2) => splash(),
+              transitionDuration: Duration(seconds: 0),
+            );
+          }
+          if (settings.name == "/") {
+            return CupertinoPageRoute(builder: (context) => FirstTimeManager());
+          }
+          // unknown route (never)
+          return CupertinoPageRoute(builder: (context) => FirstTimeManager());
+        });
   }
 }
 
-class sample extends StatelessWidget {
+class FirstTimeManager extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<bool>(
@@ -110,12 +95,8 @@ class sample extends StatelessWidget {
       builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
         switch (snapshot.connectionState) {
           case ConnectionState.none:
-            return new Container();
+            return Container();
           case ConnectionState.waiting:
-            // return new SpinKitDualRing(
-            //   color: Theme.of(context).accentColor,
-            //   size: 300,
-            // );
             return Center();
           default:
             if (snapshot.hasError)

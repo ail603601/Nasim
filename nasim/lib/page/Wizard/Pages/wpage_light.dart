@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:day_night_switcher/day_night_switcher.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:holding_gesture/holding_gesture.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,8 +29,8 @@ class _wpage_lightState extends State<wpage_light> {
     await Utils.show_loading_timed(
         context: context,
         done: () async {
-          ConnectionManager.Min_Day_Lux = (await cmg.getRequest("get74"));
-          ConnectionManager.Max_Night_Lux = (await cmg.getRequest("get75"));
+          ConnectionManager.Min_Day_Lux = (await cmg.getRequest(74));
+          ConnectionManager.Max_Night_Lux = (await cmg.getRequest(75));
           setState(() {});
         });
   }
@@ -48,19 +50,23 @@ class _wpage_lightState extends State<wpage_light> {
   }
 
   apply() async {
-    if (int.parse(ConnectionManager.Min_Day_Lux) + 50 >= int.parse(ConnectionManager.Max_Night_Lux)) {
-      Utils.alert(context, "", "Minimum must be 50 lower than maximum.");
-      return false;
+    try {
+      if (int.parse(ConnectionManager.Min_Day_Lux) + 50 > int.parse(ConnectionManager.Max_Night_Lux)) {
+        Utils.alert(context, "", "Minimum must be 50 lower than maximum.");
+        return false;
+      }
+
+      await cmg.setRequest(74, Utils.lim_0_9999(ConnectionManager.Min_Day_Lux), context);
+
+      await cmg.setRequest(75, Utils.lim_0_9999(ConnectionManager.Max_Night_Lux), context);
+      is_both_set = true;
+      Utils.show_done_dialog(context, "Settings finsihed successfuly.", "Your device is set up and ready to use.", () {
+        WizardPageState.wizardEnded(context);
+      });
+      await refresh();
+    } catch (e) {
+      if (!(e is FormatException)) Utils.alert(context, "Error", "please check your input and try again.");
     }
-
-    await cmg.set_request(74, Utils.lim_0_9999(ConnectionManager.Min_Day_Lux));
-
-    await cmg.set_request(75, Utils.lim_0_9999(ConnectionManager.Max_Night_Lux));
-    is_both_set = true;
-    Utils.show_done_dialog(context, "Settings finsihed successfuly.", "Your device is set up and ready to use.", () {
-      WizardPageState.wizardEnded(context);
-    });
-    await refresh();
   }
 
   build_apply_button() => Align(
@@ -83,12 +89,26 @@ class _wpage_lightState extends State<wpage_light> {
         ),
       );
   build_reset_button() => Align(
-        alignment: Alignment.bottomCenter,
-        child: Container(
-          width: double.infinity,
-          margin: EdgeInsets.only(bottom: 15),
-          height: 50,
-          padding: EdgeInsets.symmetric(horizontal: 8),
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        width: double.infinity,
+        margin: EdgeInsets.only(bottom: 15),
+        height: 50,
+        padding: EdgeInsets.symmetric(horizontal: 8),
+        child: HoldDetector(
+          onHold: () {
+            AwesomeDialog(
+              context: context,
+              dialogType: DialogType.WARNING,
+              animType: AnimType.BOTTOMSLIDE,
+              title: "Confirm",
+              desc: "Reset all settings to factory defaults?",
+              btnOkOnPress: () {},
+              btnCancelOnPress: () {},
+            )..show();
+          },
+          holdTimeout: Duration(milliseconds: 10000),
+          // enableHapticFeedback: true,
           child: OutlinedButton(
             onPressed: () {},
             style: OutlinedButton.styleFrom(
@@ -98,7 +118,7 @@ class _wpage_lightState extends State<wpage_light> {
             child: Text("Restore Defaults", style: Theme.of(context).textTheme.bodyText1),
           ),
         ),
-      );
+      ));
 
   Widget max_lux() => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),

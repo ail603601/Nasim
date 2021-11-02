@@ -1,3 +1,6 @@
+import 'dart:developer';
+import 'dart:ui';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:nasim/Model/Device.dart';
@@ -127,7 +130,7 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15.0),
         ),
-        color: Colors.brown[400],
+        color: Colors.blueGrey[100],
         elevation: 10,
         child: InkWell(
           borderRadius: BorderRadius.circular(15.0),
@@ -278,7 +281,11 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
           HeroController(),
         ],
         key: widget.navigatorKey,
-        onPopPage: (route, result) => false,
+        onPopPage: (route, result) {
+          debugger();
+          print(route);
+          return false;
+        },
         initialRoute: "/",
         onGenerateRoute: (settings) {
           if (settings.name == "/") {
@@ -295,22 +302,23 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
                     ));
           }
           if (settings.name == "/airspeed") {
-            return CupertinoPageRoute(builder: (context) => AirSpeedPage());
+            return CupertinoPageRoute(builder: (context) => BackdropFilter(filter: new ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), child: AirSpeedPage()));
           }
           if (settings.name == "/inletfanspeed") {
-            return CupertinoPageRoute(builder: (context) => InletFanSpeedPage());
+            return CupertinoPageRoute(
+                builder: (context) => BackdropFilter(filter: new ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), child: InletFanSpeedPage()));
           }
           if (settings.name == "/temperature") {
-            return CupertinoPageRoute(builder: (context) => TemperaturePage());
+            return CupertinoPageRoute(builder: (context) => BackdropFilter(filter: new ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), child: TemperaturePage()));
           }
           if (settings.name == "/humidity") {
-            return CupertinoPageRoute(builder: (context) => HumidityPage());
+            return CupertinoPageRoute(builder: (context) => BackdropFilter(filter: new ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), child: HumidityPage()));
           }
           if (settings.name == "/airquality") {
-            return CupertinoPageRoute(builder: (context) => AirQualityPage());
+            return CupertinoPageRoute(builder: (context) => BackdropFilter(filter: new ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), child: AirQualityPage()));
           }
           if (settings.name == "/light") {
-            return CupertinoPageRoute(builder: (context) => LightPage());
+            return CupertinoPageRoute(builder: (context) => BackdropFilter(filter: new ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), child: LightPage()));
           }
 
           return CupertinoPageRoute(builder: (context) => build_inlet_fan_speed_animated_card(context));

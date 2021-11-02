@@ -2,29 +2,39 @@ import 'package:flutter/foundation.dart';
 
 import '../enums.dart';
 
+/*
+a device has:
+name
+ip which must be found each time we search for device to see if its there
+serial number unique
+no ping, we dont care
+when we connect to a device, we have a user name
+--
+
+*/
 class Device {
   String name;
-  String wifiname;
   String ip;
   String serial;
-  int ping;
-  ConnectionStatus connectionState;
   String username;
+  DeviceAccessibility accessibility;
 
-  Device(
-      {this.name = "unknown",
-      this.wifiname = "unknown",
-      this.serial = "0000000000",
-      this.ip = "0.0.0.0",
-      this.connectionState = ConnectionStatus.disconnected,
-      this.ping = -1,
-      this.username = ""}) {}
+  Device({
+    this.name = "unknown",
+    this.ip = "0.0.0.0",
+    this.serial = "0000000000",
+    this.accessibility = DeviceAccessibility.InAccessible,
+    this.username = "",
+  }) {}
   @override
   bool operator ==(Object other) {
     return other is Device && this.serial == other.serial;
   }
 
   @override
-  // TODO: implement hashCode
   int get hashCode => serial.hashCode;
+
+  bool has_valid_ip() {
+    return (!ip.isEmpty && ip != "0.0.0.0");
+  }
 }

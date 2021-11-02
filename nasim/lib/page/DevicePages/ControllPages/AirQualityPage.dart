@@ -21,16 +21,16 @@ class _AirQualityPageState extends State<AirQualityPage> with SingleTickerProvid
     await Utils.show_loading_timed(
         context: context,
         done: () async {
-          ConnectionManager.Max_Day_IAQ = await cmg.getRequest("get65");
-          ConnectionManager.Min_Day_IAQ = await cmg.getRequest("get66");
-          ConnectionManager.Max_Night_IAQ = await cmg.getRequest("get67");
-          ConnectionManager.Min_Night_IAQ = await cmg.getRequest("get68");
-          ConnectionManager.Max_Day_CO2 = await cmg.getRequest("get70");
-          ConnectionManager.Min_Day_CO2 = await cmg.getRequest("get71");
-          ConnectionManager.Max_Night_CO2 = await cmg.getRequest("get72");
-          ConnectionManager.Min_Night_CO2 = await cmg.getRequest("get73");
-          ConnectionManager.IAQ_Flag = await cmg.getRequest("get64");
-          ConnectionManager.CO2_Flag = await cmg.getRequest("get69");
+          ConnectionManager.Max_Day_IAQ = await cmg.getRequest(65);
+          ConnectionManager.Min_Day_IAQ = await cmg.getRequest(66);
+          ConnectionManager.Max_Night_IAQ = await cmg.getRequest(67);
+          ConnectionManager.Min_Night_IAQ = await cmg.getRequest(68);
+          ConnectionManager.Max_Day_CO2 = await cmg.getRequest(70);
+          ConnectionManager.Min_Day_CO2 = await cmg.getRequest(71);
+          ConnectionManager.Max_Night_CO2 = await cmg.getRequest(72);
+          ConnectionManager.Min_Night_CO2 = await cmg.getRequest(73);
+          ConnectionManager.IAQ_Flag = await cmg.getRequest(64);
+          ConnectionManager.CO2_Flag = await cmg.getRequest(69);
 
           radio_gid = ConnectionManager.IAQ_Flag == "1" ? 0 : 1;
           radio_gid = ConnectionManager.CO2_Flag == "1" ? 1 : 0;
@@ -39,58 +39,48 @@ class _AirQualityPageState extends State<AirQualityPage> with SingleTickerProvid
   }
 
   apply() async {
-    try {
-      if (is_night) {
-        if (radio_gid == 0) {
-          if (int.parse(ConnectionManager.Min_Night_IAQ) + 20 > int.parse(ConnectionManager.Max_Night_IAQ)) {
-            Utils.alert(context, "Error", "IAQ max and min must have more than 20 differntiate");
-            return;
-          }
-        } else {
-          if (int.parse(ConnectionManager.Min_Night_CO2) + 100 > int.parse(ConnectionManager.Max_Night_CO2)) {
-            Utils.alert(context, "Error", "CO2 max and min must have more than 100 differntiate");
-            return;
-          }
+    if (is_night) {
+      if (radio_gid == 0) {
+        if (int.parse(ConnectionManager.Min_Night_IAQ) + 20 > int.parse(ConnectionManager.Max_Night_IAQ)) {
+          Utils.alert(context, "Error", "IAQ max and min must have more than 20 differntiate");
+          return;
         }
       } else {
-        if (radio_gid == 0) {
-          if (int.parse(ConnectionManager.Min_Day_IAQ) + 20 > int.parse(ConnectionManager.Max_Day_IAQ)) {
-            Utils.alert(context, "Error", "IAQ max and min must have more than 20 differntiate");
-            return;
-          }
-        } else {
-          if (int.parse(ConnectionManager.Min_Day_CO2) + 100 > int.parse(ConnectionManager.Max_Day_CO2)) {
-            Utils.alert(context, "Error", "CO2 max and min must have more than 100 differntiate");
-            return;
-          }
+        if (int.parse(ConnectionManager.Min_Night_CO2) + 100 > int.parse(ConnectionManager.Max_Night_CO2)) {
+          Utils.alert(context, "Error", "CO2 max and min must have more than 100 differntiate");
+          return;
         }
       }
-
-      if (!await cmg.set_request(65, Utils.lim_0_9999(ConnectionManager.Max_Day_IAQ))) {
-        Utils.handleError(context);
-        return;
+    } else {
+      if (radio_gid == 0) {
+        if (int.parse(ConnectionManager.Min_Day_IAQ) + 20 > int.parse(ConnectionManager.Max_Day_IAQ)) {
+          Utils.alert(context, "Error", "IAQ max and min must have more than 20 differntiate");
+          return;
+        }
+      } else {
+        if (int.parse(ConnectionManager.Min_Day_CO2) + 100 > int.parse(ConnectionManager.Max_Day_CO2)) {
+          Utils.alert(context, "Error", "CO2 max and min must have more than 100 differntiate");
+          return;
+        }
       }
-
-      await cmg.set_request(66, Utils.lim_0_9999(ConnectionManager.Min_Day_IAQ));
-      await cmg.set_request(67, Utils.lim_0_9999(ConnectionManager.Max_Night_IAQ));
-      await cmg.set_request(68, Utils.lim_0_9999(ConnectionManager.Min_Night_IAQ));
-      await cmg.set_request(70, Utils.lim_0_9999(ConnectionManager.Max_Day_CO2));
-      await cmg.set_request(71, Utils.lim_0_9999(ConnectionManager.Min_Day_CO2));
-      await cmg.set_request(72, Utils.lim_0_9999(ConnectionManager.Max_Night_CO2));
-      await cmg.set_request(73, Utils.lim_0_9999(ConnectionManager.Min_Night_CO2));
-
-      await cmg.set_request(64, radio_gid == 0 ? "1" : "0");
-      await cmg.set_request(69, radio_gid == 0 ? "0" : "1");
-
-      Utils.showSnackBar(context, "Done.");
-
-      if (_tabController!.index == 0) {
-      } else if (_tabController!.index == 1) {
-        return;
-      }
-    } catch (e) {
-      Utils.alert(context, "Error", "please check your input and try again.");
     }
+
+    if (_tabController!.index == 0) {
+      await cmg.setRequest(65, Utils.lim_0_9999(ConnectionManager.Max_Day_IAQ), context);
+      await cmg.setRequest(66, Utils.lim_0_9999(ConnectionManager.Min_Day_IAQ), context);
+      await cmg.setRequest(70, Utils.lim_0_9999(ConnectionManager.Max_Day_CO2), context);
+      await cmg.setRequest(71, Utils.lim_0_9999(ConnectionManager.Min_Day_CO2), context);
+    } else {
+      await cmg.setRequest(67, Utils.lim_0_9999(ConnectionManager.Max_Night_IAQ), context);
+      await cmg.setRequest(68, Utils.lim_0_9999(ConnectionManager.Min_Night_IAQ), context);
+      await cmg.setRequest(72, Utils.lim_0_9999(ConnectionManager.Max_Night_CO2), context);
+      await cmg.setRequest(73, Utils.lim_0_9999(ConnectionManager.Min_Night_CO2), context);
+    }
+
+    await cmg.setRequest(64, radio_gid == 0 ? "1" : "0", context);
+    await cmg.setRequest(69, radio_gid == 0 ? "0" : "1", context);
+
+    Utils.showSnackBar(context, "Done.");
   }
 
   @override
@@ -386,39 +376,6 @@ class _AirQualityPageState extends State<AirQualityPage> with SingleTickerProvid
               children: [build_apply_button(), build_reset_button()],
             ),
           )),
-          // new TabBarView(
-          //   controller: _tabController,
-          //   physics: NeverScrollableScrollPhysics(),
-
-          //   // Container(
-          //   //     color: Theme.of(context).canvasColor,
-          //   //     child: Column(mainAxisSize: MainAxisSize.min, children: [
-          //   //       build_boxed_titlebox(value_id: 0, title: "IAQ Settings", child: iaq_settings()),
-          //   //       SizedBox(height: 16),
-          //   //       build_boxed_titlebox(value_id: 1, title: "Co2 Settings", child: co2_settings()),
-          //   //       Expanded(
-          //   //           child: Align(
-          //   //         alignment: Alignment.bottomCenter,
-          //   //         child: Column(
-          //   //           mainAxisSize: MainAxisSize.min,
-          //   //           children: [build_apply_button(), build_reset_button()],
-          //   //         ),
-          //   //       ))
-          //   //     ])),
-          //   children: [
-          //     Container(
-          //       width: 0,
-          //       height: 0,
-          //     ),
-          //     Container(
-          //       height: 0,
-          //       width: 0,
-          //     ),
-          //   ],
-          // ),
-          // SizedBox(
-          //   height: 64,
-          // )
         ]));
   }
 }

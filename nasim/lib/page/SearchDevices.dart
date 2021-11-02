@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
 import 'package:nasim/Model/Device.dart';
+import 'package:nasim/enums.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
 import 'package:nasim/provider/SavedevicesChangeNofiter.dart';
 import 'package:provider/provider.dart';
@@ -18,12 +19,16 @@ class SearchDevices extends StatefulWidget {
 
 class _SearchDevicesState extends State<SearchDevices> {
   late Timer search_timer;
-  int interval = 150;
+  int interval = 500;
   bool conneteced_wifi = true;
 
   @override
   void initState() {
     super.initState();
+
+    //clear the found devices list and send signal
+    Provider.of<ConnectionManager>(context, listen: false).sendDiscoverSignal(true);
+
     // runs every 1 second
     search_timer = Timer.periodic(new Duration(seconds: 1), (timer) async {
       await send_signal();
@@ -51,17 +56,17 @@ class _SearchDevicesState extends State<SearchDevices> {
   }
 
   send_signal() async {
-    await Provider.of<ConnectionManager>(context, listen: false).sendDiscoverSignal();
+    Provider.of<ConnectionManager>(context, listen: false).sendDiscoverSignal(false);
   }
 
   // List<Device> search_devices() {}
-  var text_field_value = "";
+  String serialNumberTextFieldValue = "";
   Widget buildTextField(BuildContext context) => TextField(
         style: Theme.of(context).textTheme.bodyText1!,
         // controller: controller,
         keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
         onChanged: (value) {
-          text_field_value = value;
+          serialNumberTextFieldValue = value;
         },
 
         decoration: InputDecoration(
@@ -73,6 +78,24 @@ class _SearchDevicesState extends State<SearchDevices> {
   void serial_validated() {
     Navigator.pop(context);
     Navigator.pop(context, 1);
+  }
+
+  void onDeviceTap(Device d, bool useQR) async {
+    var codeReceived = useQR ? await Navigator.pushNamed(context, "/scan_barcode") : serialNumberTextFieldValue;
+
+    if (codeReceived == d.serial) {
+      Provider.of<SavedDevicesChangeNotifier>(context, listen: false).setSelectedDevice(d);
+      String deviceName = await Provider.of<ConnectionManager>(context, listen: false).getRequest(0);
+      if (deviceName == "") {
+        if (await _displayDeviceNameDialog(context, d)) serial_validated();
+      } else {
+        Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelectedDeviceName(deviceName).then((v) {
+          serial_validated();
+        });
+      }
+    } else {
+      Utils.alert(context, "Error", "serial number was wrong.");
+    }
   }
 
   void openBottomSheet(context, Device d) {
@@ -88,20 +111,8 @@ class _SearchDevicesState extends State<SearchDevices> {
               ListTile(
                   leading: Icon(Icons.qr_code),
                   title: Text(AppLocalizations.of(context)!.scanQrCode, style: Theme.of(context).textTheme.bodyText1!),
-                  onTap: () async {
-                    var code_received = await Navigator.pushNamed(context, "/scan_barcode");
-                    if (code_received == d.serial) {
-                      Provider.of<SavedDevicesChangeNotifier>(context, listen: false).setSelectedDevice(d);
-                      String device_name = await Provider.of<ConnectionManager>(context, listen: false).getRequest_non0("get0");
-                      if (device_name == "") {
-                        await _displayTextInputDialog(context, d);
-                      } else {
-                        SavedDevicesChangeNotifier.selected_device!.name = last_dialog_text;
-                      }
-                      serial_validated();
-                    } else if (code_received != null) {
-                      Utils.alert(context, "Error", "serial number was wrong.");
-                    }
+                  onTap: () {
+                    onDeviceTap(d, true);
                   }),
               Divider(
                 color: Theme.of(context).accentColor,
@@ -114,20 +125,8 @@ class _SearchDevicesState extends State<SearchDevices> {
                     const SizedBox(width: 12),
                     FloatingActionButton(
                       backgroundColor: Theme.of(context).primaryColor,
-                      onPressed: () async {
-                        var code_received = text_field_value;
-                        if (code_received == d.serial) {
-                          Provider.of<SavedDevicesChangeNotifier>(context, listen: false).setSelectedDevice(d);
-                          String device_name = await Provider.of<ConnectionManager>(context, listen: false).getRequest_non0("get0");
-                          if (device_name == "") {
-                            await _displayTextInputDialog(context, d);
-                          } else {
-                            SavedDevicesChangeNotifier.selected_device!.name = device_name;
-                          }
-                          serial_validated();
-                        } else {
-                          Utils.alert(context, "Error", "serial number was wrong.");
-                        }
+                      onPressed: () {
+                        onDeviceTap(d, false);
                       },
                       child: Icon(Icons.done, size: 30),
                       // onPressed: () => setState(() {}),
@@ -138,8 +137,9 @@ class _SearchDevicesState extends State<SearchDevices> {
             ]));
   }
 
-  String last_dialog_text = "BREEZE N25";
-  Future<void> _displayTextInputDialog(BuildContext context, d) async {
+  String deviceNameDialogInputValue = "BREEZE N25";
+  Future<bool> _displayDeviceNameDialog(BuildContext context, d) async {
+    Completer<bool> dialog_beify_answer = new Completer<bool>();
     await showDialog(
         context: context,
         builder: (context) {
@@ -150,7 +150,7 @@ class _SearchDevicesState extends State<SearchDevices> {
               style: Theme.of(context).textTheme.bodyText1,
               onChanged: (value) {
                 setState(() {
-                  last_dialog_text = value;
+                  deviceNameDialogInputValue = value;
                 });
               },
               decoration: InputDecoration(hintText: "BREEZE N25", counterText: ""),
@@ -161,9 +161,8 @@ class _SearchDevicesState extends State<SearchDevices> {
                 textColor: Colors.black,
                 child: Text('CANCEL', style: Theme.of(context).textTheme.bodyText1),
                 onPressed: () {
-                  setState(() {
-                    Navigator.pop(context);
-                  });
+                  dialog_beify_answer.complete(false);
+                  Navigator.pop(context);
                 },
               ),
               FlatButton(
@@ -171,9 +170,9 @@ class _SearchDevicesState extends State<SearchDevices> {
                 textColor: Colors.black,
                 child: Text('OK', style: Theme.of(context).textTheme.bodyText1),
                 onPressed: () async {
-                  SavedDevicesChangeNotifier.selected_device!.name = last_dialog_text;
-                  await Provider.of<ConnectionManager>(context, listen: false).set_request(0, last_dialog_text);
-                  setState(() {
+                  await Provider.of<ConnectionManager>(context, listen: false).setRequest(0, deviceNameDialogInputValue, context);
+                  Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelectedDeviceName(deviceNameDialogInputValue).then((value) {
+                    dialog_beify_answer.complete(true);
                     Navigator.pop(context);
                   });
                 },
@@ -181,16 +180,19 @@ class _SearchDevicesState extends State<SearchDevices> {
             ],
           );
         });
+    if (!dialog_beify_answer.isCompleted) dialog_beify_answer.complete(false);
+    // print(dialog_beify_answer.isCompleted);
 
-    // Provider.of<SavedDevicesChangeNotifier>(context, listen: false)..addDevice(d);
+    return dialog_beify_answer.future;
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget leading_icon(p) => Column(
+    Widget leading_icon(DeviceAccessibility p) => Column(
           children: [
             Icon(Icons.network_check),
-            Text("${p == -1 ? "InAccessible" : 'Available'} ", style: Theme.of(context).textTheme.bodyText2!.copyWith(color: Colors.green[300]))
+            Text("${p == DeviceAccessibility.InAccessible ? "InAccessible" : 'Available'} ",
+                style: Theme.of(context).textTheme.bodyText2!.copyWith(color: Colors.green[300]))
           ],
           crossAxisAlignment: CrossAxisAlignment.center,
         );
@@ -201,18 +203,18 @@ class _SearchDevicesState extends State<SearchDevices> {
     Widget found_devices_list_view = ListView(
         children: found_devices
             .map((d) => ListTile(
-                  title: Text(d.wifiname, style: Theme.of(context).textTheme.bodyText1!),
+                  title: Text(d.name, style: Theme.of(context).textTheme.bodyText1!),
                   onTap: () {
                     openBottomSheet(context, d);
                   },
-                  trailing: leading_icon(d.ping),
+                  trailing: leading_icon(d.accessibility),
                 ))
             .toList());
 
     return Scaffold(
         resizeToAvoidBottomInset: false,
         appBar: AppBar(
-          title: Text(AppLocalizations.of(context)!.searchingAvailableDevices, style: Theme.of(context).textTheme.bodyText1!),
+          title: Text(AppLocalizations.of(context)!.searchingAvailableDevices, style: Theme.of(context).textTheme.headline5!),
           centerTitle: true,
         ),
         extendBody: true,

@@ -26,6 +26,7 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
   TabController? _tabController;
   static bool is_night_set = false;
   static bool is_day_set = false;
+  bool set_inprogress = false;
 
   @override
   void initState() {
@@ -72,18 +73,18 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
     await Utils.show_loading_timed(
         context: context,
         done: () async {
-          ConnectionManager.Favourite_Room_Temp_Day_ = await cmg.getRequest("get47");
-          ConnectionManager.Favourite_Room_Temp_Night = await cmg.getRequest("get53");
-          ConnectionManager.Room_Temp_Sensitivity_Day = await cmg.getRequest("get48");
-          ConnectionManager.Room_Temp_Sensitivity_Night = await cmg.getRequest("get54");
-          ConnectionManager.Cooler_Start_Temp_Day = await cmg.getRequest("get49");
-          ConnectionManager.Cooler_Start_Temp_Night = await cmg.getRequest("get55");
-          ConnectionManager.Cooler_Stop_Temp_Day = await cmg.getRequest("get50");
-          ConnectionManager.Cooler_Stop_Temp_Night = await cmg.getRequest("get56");
-          ConnectionManager.Heater_Start_Temp_Day = await cmg.getRequest("get51");
-          ConnectionManager.Heater_Start_Temp_Night = await cmg.getRequest("get57");
-          ConnectionManager.Heater_Stop_Temp_Day = await cmg.getRequest("get52");
-          ConnectionManager.Heater_Stop_Temp_Night = await cmg.getRequest("get58");
+          ConnectionManager.Favourite_Room_Temp_Day_ = await cmg.getRequest(47);
+          ConnectionManager.Favourite_Room_Temp_Night = await cmg.getRequest(53);
+          ConnectionManager.Room_Temp_Sensitivity_Day = await cmg.getRequest(48);
+          ConnectionManager.Room_Temp_Sensitivity_Night = await cmg.getRequest(54);
+          ConnectionManager.Cooler_Start_Temp_Day = await cmg.getRequest(49);
+          ConnectionManager.Cooler_Start_Temp_Night = await cmg.getRequest(55);
+          ConnectionManager.Cooler_Stop_Temp_Day = await cmg.getRequest(50);
+          ConnectionManager.Cooler_Stop_Temp_Night = await cmg.getRequest(56);
+          ConnectionManager.Heater_Start_Temp_Day = await cmg.getRequest(51);
+          ConnectionManager.Heater_Start_Temp_Night = await cmg.getRequest(57);
+          ConnectionManager.Heater_Stop_Temp_Day = await cmg.getRequest(52);
+          ConnectionManager.Heater_Stop_Temp_Night = await cmg.getRequest(58);
 
           if (mounted)
             setState(() {
@@ -119,7 +120,7 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
         Utils.alert(context, "Error", "Cooler start temperature must be higher than favorite room temperature and cooler stop temperature.");
         return;
       }
-      if (!(_cooler_stop_temp > (_room_temp + _room_temp_sensivity))) {
+      if (!(_cooler_stop_temp >= (_room_temp + _room_temp_sensivity))) {
         Utils.alert(context, "Error", "Cooler stop temperature must be higher than favorite room temperature.");
         return;
       }
@@ -135,30 +136,37 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
         Utils.alert(context, "Error", "Heater start temperature must be lower than favorite room temperature and heater stop temperature.");
         return;
       }
-      if (!(_heater_stop_temp < (_room_temp - _room_temp_sensivity))) {
+      if (!(_heater_stop_temp <= (_room_temp - _room_temp_sensivity))) {
         Utils.alert(context, "Error", "Heater stop temperature must be lower than favorite room temperature.");
         return;
       }
+      if (_tabController!.index == 0) {
+        //Day Time
+        await cmg.setRequest(47, Utils.sign_int_100(ConnectionManager.Favourite_Room_Temp_Day_), context);
+        await cmg.setRequest(48, (ConnectionManager.Room_Temp_Sensitivity_Day), context);
+        await cmg.setRequest(49, Utils.sign_int_100(ConnectionManager.Cooler_Start_Temp_Day), context);
+        await cmg.setRequest(50, Utils.sign_int_100(ConnectionManager.Cooler_Stop_Temp_Day), context);
+        await cmg.setRequest(51, Utils.sign_int_100(ConnectionManager.Heater_Start_Temp_Day), context);
+        await cmg.setRequest(52, Utils.sign_int_100(ConnectionManager.Heater_Stop_Temp_Day), context);
 
-      if (!await cmg.set_request(47, Utils.sign_int_100(ConnectionManager.Favourite_Room_Temp_Day_))) {
-        Utils.handleError(context);
-        return;
+        //night same as day
+        await cmg.setRequest(53, Utils.sign_int_100(ConnectionManager.Favourite_Room_Temp_Day_), context);
+        await cmg.setRequest(54, (ConnectionManager.Room_Temp_Sensitivity_Day), context);
+        await cmg.setRequest(55, Utils.sign_int_100(ConnectionManager.Cooler_Start_Temp_Day), context);
+        await cmg.setRequest(56, Utils.sign_int_100(ConnectionManager.Cooler_Stop_Temp_Day), context);
+        await cmg.setRequest(57, Utils.sign_int_100(ConnectionManager.Heater_Start_Temp_Day), context);
+        await cmg.setRequest(58, Utils.sign_int_100(ConnectionManager.Heater_Stop_Temp_Day), context);
+      } else {
+        //Night Time
+        await cmg.setRequest(53, Utils.sign_int_100(ConnectionManager.Favourite_Room_Temp_Night), context);
+        await cmg.setRequest(54, (ConnectionManager.Room_Temp_Sensitivity_Night), context);
+        await cmg.setRequest(55, Utils.sign_int_100(ConnectionManager.Cooler_Start_Temp_Night), context);
+        await cmg.setRequest(56, Utils.sign_int_100(ConnectionManager.Cooler_Stop_Temp_Night), context);
+        await cmg.setRequest(57, Utils.sign_int_100(ConnectionManager.Heater_Start_Temp_Night), context);
+        await cmg.setRequest(58, Utils.sign_int_100(ConnectionManager.Heater_Stop_Temp_Night), context);
       }
-      await cmg.set_request(53, Utils.sign_int_100(ConnectionManager.Favourite_Room_Temp_Night));
 
-      await cmg.set_request(48, (ConnectionManager.Room_Temp_Sensitivity_Day));
-      await cmg.set_request(54, (ConnectionManager.Room_Temp_Sensitivity_Night));
-
-      await cmg.set_request(49, Utils.sign_int_100(ConnectionManager.Cooler_Start_Temp_Day));
-      await cmg.set_request(55, Utils.sign_int_100(ConnectionManager.Cooler_Start_Temp_Night));
-      await cmg.set_request(50, Utils.sign_int_100(ConnectionManager.Cooler_Stop_Temp_Day));
-      await cmg.set_request(56, Utils.sign_int_100(ConnectionManager.Cooler_Stop_Temp_Night));
-      await cmg.set_request(51, Utils.sign_int_100(ConnectionManager.Heater_Start_Temp_Day));
-      await cmg.set_request(57, Utils.sign_int_100(ConnectionManager.Heater_Start_Temp_Night));
-      await cmg.set_request(52, Utils.sign_int_100(ConnectionManager.Heater_Stop_Temp_Day));
-      await cmg.set_request(58, Utils.sign_int_100(ConnectionManager.Heater_Stop_Temp_Night));
-
-      Utils.showSnackBar(context, "Done.");
+      // Utils.showSnackBar(context, "Done.");
       if (_tabController!.index == 0) {
         is_day_set = true;
         _tabController!.animateTo(1);
@@ -171,30 +179,12 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
         return;
       }
     } catch (e) {
-      Utils.alert(context, "Error", "please check your input and try again.");
+      if (!(e is FormatException)) Utils.alert(context, "Error", "please check your input and try again.");
     }
     await refresh();
   }
 
   bool is_night = false;
-  // build_day_night_switch() => Container(
-  //       color: Color(0xff181818),
-  //       child: Padding(
-  //         padding: const EdgeInsets.symmetric(horizontal: 8.0),
-  //         child: Row(children: [
-  //           Expanded(child: Text("Settings for ${is_night ? "Night" : "Day"} Time ", style: Theme.of(context).textTheme.headline6)),
-  //           DayNightSwitcher(
-  //             isDarkModeEnabled: is_night,
-  //             onStateChanged: (is_night) {
-  //               setState(() {
-  //                 this.is_night = is_night;
-  //                 refresh();
-  //               });
-  //             },
-  //           )
-  //         ]),
-  //       ),
-  //     );
 
   String room_temp = "";
   Widget row_room_temp(value) => Padding(
@@ -484,8 +474,11 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
               temperature_fragment_night(),
             ],
           )),
-          build_apply_button(() {
-            apply_temp();
+          build_apply_button(() async {
+            if (set_inprogress) return;
+            set_inprogress = true;
+            await apply_temp();
+            set_inprogress = false;
           }),
           build_reset_button(),
           SizedBox(

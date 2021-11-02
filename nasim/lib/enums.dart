@@ -1,2 +1,4 @@
 enum MenuType { Overview, Controll, Settings, Licenses }
-enum ConnectionStatus { disconnected, connected_close, connected_internet }
+enum DeviceAccessibility { InAccessible, AccessibleLocal, AccessibleInternet }
+
+enum ServerRequest { get_device_data_if_presernt, send_wishlist }

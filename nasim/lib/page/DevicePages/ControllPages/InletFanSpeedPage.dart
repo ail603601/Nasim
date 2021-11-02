@@ -8,11 +8,14 @@ import 'package:holding_gesture/holding_gesture.dart';
 import 'package:nasim/Model/Device.dart';
 import 'package:nasim/Model/menu_info.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
+import 'package:nasim/provider/SavedevicesChangeNofiter.dart';
 import 'package:nasim/utils.dart';
 import 'package:provider/provider.dart';
 import 'dart:math';
 
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../enums.dart';
 
 class InletFanSpeedPage extends StatefulWidget {
   @override
@@ -77,8 +80,8 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
   }
 
   void soft_refresh() async {
-    ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest("get34")) ?? ConnectionManager.Elevation).toString();
-    ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest("get35")) ?? ConnectionManager.Pressure).toString();
+    ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest(34)) ?? "0").toString();
+    ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest(35)) ?? "0").toString();
 
     if (mounted) setState(() {});
   }
@@ -87,14 +90,14 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
     await Utils.show_loading_timed(
         context: context,
         done: () async {
-          ConnectionManager.Min_Valid_Input_Fan_Speed_Night = await cmg.getRequest("get42");
-          ConnectionManager.Max_Valid_Input_Fan_Speed_Night = await cmg.getRequest("get44");
-          ConnectionManager.Min_Valid_Input_Fan_Speed_Day = await cmg.getRequest("get41");
-          ConnectionManager.Max_Valid_Input_Fan_Speed_Day = await cmg.getRequest("get43");
-          // ConnectionManager.Input_Fan_Power = await cmg.getRequest("get45");
+          ConnectionManager.Min_Valid_Input_Fan_Speed_Night = (int.tryParse(await cmg.getRequest(42)) ?? "0").toString();
+          ConnectionManager.Max_Valid_Input_Fan_Speed_Night = (int.tryParse(await cmg.getRequest(44)) ?? "0").toString();
+          ConnectionManager.Min_Valid_Input_Fan_Speed_Day = (int.tryParse(await cmg.getRequest(41)) ?? "0").toString();
+          ConnectionManager.Max_Valid_Input_Fan_Speed_Day = (int.tryParse(await cmg.getRequest(43)) ?? "0").toString();
+          // ConnectionManager.Input_Fan_Power = await cmg.getRequest(45");
 
-          ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest("get34")) ?? ConnectionManager.Elevation).toString();
-          ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest("get35")) ?? ConnectionManager.Pressure).toString();
+          ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest(34)) ?? "0").toString();
+          ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest(35)) ?? "0").toString();
 
           if (mounted) {
             setState(() {
@@ -105,6 +108,22 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
             });
           }
         });
+  }
+
+  Future<void> start() async {
+    is_inlet_fan_available = await Provider.of<ConnectionManager>(context, listen: false).getRequest(122) == "1";
+
+    if (!is_inlet_fan_available) {
+      await showAlertDialog(context);
+    }
+
+    if (is_inlet_fan_available) {
+      await Provider.of<ConnectionManager>(context, listen: false).setRequest(122, "1", context);
+
+      refresh();
+
+      Utils.setTimeOut(0, refresh);
+    }
   }
 
   @override
@@ -119,18 +138,6 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
     start();
   }
 
-  start() async {
-    is_inlet_fan_available = await Provider.of<ConnectionManager>(context, listen: false).getRequest("get122") == "1";
-
-    if (!is_inlet_fan_available) {
-      await showAlertDialog(context);
-    }
-
-    if (is_inlet_fan_available) {
-      refresh();
-    }
-  }
-
   @override
   void dispose() {
     _tabController!.dispose();
@@ -142,21 +149,22 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
   }
 
   showAlertDialog(BuildContext context) async {
+    // final prefs = await SharedPreferences.getInstance();
+
+    // set value
+    // is_inlet_fan_available = false;
     // set up the buttons
     Widget cancelButton = FlatButton(
       child: Text("Yes", style: Theme.of(context).textTheme.bodyText1),
-      onPressed: () async {
-        await Provider.of<ConnectionManager>(context, listen: false).set_request(122, "1");
-        setState(() {
-          is_inlet_fan_available = true;
-        });
-        Navigator.of(context).pop(false);
+      onPressed: () {
+        Navigator.of(context, rootNavigator: true).pop(false);
+        is_inlet_fan_available = true;
       },
     );
     Widget continueButton = FlatButton(
       child: Text("No", style: Theme.of(context).textTheme.bodyText1),
       onPressed: () {
-        Navigator.of(context).pop(false);
+        Navigator.of(context, rootNavigator: true).pop(false);
       },
     );
 
@@ -171,8 +179,9 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
     );
 
     // show the dialog
-    showDialog(
+    await showDialog(
       barrierDismissible: false,
+      useRootNavigator: true,
       context: context,
       builder: (BuildContext context) {
         return alert;
@@ -191,79 +200,64 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
             child: child));
   }
 
-  Future<bool> set_all_to_board_min() async {
-    if (!expanded_min_day) {
-      toggle_min_day();
-      return false;
-    } else {
-      if (!await cmg.set_request(41, ConnectionManager.Min_Valid_Input_Fan_Speed_Day)) {
-        return false;
-      }
-      if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5)) {
-        ConnectionManager.Max_Valid_Input_Fan_Speed_Day = (int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5).toString().padLeft(3, '0');
-        if (!await cmg.set_request(43, ConnectionManager.Max_Valid_Input_Fan_Speed_Day)) {
-          return false;
+  Future<void> set_all_to_board_min() async {
+      if (!expanded_min_day) {
+        toggle_min_day();
+        return;
+      } else {
+        await cmg.setRequest(41, ConnectionManager.Min_Valid_Input_Fan_Speed_Day, context);
+
+        if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5)) {
+          ConnectionManager.Max_Valid_Input_Fan_Speed_Day = (int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5).toString().padLeft(3, '0');
+          await cmg.setRequest(43, ConnectionManager.Max_Valid_Input_Fan_Speed_Day, context);
         }
       }
-    }
-    if (!expanded_min_night) {
-      toggle_min_night();
-      return false;
-    } else {
-      if (!await cmg.set_request(42, ConnectionManager.Min_Valid_Input_Fan_Speed_Night)) {
-        return false;
-      }
-      if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5)) {
-        ConnectionManager.Max_Valid_Input_Fan_Speed_Night = (int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5).toString().padLeft(3, '0');
+      if (!expanded_min_night) {
+        toggle_min_night();
+      } else {
+        await cmg.setRequest(42, ConnectionManager.Min_Valid_Input_Fan_Speed_Night, context);
+        if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5)) {
+          ConnectionManager.Max_Valid_Input_Fan_Speed_Night = (int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5).toString().padLeft(3, '0');
 
-        if (!await cmg.set_request(44, ConnectionManager.Max_Valid_Input_Fan_Speed_Night)) {
-          return false;
+          await cmg.setRequest(44, ConnectionManager.Max_Valid_Input_Fan_Speed_Night, context);
         }
       }
-    }
-
-    return true;
   }
 
-  Future<bool> set_all_to_board_max() async {
-    if (!expanded_max_day) {
-      toggle_max_day();
-      return false;
-    } else {
-      if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5)) {
-        await Utils.alert(context, "", "Day time maximum fan speed must at least be 5 more than minimum.");
-        return false;
-      }
+  Future<void> set_all_to_board_max() async {
+      if (!expanded_max_day) {
+        toggle_max_day();
+        return;
+      } else {
+        if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5)) {
+          await Utils.alert(context, "", "Day time maximum fan speed must at least be 5 more than minimum.");
+          return;
+        }
 
-      if (!await cmg.set_request(43, ConnectionManager.Max_Valid_Input_Fan_Speed_Day)) {
-        return false;
+        await cmg.setRequest(43, ConnectionManager.Max_Valid_Input_Fan_Speed_Day, context);
       }
-    }
-    if (!expanded_max_night) {
-      toggle_max_night();
-      return false;
-    } else {
-      if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5)) {
-        await Utils.alert(context, "", "Night time maximum fan speed must at least be 5 more than minimum.");
-        return false;
+      if (!expanded_max_night) {
+        toggle_max_night();
+        return;
+      } else {
+        if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5)) {
+          await Utils.alert(context, "", "Night time maximum fan speed must at least be 5 more than minimum.");
+          return;
+        }
+        cmg.setRequest(44, ConnectionManager.Max_Valid_Input_Fan_Speed_Night, context);
       }
-      if (!await cmg.set_request(44, ConnectionManager.Max_Valid_Input_Fan_Speed_Night)) {
-        return false;
-      }
-    }
-    return true;
   }
 
   Future<bool> inc_min_inlet_fan(bool is_night) async {
     if (is_night) {
-      double value = double.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 1;
+      double value = (double.tryParse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) ?? 0) + 1;
       value = min(value, 95);
       ConnectionManager.Min_Valid_Input_Fan_Speed_Night = value.toInt().toString().padLeft(3, '0');
       setState(() {
         minimum_inlet_fan_speed_night = value;
       });
     } else {
-      double value = double.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 1;
+      double value = (double.tryParse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) ?? 0) + 1;
       value = min(value, 95);
       ConnectionManager.Min_Valid_Input_Fan_Speed_Day = value.toInt().toString().padLeft(3, '0');
 
@@ -276,14 +270,14 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
 
   Future<bool> inc_max_inlet_fan(bool is_night) async {
     if (is_night) {
-      double value = double.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) + 1;
+      double value = (double.tryParse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) ?? 0) + 1;
       value = min(value, 100);
       ConnectionManager.Max_Valid_Input_Fan_Speed_Night = value.toInt().toString().padLeft(3, '0');
       setState(() {
         maximum_inlet_fan_speed_night = value;
       });
     } else {
-      double value = double.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) + 1;
+      double value = (double.tryParse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) ?? 0) + 1;
       value = min(value, 100);
       ConnectionManager.Max_Valid_Input_Fan_Speed_Day = value.toInt().toString().padLeft(3, '0');
       setState(() {
@@ -295,14 +289,14 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
 
   Future<bool> dec_min_inlet_fan(bool is_night) async {
     if (is_night) {
-      double value = double.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) - 1;
+      double value = (double.tryParse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) ?? 0) - 1;
       value = max(value, 0);
       ConnectionManager.Min_Valid_Input_Fan_Speed_Night = value.toInt().toString().padLeft(3, '0');
       setState(() {
         minimum_inlet_fan_speed_night = value;
       });
     } else {
-      double value = double.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) - 1;
+      double value = (double.tryParse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) ?? 0) - 1;
       value = max(value, 0);
       ConnectionManager.Min_Valid_Input_Fan_Speed_Day = value.toInt().toString().padLeft(3, '0');
       setState(() {
@@ -314,14 +308,14 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
 
   Future<bool> dec_max_inlet_fan(bool is_night) async {
     if (is_night) {
-      double value = double.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) - 1;
+      double value = (double.tryParse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) ?? 0) - 1;
       value = max(value, 0);
       ConnectionManager.Max_Valid_Input_Fan_Speed_Night = value.toInt().toString().padLeft(3, '0');
       setState(() {
         maximum_inlet_fan_speed_night = value;
       });
     } else {
-      double value = double.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) - 1;
+      double value = (double.tryParse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) ?? 0) - 1;
       value = max(value, 0);
       ConnectionManager.Max_Valid_Input_Fan_Speed_Day = value.toInt().toString().padLeft(3, '0');
       setState(() {
@@ -351,15 +345,6 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
             ],
           ),
           SizedBox(height: 16),
-          // Row(
-          //   children: [
-          //     Expanded(child: Text("Inlet Fan Power: ", style: Theme.of(context).textTheme.bodyText1)),
-          //     Expanded(
-          //         child: Center(
-          //             child: Text((int.tryParse(ConnectionManager.Input_Fan_Power) ?? 0).toString() + " W", style: Theme.of(context).textTheme.bodyText1)))
-          //   ],
-          // ),
-          // SizedBox(height: 16),
           Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
             Expanded(
               child: Material(
@@ -412,24 +397,7 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
       );
 
   bool is_night = true;
-  // build_day_night_switch() => Container(
-  //       color: Color(0xff181818),
-  //       child: Padding(
-  //         padding: const EdgeInsets.symmetric(horizontal: 8.0),
-  //         child: Row(children: [
-  //           Expanded(child: Text("Settings for ${is_night ? "Night" : "Day"} Time ", style: Theme.of(context).textTheme.headline6)),
-  //           DayNightSwitcher(
-  //             isDarkModeEnabled: is_night,
-  //             onStateChanged: (is_night) {
-  //               setState(() {
-  //                 this.is_night = is_night;
-  //                 refresh();
-  //               });
-  //             },
-  //           )
-  //         ]),
-  //       ),
-  //     );
+
   build_apply_button(click) => Align(
         alignment: Alignment.bottomCenter,
         child: Container(
@@ -456,10 +424,10 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
           padding: EdgeInsets.symmetric(horizontal: 8),
           child: OutlinedButton(
             onPressed: () async {
-              cmg.set_request(42, "000");
-              cmg.set_request(44, "000");
-              cmg.set_request(41, "000");
-              cmg.set_request(43, "000");
+              cmg.setRequest(42, "000", context);
+              cmg.setRequest(44, "000", context);
+              cmg.setRequest(41, "000", context);
+              cmg.setRequest(43, "000", context);
 
               refresh();
             },
@@ -658,13 +626,18 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
                 ]),
               ),
               build_apply_button(() async {
+                if (SavedDevicesChangeNotifier.getSelectedDevice()!.accessibility == DeviceAccessibility.AccessibleInternet) {
+                  Utils.show_error_dialog(context, "Permission Denied.", "Chaning inlet fan speed is not allowed over internet connection.", null);
+                  return;
+                }
+
                 if (_tabController!.index == 0) {
                   await set_all_to_board_min();
-                  await refresh();
+                  Utils.showSnackBar(context, "Done.");
                   return;
                 } else {
                   await set_all_to_board_max();
-                  await refresh();
+                  Utils.showSnackBar(context, "Done.");
                   return;
                 }
 

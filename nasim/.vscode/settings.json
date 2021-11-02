@@ -2,6 +2,11 @@
     "files.associations": {
         "xmemory": "cpp",
         "xstring": "cpp",
-        "xutility": "cpp"
+        "xutility": "cpp",
+        "iosfwd": "cpp",
+        "istream": "cpp",
+        "xhash": "cpp",
+        "xtree": "cpp",
+        "ostream": "cpp"
     }
 }

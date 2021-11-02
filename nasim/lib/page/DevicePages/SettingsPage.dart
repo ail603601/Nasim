@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:nasim/Model/Device.dart';
@@ -10,6 +12,7 @@ import 'dart:math';
 import 'package:nasim/page/DevicePages/SettingsPages/ControllersStatusPage.dart';
 
 import 'SettingsPages/DeviceinfoPage.dart';
+import 'SettingsPages/InternetPage.dart';
 
 class SettingsPage extends StatefulWidget {
   final GlobalKey<NavigatorState> navigatorKey = new GlobalKey();
@@ -54,7 +57,9 @@ class _SettingsPageState extends State<SettingsPage> {
         elevation: 10,
         child: InkWell(
           borderRadius: BorderRadius.circular(15.0),
-          onTap: () {},
+          onTap: () {
+            Navigator.pushNamed(context, "/internet");
+          },
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: Column(
@@ -155,6 +160,7 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
         ),
       );
+
   Future<bool> didPopRoute() async {
     final NavigatorState navigator = widget.navigatorKey.currentState!;
     assert(navigator != null);
@@ -185,16 +191,20 @@ class _SettingsPageState extends State<SettingsPage> {
                     ));
           }
           if (settings.name == "/sms") {
-            return CupertinoPageRoute(builder: (context) => SmsPage());
+            return CupertinoPageRoute(builder: (context) => BackdropFilter(filter: new ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), child: SmsPage()));
           }
           if (settings.name == "/cstatus") {
-            return CupertinoPageRoute(builder: (context) => ControllersStatusPage());
+            return CupertinoPageRoute(
+                builder: (context) => BackdropFilter(filter: new ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), child: ControllersStatusPage()));
           }
           if (settings.name == "/users") {
-            return CupertinoPageRoute(builder: (context) => UsersPage());
+            return CupertinoPageRoute(builder: (context) => BackdropFilter(filter: new ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), child: UsersPage()));
           }
           if (settings.name == "/dinfo") {
-            return CupertinoPageRoute(builder: (context) => DeviceInfoPage());
+            return CupertinoPageRoute(builder: (context) => BackdropFilter(filter: new ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), child: DeviceInfoPage()));
+          }
+          if (settings.name == "/internet") {
+            return CupertinoPageRoute(builder: (context) => BackdropFilter(filter: new ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), child: InternetPage()));
           }
 
           return CupertinoPageRoute(builder: (context) => build_temperatutre_humidity_card(context));

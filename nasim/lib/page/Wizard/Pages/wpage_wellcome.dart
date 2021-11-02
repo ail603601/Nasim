@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nasim/page/Wizard/Wizardpage.dart';
+import 'package:nasim/provider/ConnectionManager.dart';
+import 'package:provider/provider.dart';
 
 import '../../../utils.dart';
 
@@ -16,7 +18,9 @@ class _wpage_wellcomeState extends State<wpage_wellcome> {
     widget.Next = () {
       return true;
     };
-
+    // Provider.of<ConnectionManager>(context, listen: false).setRequest(123, "", context);
+    // Provider.of<ConnectionManager>(context, listen: false).setRequest(124, "", context);
+    // Provider.of<ConnectionManager>(context, listen: false).setRequest(125, "0", context);
     super.initState();
   }
 
@@ -43,7 +47,11 @@ class _wpage_wellcomeState extends State<wpage_wellcome> {
           ),
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Text("Here we go step by step setting up your device for fist time.", style: Theme.of(context).textTheme.bodyText1!),
+            child: Text(
+              "Here we go step by step setting\n up your device for fist tim.",
+              style: Theme.of(context).textTheme.headline6!,
+              textAlign: TextAlign.center,
+            ),
           ),
         ],
       ),

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ffi';
 import 'dart:math';
 
 import 'package:bubble_tab_indicator/bubble_tab_indicator.dart';
@@ -24,7 +23,6 @@ class wpage_outlet_fan extends StatefulWidget {
 }
 
 class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerProviderStateMixin {
-  // late Timer refresher;
   late ConnectionManager cmg;
   double minimum_negative_presure_fan_speed = 0;
   double maximum_negative_presure_fan_speed = 0;
@@ -39,9 +37,9 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
   late String current_license_selected;
 
   void soft_refresh() async {
-    ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest("get34")) ?? ConnectionManager.Elevation).toString();
-    ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest("get35")) ?? ConnectionManager.Pressure).toString();
-    ConnectionManager.Pressure_change = await cmg.getRequest("get36");
+    ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest(34)) ?? "0").toString();
+    ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest(35)) ?? "0").toString();
+    ConnectionManager.Pressure_change = (int.tryParse(await cmg.getRequest(36)) ?? "0").toString();
 
     if (mounted)
       setState(() {
@@ -68,8 +66,7 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
 
           return false;
         }
-      }
-      if (_tabController!.index == 1) {
+      } else if (_tabController!.index == 1) {
         if (!is_minimum_set) {
           Utils.alert(context, " ", "please set minimum fan speed");
           return false;
@@ -86,9 +83,7 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
     };
 
     cmg = Provider.of<ConnectionManager>(context, listen: false);
-    // refresher = Timer.periodic(new Duration(milliseconds: 500), (timer) {
-    //   refresh();
-    // });
+
     minimum_negative_presure_fan_speed = (int.tryParse(ConnectionManager.Min_Valid_Output_Fan_Speed) ?? 0.0).toDouble();
     maximum_negative_presure_fan_speed = (int.tryParse(ConnectionManager.Max_Valid_Output_Fan_Speed) ?? 0.0).toDouble();
 
@@ -102,13 +97,12 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
     await Utils.show_loading_timed(
         context: context,
         done: () async {
-          ConnectionManager.Min_Valid_Output_Fan_Speed = await cmg.getRequest("get37");
-          ConnectionManager.Real_Output_Fan_Power = await cmg.getRequest("get39");
-          ConnectionManager.Pressure_change = await cmg.getRequest("get36");
-          ConnectionManager.Max_Valid_Output_Fan_Speed = await cmg.getRequest("get38");
-
-          ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest("get34")) ?? ConnectionManager.Elevation).toString();
-          ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest("get35")) ?? ConnectionManager.Pressure).toString();
+          ConnectionManager.Min_Valid_Output_Fan_Speed = await cmg.getRequest(37);
+          ConnectionManager.Real_Output_Fan_Power = await cmg.getRequest(39);
+          ConnectionManager.Pressure_change = await cmg.getRequest(36);
+          ConnectionManager.Max_Valid_Output_Fan_Speed = await cmg.getRequest(38);
+          ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest(34)) ?? "").toString();
+          ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest(35)) ?? "").toString();
 
           if (mounted)
             setState(() {
@@ -139,8 +133,8 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
     }, title: "waiting for fan power...");
     // await Utils.waitMsec(10 * 1000);
 
-    int device_fan_power = int.parse(await cmg.getRequest("get3"));
-    int output_fan_power = int.parse(await cmg.getRequest("get39"));
+    int device_fan_power = int.tryParse(await cmg.getRequest(3)) ?? 0;
+    int output_fan_power = int.tryParse(await cmg.getRequest(39)) ?? 0;
     device_fan_power = parse_device_fan(device_fan_power);
 
     if (device_fan_power < output_fan_power) {
@@ -149,8 +143,8 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
           (String serial, String selected_option) async {
         if (serial != "") {
           int index_selected = fan_power_licenses.indexOf(selected_option);
-          await cmg.set_request(76, index_selected);
-          bool isvalid = await cmg.set_request(77, serial);
+          await cmg.setRequest(76, index_selected.toString(), context);
+          bool isvalid = await cmg.setRequest(77, serial);
           if (isvalid) {
             await Utils.alert_license_valid(context);
           } else {
@@ -204,35 +198,31 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
         ),
       );
 
-  Future<bool> set_air_speed_min_negative_pressure(double value) async {
-    ConnectionManager.Min_Valid_Output_Fan_Speed = value.toInt().toString().padLeft(3, '0');
-    if (!await cmg.set_request(37, ConnectionManager.Min_Valid_Output_Fan_Speed)) {
-      return false;
-    }
-    if (maximum_negative_presure_fan_speed < value + 5) {
-      if (!await set_air_speed_max_negative_pressure(value + 5)) {
-        return false;
+  Future<void> set_air_speed_min_negative_pressure(double value) async {
+    try {
+      ConnectionManager.Min_Valid_Output_Fan_Speed = value.toInt().toString().padLeft(3, '0');
+      await cmg.setRequest(37, ConnectionManager.Min_Valid_Output_Fan_Speed, context);
+      if (maximum_negative_presure_fan_speed < value + 5) {
+        await set_air_speed_max_negative_pressure(value + 5);
       }
-    }
 
-    is_minimum_set = true;
-
-    return true;
+      is_minimum_set = true;
+    } catch (e) {}
   }
 
-  Future<bool> set_air_speed_max_negative_pressure(double value) async {
-    if (minimum_negative_presure_fan_speed + 5 > value) {
-      await Utils.alert(context, "Error", "maximum negative fan presue must at least be 5 more than minimum.");
-      return false;
-    }
-    ConnectionManager.Max_Valid_Output_Fan_Speed = value.toInt().toString().padLeft(3, '0');
-    if (!await cmg.set_request(38, ConnectionManager.Max_Valid_Output_Fan_Speed)) {
-      return false;
-    }
-    if (value >= minimum_negative_presure_fan_speed + 5) {
-      is_maximum_set = true;
-    }
-    return true;
+  Future<void> set_air_speed_max_negative_pressure(double value) async {
+    try {
+      if (minimum_negative_presure_fan_speed + 5 > value) {
+        await Utils.alert(context, "Error", "maximum negative fan presue must at least be 5 more than minimum.");
+        return;
+      }
+      ConnectionManager.Max_Valid_Output_Fan_Speed = value.toInt().toString().padLeft(3, '0');
+      cmg.setRequest(38, ConnectionManager.Max_Valid_Output_Fan_Speed, context);
+
+      if (value >= minimum_negative_presure_fan_speed + 5) {
+        is_maximum_set = true;
+      }
+    } catch (e) {}
   }
 
   build_icon_btn(bool up, Function() clicked) {}
@@ -493,9 +483,9 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
           child: OutlinedButton(
             onPressed: () async {
               if (_tabController!.index == 0) {
-                cmg.set_request(37, "000");
+                cmg.setRequest(37, "000", context);
               } else {
-                cmg.set_request(38, "000");
+                cmg.setRequest(38, "000", context);
               }
 
               refresh();
@@ -570,11 +560,11 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
         Expanded(
           child: new TabBarView(controller: _tabController, physics: NeverScrollableScrollPhysics(), children: [
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(8.0),
               child: build_air_speed_min_negative_pressure(),
             ),
             Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(8.0),
               child: build_air_speed_max_negative_pressure(),
             )
           ]),

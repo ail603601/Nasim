@@ -28,11 +28,9 @@ class _UsersPageState extends State<UsersPage> {
   static bool can_next = false;
 
   add_device() async {
-    Stopwatch stopwatch = new Stopwatch()..start();
     await refresh();
-    print('refresh() executed in ${stopwatch.elapsed}');
 
-    if (SavedDevicesChangeNotifier.selected_device!.username != "") {
+    if (can_next) {
       Utils.showSnackBar(context, "you can't add your phone again.");
       return;
     }
@@ -41,15 +39,15 @@ class _UsersPageState extends State<UsersPage> {
 
     if (users_found.length > 2) {
       if (!lcn.six_mobiles) {
-        var data = await Utils.ask_serial("only 3 mobiles can be added by free, delete one mobile or provide the 6 mobiles serial number", context);
+        var data = await Utils.ask_serial("Only 3 mobiles can be added by free, delete one mobile or provide the 6 mobiles serial number", context);
         if (data == "") {
           return;
         }
-        await Provider.of<ConnectionManager>(context, listen: false).set_request(76, "6");
+        await Provider.of<ConnectionManager>(context, listen: false).setRequest(76, "6", context);
 
-        bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).set_request(78, data);
+        bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(78, data, context);
         if (is_valid) {
-          lcn.license_6_mobiles();
+          lcn.license_6_mobiles(context);
         } else {
           Utils.showSnackBar(context, "Wrong serial number.");
 
@@ -58,18 +56,20 @@ class _UsersPageState extends State<UsersPage> {
       }
     }
     await _displayTextInputDialog(context, (name) async {
+      name = name.trim();
       if (users_found.any((element) => element.name == name)) {
         Utils.showSnackBar(context, "this name already exists");
       } else {
-        if (await cmg.set_request(users_found.length + 16, name)) {
+        bool user_added = await cmg.setRequest(users_found.length + 16, name, context);
+        if (user_added) {
           var saved_chn = Provider.of<SavedDevicesChangeNotifier>(context, listen: false);
-          await saved_chn.addDevice(SavedDevicesChangeNotifier.selected_device!);
+          await saved_chn.addDevice(SavedDevicesChangeNotifier.getSelectedDevice()!);
 
-          await saved_chn.updateSelecteduser_name(name);
+          await saved_chn.updateSelectedDeviceUserName(name);
+
           await Provider.of<ConnectionManager>(context, listen: false)
-              .set_request(users_found.length + 28, SavedDevicesChangeNotifier.selected_device!.serial + name);
+              .setRequest(users_found.length + 28, SavedDevicesChangeNotifier.getSelectedDevice()!.serial + name, context);
           await refresh();
-          Utils.showSnackBar(context, "Done.");
           can_next = true;
         } else {
           Utils.showSnackBar(context, "communication failed.");
@@ -81,42 +81,46 @@ class _UsersPageState extends State<UsersPage> {
   late ConnectionManager cmg;
 
   Future<void> process_user(i) async {
-    String name_n = await cmg.getRequest_non0("get${i + 16}");
-    String user_key = await cmg.getRequest("get${i + 16 + 12}");
+    String name_n = await cmg.getRequest(i + 16);
+    name_n = name_n.trim();
+    if (name_n != "") users_found.add(User(name: name_n, id_table: i + 16));
+    // String user_key = await cmg.getRequest(${i + 16 + 12}");
 
-    if (name_n != "" && user_key.contains(SavedDevicesChangeNotifier.selected_device!.serial + name_n)) {
-      String user_name_to_add = name_n;
+    // if (name_n != "" && user_key.contains(SavedDevicesChangeNotifier.getSelectedDevice()!.serial + name_n)) {
+    //   String user_name_to_add = name_n;
 
-      if (!users_found.any((element) => element.name == user_name_to_add)) users_found.add(User(name: user_name_to_add, id_table: i + 16));
-    }
+    //   if (!users_found.any((element) => element.name == user_name_to_add)) users_found.add(User(name: user_name_to_add, id_table: i + 16));
+    // }
     return;
   }
 
   List<User> users_found = [];
-  refresh() async {
+  Future<void> refresh() async {
     await Utils.show_loading_timed(
         context: context,
         done: () async {
-          if (!mounted) {
-            return;
-          }
+          users_found = [];
+          can_next = false;
           await process_user(0);
           await process_user(1);
           await process_user(2);
           await process_user(3);
           await process_user(4);
           await process_user(5);
+          String usernaem = SavedDevicesChangeNotifier.getSelectedDevice()!.username;
 
-          if (!users_found.any((element) {
-            return element.name == SavedDevicesChangeNotifier.selected_device!.username;
-          })) {
-            await Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelecteduser_name("");
-            can_next = false;
-          } else {
-            // if( SavedDevicesChangeNotifier.selected_device!.serial +SavedDevicesChangeNotifier.selected_device!.name == )
+          users_found.forEach((element) {
+            if (element.name == usernaem) {
+              can_next = true;
+            }
+          });
 
-            can_next = true;
+          if (!can_next) {
+            print("user not found username:${usernaem}");
           }
+
+          // await Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelectedDeviceUserName("");
+
           if (mounted) {
             setState(() {});
           }
@@ -130,7 +134,7 @@ class _UsersPageState extends State<UsersPage> {
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text('Choose a name for this device', style: Theme.of(context).textTheme.bodyText1),
+            title: Text('Choose a name ', style: Theme.of(context).textTheme.bodyText1),
             content: TextField(
               maxLength: 9,
               style: Theme.of(context).textTheme.bodyText1,
@@ -172,19 +176,19 @@ class _UsersPageState extends State<UsersPage> {
   }
 
   DeleteUser(User user) async {
-    if (SavedDevicesChangeNotifier.selected_device!.username == user.name) {
-      await Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelecteduser_name("");
-      // Provider.of<SavedDevicesChangeNotifier>(context, listen: false).removeDevice(SavedDevicesChangeNotifier.selected_device!);
+    if (SavedDevicesChangeNotifier.getSelectedDevice()!.username == user.name) {
+      // await Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelectedDeviceUserName("");
+      // Provider.of<SavedDevicesChangeNotifier>(context, listen: false).removeDevice(SavedDevicesChangeNotifier.getSelectedDevice()!);
       can_next = false;
     }
-    await cmg.set_request(user.id_table, "00000000000");
-    await cmg.set_request(user.id_table + 12, "00000000000000000000");
+    await cmg.setRequest(user.id_table, "???????????");
+    await cmg.setRequest(user.id_table + 12, "???????????????????");
     users_found = [];
     refresh();
   }
 
   Widget buildTitleBox(context) => Container(
-        padding: EdgeInsets.fromLTRB(2, 2, 5, 2),
+        padding: EdgeInsets.fromLTRB(7, 7, 7, 7),
         color: Theme.of(context).hintColor,
         child: Text(AppLocalizations.of(context)!.usersPageDescription, style: Theme.of(context).textTheme.bodyText1!.copyWith(color: Colors.white)),
       );
@@ -200,12 +204,14 @@ class _UsersPageState extends State<UsersPage> {
           subtitle: Text(
               // user.mac,
               ""),
-          trailing: FlatButton(
-            child: Text("Delete", style: Theme.of(context).textTheme.bodyText1!.copyWith(color: Colors.red)),
-            onPressed: () {
-              DeleteUser(user);
-            },
-          ),
+          trailing: SavedDevicesChangeNotifier.getSelectedDevice()!.accessibility == DeviceAccessibility.AccessibleInternet
+              ? null
+              : FlatButton(
+                  child: Text("Delete", style: Theme.of(context).textTheme.bodyText1!.copyWith(color: Colors.red)),
+                  onPressed: () {
+                    DeleteUser(user);
+                  },
+                ),
         ),
       );
 
@@ -248,9 +254,6 @@ class _UsersPageState extends State<UsersPage> {
             child: Text("Add yourphone", style: Theme.of(context).textTheme.bodyText1),
           ),
         ),
-        SizedBox(
-          height: 56,
-        )
       ],
     );
   }
@@ -258,18 +261,5 @@ class _UsersPageState extends State<UsersPage> {
   @override
   Widget build(BuildContext context) {
     return Container(color: Theme.of(context).canvasColor, child: SafeArea(child: build_root_view()));
-
-    // return SafeArea(
-    //     child: Navigator(
-    //   initialRoute: "/",
-    //   onGenerateRoute: (settings) {
-    //     if (settings.name == "/") {
-    //       return CupertinoPageRoute(builder: (context) => build_root_view());
-    //     }
-    //     return CupertinoPageRoute(builder: (context) => build_root_view());
-    //   },
-    // ));
-
-    // AppLocalizations.of(context)!.devices
   }
 }

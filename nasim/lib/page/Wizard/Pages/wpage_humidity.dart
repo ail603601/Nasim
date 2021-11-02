@@ -69,11 +69,11 @@ class wpage_humidityState extends State<wpage_humidity> with SingleTickerProvide
     await Utils.show_loading_timed(
         context: context,
         done: () async {
-          ConnectionManager.Humidity_Controller = await cmg.getRequest("get59");
-          ConnectionManager.Min_Day_Humidity = await cmg.getRequest("get61");
-          ConnectionManager.Min_Night_Humidity = await cmg.getRequest("get63");
-          ConnectionManager.Max_Day_Humidity = await cmg.getRequest("get60");
-          ConnectionManager.Max_Night_Humidity = await cmg.getRequest("get62");
+          ConnectionManager.Humidity_Controller = await cmg.getRequest(59);
+          ConnectionManager.Min_Day_Humidity = await cmg.getRequest(61);
+          ConnectionManager.Min_Night_Humidity = await cmg.getRequest(63);
+          ConnectionManager.Max_Day_Humidity = await cmg.getRequest(60);
+          ConnectionManager.Max_Night_Humidity = await cmg.getRequest(62);
 
           if (mounted)
             setState(() {
@@ -121,6 +121,7 @@ class wpage_humidityState extends State<wpage_humidity> with SingleTickerProvide
                     } else {
                       ConnectionManager.Min_Day_Humidity = int.parse(humidity_min).toString().padLeft(3, '0');
                     }
+                    if (int.parse(humidity_min) == 100) setState(() {});
                   },
                   keyboardType: TextInputType.numberWithOptions(decimal: false, signed: false),
                   decoration: InputDecoration(suffix: Text(' %'), counterText: "")),
@@ -147,6 +148,7 @@ class wpage_humidityState extends State<wpage_humidity> with SingleTickerProvide
                   } else {
                     ConnectionManager.Max_Day_Humidity = int.parse(humidity_max).toString().padLeft(3, '0');
                   }
+                  if (int.parse(humidity_max) == 100) setState(() {});
                 },
                 keyboardType: TextInputType.numberWithOptions(decimal: false, signed: false),
                 decoration: InputDecoration(suffix: Text(' %'), counterText: ""),
@@ -217,24 +219,6 @@ class wpage_humidityState extends State<wpage_humidity> with SingleTickerProvide
         ),
       );
   bool is_night = false;
-  // build_day_night_switch() => Container(
-  //       color: Color(0xff181818),
-  //       child: Padding(
-  //         padding: const EdgeInsets.symmetric(horizontal: 8.0),
-  //         child: Row(children: [
-  //           Expanded(child: Text("Settings for ${is_night ? "Night" : "Day"} Time ", style: Theme.of(context).textTheme.headline6)),
-  //           DayNightSwitcher(
-  //             isDarkModeEnabled: is_night,
-  //             onStateChanged: (is_night) {
-  //               setState(() {
-  //                 this.is_night = is_night;
-  //                 refresh();
-  //               });
-  //             },
-  //           )
-  //         ]),
-  //       ),
-  //     );
 
   apply_humidity() async {
     try {
@@ -243,17 +227,21 @@ class wpage_humidityState extends State<wpage_humidity> with SingleTickerProvide
         return;
       }
 
-      if (!await cmg.set_request(59, (ConnectionManager.Humidity_Controller).padLeft(1))) {
-        Utils.handleError(context);
-        return;
+      await cmg.setRequest(59, (ConnectionManager.Humidity_Controller).padLeft(1), context);
+
+      if (_tabController!.index == 0) {
+        await cmg.setRequest(61, Utils.lim_0_100(ConnectionManager.Min_Day_Humidity), context);
+        await cmg.setRequest(60, Utils.lim_0_100(ConnectionManager.Max_Day_Humidity), context);
+
+        //night same as day
+        await cmg.setRequest(63, Utils.lim_0_100(ConnectionManager.Min_Day_Humidity), context);
+        await cmg.setRequest(62, Utils.lim_0_100(ConnectionManager.Max_Day_Humidity), context);
+      } else {
+        await cmg.setRequest(63, Utils.lim_0_100(ConnectionManager.Min_Night_Humidity), context);
+        await cmg.setRequest(62, Utils.lim_0_100(ConnectionManager.Max_Night_Humidity), context);
       }
 
-      await cmg.set_request(61, Utils.lim_0_100(ConnectionManager.Min_Day_Humidity));
-      await cmg.set_request(63, Utils.lim_0_100(ConnectionManager.Min_Night_Humidity));
-      await cmg.set_request(60, Utils.lim_0_100(ConnectionManager.Max_Day_Humidity));
-      await cmg.set_request(62, Utils.lim_0_100(ConnectionManager.Max_Night_Humidity));
-
-      Utils.showSnackBar(context, "Done.");
+      // Utils.showSnackBar(context, "Done.");
       if (_tabController!.index == 0) {
         is_night_set = true;
         _tabController!.animateTo(1);
@@ -265,7 +253,7 @@ class wpage_humidityState extends State<wpage_humidity> with SingleTickerProvide
         IntroductionScreenState.force_next();
       }
     } catch (e) {
-      Utils.alert(context, "Error", "please check your input and try again.");
+      if (!(e is FormatException)) Utils.alert(context, "Error", "please check your input and try again.");
     }
   }
 

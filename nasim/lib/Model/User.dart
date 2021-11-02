@@ -5,10 +5,10 @@ import '../enums.dart';
 class User {
   String name;
   String mac;
-  ConnectionStatus connectionState;
+  // ConnectionStatus connectionState;
   bool access;
   int id_table;
   bool is_self = false;
 
-  User({this.name = "unknown", this.mac = "", this.connectionState = ConnectionStatus.disconnected, this.access = false, required this.id_table}) {}
+  User({this.name = "unknown", this.mac = "", this.access = false, required this.id_table}) {}
 }

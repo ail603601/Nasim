@@ -15,7 +15,6 @@ class MenuInfo extends ChangeNotifier {
     this.title = menuInfo.title;
     this.imageSource = menuInfo.imageSource;
 
-//Important
     notifyListeners();
   }
 }

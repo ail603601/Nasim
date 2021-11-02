@@ -18,8 +18,8 @@ class _LightPageState extends State<LightPage> {
     await Utils.show_loading_timed(
         context: context,
         done: () async {
-          ConnectionManager.Min_Day_Lux = (await cmg.getRequest("get74"));
-          ConnectionManager.Max_Night_Lux = (await cmg.getRequest("get75"));
+          ConnectionManager.Min_Day_Lux = (await cmg.getRequest(74));
+          ConnectionManager.Max_Night_Lux = (await cmg.getRequest(75));
           setState(() {});
         });
   }
@@ -34,17 +34,16 @@ class _LightPageState extends State<LightPage> {
   }
 
   apply() async {
-    if (int.parse(ConnectionManager.Min_Day_Lux) + 50 >= int.parse(ConnectionManager.Max_Night_Lux)) {
-      Utils.alert(context, "", "'Minimum must be 50 lower than maximum.");
+    if (int.parse(ConnectionManager.Min_Day_Lux) + 50 > int.parse(ConnectionManager.Max_Night_Lux)) {
+      Utils.alert(context, "", "Minimum must be 50 lower than maximum.");
       return false;
     }
 
-    await cmg.set_request(74, Utils.lim_0_9999(ConnectionManager.Min_Day_Lux));
+    await cmg.setRequest(74, Utils.lim_0_9999(ConnectionManager.Min_Day_Lux), context);
 
-    await cmg.set_request(75, Utils.lim_0_9999(ConnectionManager.Max_Night_Lux));
+    await cmg.setRequest(75, Utils.lim_0_9999(ConnectionManager.Max_Night_Lux), context);
     is_both_set = true;
-
-    await refresh();
+    Utils.showSnackBar(context, "Done.");
   }
 
   build_apply_button() => Align(
@@ -154,36 +153,33 @@ class _LightPageState extends State<LightPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 0),
-      child: Container(
-          padding: EdgeInsets.only(top: 0),
-          color: Theme.of(context).canvasColor,
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            ...make_title("Light levels"),
-            SizedBox(
-              height: 16,
+    return Container(
+        padding: EdgeInsets.only(top: 0),
+        color: Theme.of(context).canvasColor,
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          ...make_title("Light levels"),
+          SizedBox(
+            height: 16,
+          ),
+          build_boxed_titlebox(
+              title: "Day",
+              child: Center(
+                child: min_lux(),
+              )),
+          SizedBox(height: 16),
+          build_boxed_titlebox(
+              title: "Night",
+              child: Center(
+                child: max_lux(),
+              )),
+          Expanded(
+              child: Align(
+            alignment: Alignment.bottomCenter,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [build_apply_button(), build_reset_button()],
             ),
-            build_boxed_titlebox(
-                title: "Day",
-                child: Center(
-                  child: min_lux(),
-                )),
-            SizedBox(height: 16),
-            build_boxed_titlebox(
-                title: "Night",
-                child: Center(
-                  child: max_lux(),
-                )),
-            Expanded(
-                child: Align(
-              alignment: Alignment.bottomCenter,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [build_apply_button(), build_reset_button()],
-              ),
-            ))
-          ])),
-    );
+          ))
+        ]));
   }
 }

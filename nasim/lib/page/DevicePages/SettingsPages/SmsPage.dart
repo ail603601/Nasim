@@ -18,14 +18,21 @@ class _SmsPageState extends State<SmsPage> {
   PhoneNumber number = PhoneNumber(isoCode: 'IR');
   late ConnectionManager cmg;
   late LicenseChangeNotifier lcn;
-  late Timer soft_reftresh_timer;
+  List<bool> is_validated = [false, false, false, false, false, false];
+  var numbers_to_show = [
+    PhoneNumber(isoCode: 'IR'),
+    PhoneNumber(isoCode: 'IR'),
+    PhoneNumber(isoCode: 'IR'),
+    PhoneNumber(isoCode: 'IR'),
+    PhoneNumber(isoCode: 'IR'),
+    PhoneNumber(isoCode: 'IR')
+  ];
 
   @override
   void initState() {
     super.initState();
-    soft_reftresh_timer = Timer.periodic(new Duration(seconds: 1), (timer) async {
-      // soft_refresh();
-    });
+
+    ConnectionManager.SMS_Priorities_State = ConnectionManager.SMS_Priorities_State == "" ? "0000000" : ConnectionManager.SMS_Priorities_State;
 
     cmg = Provider.of<ConnectionManager>(context, listen: false);
     lcn = Provider.of<LicenseChangeNotifier>(context, listen: false);
@@ -42,65 +49,120 @@ class _SmsPageState extends State<SmsPage> {
 
   @override
   void dispose() {
-    soft_reftresh_timer.cancel();
-
     // refresher.cancel();
     super.dispose();
   }
 
-  void soft_refresh() async {
-    ConnectionManager.GSM_SIM_Number = await cmg.getRequest("get108");
-
-    ConnectionManager.GSM_Signal_Power = (int.tryParse(await cmg.getRequest("get107")) ?? 0).toString();
-    ConnectionManager.GSM_SIM_Balance = (int.tryParse(await cmg.getRequest("get109")) ?? 0).toString();
-    ConnectionManager.SMS_Priorities_State = await cmg.getRequest("get110");
-
-    if (mounted) setState(() {});
-  }
-
   refresh() async {
-    ConnectionManager.Mobile_Name_0 = await cmg.getRequest_non0("get101");
-    ConnectionManager.Mobile_Name_1 = await cmg.getRequest_non0("get102");
-    ConnectionManager.Mobile_Name_2 = await cmg.getRequest_non0("get103");
-    ConnectionManager.Mobile_Name_3 = await cmg.getRequest_non0("get104");
-    ConnectionManager.Mobile_Name_4 = await cmg.getRequest_non0("get105");
-    ConnectionManager.Mobile_Name_5 = await cmg.getRequest_non0("get106");
-    if (ConnectionManager.Mobile_Name_0 != "") {
+    ConnectionManager.Mobile_Number_0 = await cmg.getRequest(101);
+    ConnectionManager.Mobile_Number_1 = await cmg.getRequest(102);
+    ConnectionManager.Mobile_Number_2 = await cmg.getRequest(103);
+    ConnectionManager.Mobile_Number_3 = await cmg.getRequest(104);
+    ConnectionManager.Mobile_Number_4 = await cmg.getRequest(105);
+    ConnectionManager.Mobile_Number_5 = await cmg.getRequest(106);
+
+    if (ConnectionManager.Mobile_Number_0 != "") {
+      numbers_to_show[0] = await PhoneNumber.getRegionInfoFromPhoneNumber(ConnectionManager.Mobile_Number_0);
       current_mobile_sms_count = 1;
     }
-    if (ConnectionManager.Mobile_Name_1 != "") {
+    if (ConnectionManager.Mobile_Number_1 != "") {
+      numbers_to_show[1] = await PhoneNumber.getRegionInfoFromPhoneNumber(ConnectionManager.Mobile_Number_1);
+
       current_mobile_sms_count = 2;
     }
-    if (ConnectionManager.Mobile_Name_2 != "") {
+    if (ConnectionManager.Mobile_Number_2 != "") {
+      numbers_to_show[2] = await PhoneNumber.getRegionInfoFromPhoneNumber(ConnectionManager.Mobile_Number_2);
+
       current_mobile_sms_count = 3;
     }
-    if (ConnectionManager.Mobile_Name_3 != "") {
+    if (ConnectionManager.Mobile_Number_3 != "") {
+      numbers_to_show[3] = await PhoneNumber.getRegionInfoFromPhoneNumber(ConnectionManager.Mobile_Number_3);
+
       current_mobile_sms_count = 4;
     }
-    if (ConnectionManager.Mobile_Name_4 != "") {
+    if (ConnectionManager.Mobile_Number_4 != "") {
+      numbers_to_show[4] = await PhoneNumber.getRegionInfoFromPhoneNumber(ConnectionManager.Mobile_Number_4);
+
       current_mobile_sms_count = 5;
     }
-    if (ConnectionManager.Mobile_Name_5 != "") {
+    if (ConnectionManager.Mobile_Number_5 != "") {
+      numbers_to_show[5] = await PhoneNumber.getRegionInfoFromPhoneNumber(ConnectionManager.Mobile_Number_5);
+
       current_mobile_sms_count = 6;
     }
 
-    ConnectionManager.GSM_SIM_Number = await cmg.getRequest("get108");
-    ConnectionManager.GSM_Signal_Power = (int.tryParse(await cmg.getRequest("get107")) ?? 0).toString();
-    ConnectionManager.GSM_SIM_Balance = (int.tryParse(await cmg.getRequest("get109")) ?? 0).toString();
-    ConnectionManager.SMS_Priorities_State = await cmg.getRequest("get110");
+    ConnectionManager.GSM_SIM_Number = await cmg.getRequest(108);
+    ConnectionManager.GSM_Signal_Power = (int.tryParse(await cmg.getRequest(107)) ?? 0).toString();
+    ConnectionManager.GSM_SIM_Balance = (int.tryParse(await cmg.getRequest(109)) ?? 0).toString();
+    ConnectionManager.SMS_Priorities_State = await cmg.getRequest(110);
+    ConnectionManager.SMS_Priorities_State = ConnectionManager.SMS_Priorities_State == "" ? "0000000" : ConnectionManager.SMS_Priorities_State;
 
     if (mounted) setState(() {});
   }
 
-  apply() async {
-    await cmg.set_request(101, ConnectionManager.Mobile_Number_0);
-    await cmg.set_request(102, ConnectionManager.Mobile_Number_1);
-    await cmg.set_request(103, ConnectionManager.Mobile_Number_2);
-    await cmg.set_request(104, ConnectionManager.Mobile_Number_3);
-    await cmg.set_request(105, ConnectionManager.Mobile_Number_4);
-    await cmg.set_request(106, ConnectionManager.Mobile_Number_5);
+  void validate_inputs() {
+    for (var i = 0; i < 6; i++) {
+      switch (i) {
+        case 0:
+          if (!is_validated[i]) ConnectionManager.Mobile_Number_0 = "";
+          break;
+        case 1:
+          if (!is_validated[i]) ConnectionManager.Mobile_Number_1 = "";
+          break;
+        case 2:
+          if (!is_validated[i]) ConnectionManager.Mobile_Number_2 = "";
+          break;
+        case 3:
+          if (!is_validated[i]) ConnectionManager.Mobile_Number_3 = "";
+          break;
+        case 4:
+          if (!is_validated[i]) ConnectionManager.Mobile_Number_4 = "";
+          break;
+        case 5:
+          if (!is_validated[i]) ConnectionManager.Mobile_Number_5 = "";
+          break;
+      }
+    }
 
-    await cmg.set_request(110, ConnectionManager.SMS_Priorities_State);
+    if (current_mobile_sms_count == 1) {
+      ConnectionManager.Mobile_Number_1 = "";
+      ConnectionManager.Mobile_Number_2 = "";
+      ConnectionManager.Mobile_Number_3 = "";
+      ConnectionManager.Mobile_Number_4 = "";
+      ConnectionManager.Mobile_Number_5 = "";
+    }
+    if (current_mobile_sms_count == 2) {
+      ConnectionManager.Mobile_Number_2 = "";
+      ConnectionManager.Mobile_Number_3 = "";
+      ConnectionManager.Mobile_Number_4 = "";
+      ConnectionManager.Mobile_Number_5 = "";
+    }
+    if (current_mobile_sms_count == 3) {
+      ConnectionManager.Mobile_Number_3 = "";
+      ConnectionManager.Mobile_Number_4 = "";
+      ConnectionManager.Mobile_Number_5 = "";
+    }
+    if (current_mobile_sms_count == 4) {
+      ConnectionManager.Mobile_Number_4 = "";
+      ConnectionManager.Mobile_Number_5 = "";
+    }
+  }
+
+  apply_phones() async {
+    validate_inputs();
+
+    await cmg.setRequest(101, ConnectionManager.Mobile_Number_0, context);
+    await cmg.setRequest(102, ConnectionManager.Mobile_Number_1, context);
+    await cmg.setRequest(103, ConnectionManager.Mobile_Number_2, context);
+    await cmg.setRequest(104, ConnectionManager.Mobile_Number_3, context);
+    await cmg.setRequest(105, ConnectionManager.Mobile_Number_4, context);
+    await cmg.setRequest(106, ConnectionManager.Mobile_Number_5, context);
+    await refresh();
+    Utils.showSnackBar(context, "Done.");
+  }
+
+  apply_reasons() async {
+    await cmg.setRequest(110, ConnectionManager.SMS_Priorities_State, context);
   }
 
   Widget build_boxed_titlebox({required title, required child}) {
@@ -117,7 +179,7 @@ class _SmsPageState extends State<SmsPage> {
     return oldString.substring(0, index) + newChar + oldString.substring(index + 1);
   }
 
-  Widget phone_number_input(int i) {
+  Widget phone_number_input(PhoneNumber initial, int i) {
     String def_val = "";
     switch (i) {
       case 0:
@@ -139,7 +201,8 @@ class _SmsPageState extends State<SmsPage> {
         def_val = ConnectionManager.Mobile_Number_5;
         break;
     }
-    PhoneNumber newnumber = PhoneNumber(isoCode: 'IR', phoneNumber: def_val);
+    // await PhoneNumber.getRegionInfoFromPhoneNumber(phoneNumber, 'US');
+    // PhoneNumber newnumber = PhoneNumber(isoCode: def_val == '' ? 'IR' : null, phoneNumber: def_val);
 
     return InternationalPhoneNumberInput(
       onInputChanged: (PhoneNumber number) {
@@ -167,37 +230,36 @@ class _SmsPageState extends State<SmsPage> {
           }
       },
       onInputValidated: (bool value) {
-        print(value);
+        is_validated[i] = value;
       },
       selectorConfig: SelectorConfig(
         selectorType: PhoneInputSelectorType.BOTTOM_SHEET,
       ),
-      ignoreBlank: false,
-      autoValidateMode: AutovalidateMode.disabled,
+      ignoreBlank: true,
+      autoValidateMode: AutovalidateMode.always,
       selectorTextStyle: Theme.of(context).textTheme.bodyText1,
-      initialValue: newnumber,
+      initialValue: initial,
       textStyle: Theme.of(context).textTheme.bodyText1,
       // textFieldController: TextEditingController()..text = def_val,
       // textFieldController: controller,
       formatInput: false,
       keyboardType: TextInputType.numberWithOptions(signed: true, decimal: true),
       inputBorder: OutlineInputBorder(),
-
-      onSaved: (PhoneNumber number) {
-        print('On Saved: $number');
-      },
     );
   }
 
   int current_mobile_sms_count = 1;
   List<Widget> gen_phone_row(count) {
     List<Widget> listed = [];
+
     for (var i = 0; i < count; i++) {
-      listed.add(phone_number_input(i));
+      listed.add(phone_number_input(numbers_to_show[i], i));
+
       listed.add(SizedBox(
         height: 16,
       ));
     }
+
     return listed;
   }
 
@@ -216,9 +278,10 @@ class _SmsPageState extends State<SmsPage> {
                     children: [
                       Expanded(child: Text("Count:")),
                       NumericStepButton(
+                        key: UniqueKey(),
                         minValue: 1,
                         current: current_mobile_sms_count,
-                        maxValue: 6,
+                        maxValue: 5,
                         onChanged: (value) {
                           setState(() {
                             current_mobile_sms_count = value;
@@ -277,7 +340,7 @@ class _SmsPageState extends State<SmsPage> {
           padding: EdgeInsets.symmetric(horizontal: 8),
           child: OutlinedButton(
             onPressed: () {
-              apply();
+              apply_phones();
             },
             style: OutlinedButton.styleFrom(
                 padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
@@ -311,7 +374,7 @@ class _SmsPageState extends State<SmsPage> {
           title: Text(title),
           onChanged: (value) {
             ConnectionManager.SMS_Priorities_State = replaceCharAt(ConnectionManager.SMS_Priorities_State, index, value ? "1" : "0");
-            apply();
+            apply_reasons();
             setState(() {});
           },
           value: ConnectionManager.SMS_Priorities_State.characters.elementAt(index) == "1",
