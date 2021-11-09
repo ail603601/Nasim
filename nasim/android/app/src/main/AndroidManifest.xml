@@ -5,13 +5,9 @@
 
    <application
         android:label="nasim"
-<<<<<<< HEAD
         android:allowBackup="false"
         android:usesCleartextTraffic="true"
         android:icon="@mipmap/ic_launcher">
-=======
-        android:icon="@mipmap/launcher_icon">
->>>>>>> 6a1544a0c624afc7d005fd05dd7b3c319ded1c17
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"

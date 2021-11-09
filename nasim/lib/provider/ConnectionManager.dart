@@ -306,6 +306,13 @@ class ConnectionManager extends ChangeNotifier {
   }
 
   Future<bool> setRequest(int number, String value, [context]) async {
+    //check if value encodeable
+    try {
+      List<int> data = AsciiCodec().encode(value);
+    } catch (e) {
+      handleFailures("Please check your input. only use english characters.");
+    }
+
     Device _device = SavedDevicesChangeNotifier.getSelectedDevice()!;
     if (_device.accessibility == DeviceAccessibility.AccessibleLocal) {
       if (wsChannel == null || wsChannel!.closeCode != null) //closed or destroyed?
