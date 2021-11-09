@@ -262,8 +262,11 @@ class ConnectionManager extends ChangeNotifier {
     throw Exception(msg);
   }
 
-  void handle_timeout(context) {
-    Utils.show_error_dialog(context, "Something went wrong.", "Probably air conditioner is offline; Request has failed after 3 retries.", null);
+  void handle_timeout([context]) {
+    if (context != null) {
+      Utils.show_error_dialog(context, "Something went wrong.", "Probably air conditioner is offline; Request has failed after 3 retries.", null);
+    }
+
     throw Exception('timedout');
   }
 
@@ -306,6 +309,7 @@ class ConnectionManager extends ChangeNotifier {
   }
 
   Future<bool> setRequest(int number, String value, [context]) async {
+    value = value.replaceAll("[^\\x00-\\x7F]", "");
     //check if value encodeable
     try {
       List<int> data = AsciiCodec().encode(value);

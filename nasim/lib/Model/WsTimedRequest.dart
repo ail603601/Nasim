@@ -59,7 +59,7 @@ class WsTimedRequest {
           ended = true;
           ConnectionAvailableChangeNotifier.updated(true);
           printWarning("WS failure request {$request} reason : $result");
-          completer.completeError("WS failure request {$request} reason : $result");
+          completer.completeError(result);
           ConnectionManager.wsRequests.remove(id);
 
           return;
@@ -71,7 +71,7 @@ class WsTimedRequest {
         ConnectionManager.wsRequests.remove(id);
       } catch (e) {
         printError("WS failure request {$request} reason : $e");
-        completer.completeError("WS failure request {$request} reason : $e");
+        completer.completeError(result);
       }
     }
   }

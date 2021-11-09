@@ -74,7 +74,7 @@ class InternetTimedRequest {
         if (request_type != 5) ConnectionAvailableChangeNotifier.updated(false);
       } catch (e) {
         printError("Internet failure request {$request} type $request_type reason : $e");
-        completer.completeError("Internet failure request {$request} type $request_type reason : $e");
+        completer.completeError(result);
         ;
       }
     }

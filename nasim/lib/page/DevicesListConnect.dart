@@ -45,7 +45,9 @@ class DevicesListConnectState extends State<DevicesListConnect> {
           Provider.of<SavedDevicesChangeNotifier>(context, listen: false).setSelectedDevice(element);
           String last_name = element.name;
           element.name = await Provider.of<ConnectionManager>(context, listen: false).getRequest(0);
-          if (element.name != last_name) Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelectedDeviceName(element.name);
+          if (element.name != last_name && element.name != "")
+            Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelectedDeviceName(element.name);
+
           if (["", null, false, 0].contains(element.name)) {
             element.name = "New Air Conditioner (un named)";
           }
