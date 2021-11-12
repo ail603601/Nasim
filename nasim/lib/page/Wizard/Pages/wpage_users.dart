@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nasim/IntroductionScreen/introduction_screen.dart';
 import 'package:nasim/Model/User.dart';
@@ -143,6 +144,7 @@ class wpage_usersState extends State<wpage_users> {
           return AlertDialog(
             title: Text('Choose a name ', style: Theme.of(context).textTheme.bodyText1),
             content: TextField(
+              inputFormatters: [WhitelistingTextInputFormatter(RegExp(r"[a-zA-Z0-9]+|\s"))],
               maxLength: 9,
               style: Theme.of(context).textTheme.bodyText1,
               onChanged: (value) {

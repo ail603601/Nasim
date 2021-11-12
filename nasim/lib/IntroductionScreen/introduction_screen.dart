@@ -330,7 +330,7 @@ class IntroductionScreenState extends State<IntroductionScreen> {
       onPressed: back,
     );
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       backgroundColor: widget.globalBackgroundColor,
       body: Stack(
         children: [

@@ -402,7 +402,7 @@ class _SmsPageState extends State<SmsPage> {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        resizeToAvoidBottomInset: false,
+        resizeToAvoidBottomInset: true,
         appBar: TabBar(
           labelStyle: Theme.of(context).textTheme.bodyText1,
           labelColor: Theme.of(context).textTheme.bodyText1!.color,

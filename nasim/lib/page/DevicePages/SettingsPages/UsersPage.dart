@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nasim/Model/User.dart';
 import 'package:nasim/enums.dart';
@@ -136,6 +137,7 @@ class _UsersPageState extends State<UsersPage> {
           return AlertDialog(
             title: Text('Choose a name ', style: Theme.of(context).textTheme.bodyText1),
             content: TextField(
+              inputFormatters: [WhitelistingTextInputFormatter(RegExp(r"[a-zA-Z0-9]+|\s"))],
               maxLength: 9,
               style: Theme.of(context).textTheme.bodyText1,
               onChanged: (value) {

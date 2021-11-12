@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class Utils {
@@ -206,6 +207,7 @@ class Utils {
           onChanged: (value) {
             return_value = value;
           },
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
 
           decoration:
               InputDecoration(hintText: AppLocalizations.of(context)!.enterSerialNumber, hintStyle: Theme.of(context).textTheme.bodyText1!, counterText: ""),

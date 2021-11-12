@@ -123,7 +123,7 @@ class wpage_humidityState extends State<wpage_humidity> with SingleTickerProvide
                     }
                     if (int.parse(humidity_min) == 100) setState(() {});
                   },
-                  keyboardType: TextInputType.numberWithOptions(decimal: false, signed: false),
+                  keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                   decoration: InputDecoration(suffix: Text(' %'), counterText: "")),
             ),
           ],
@@ -150,7 +150,7 @@ class wpage_humidityState extends State<wpage_humidity> with SingleTickerProvide
                   }
                   if (int.parse(humidity_max) == 100) setState(() {});
                 },
-                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: false),
+                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 decoration: InputDecoration(suffix: Text(' %'), counterText: ""),
               ),
             )
@@ -313,7 +313,7 @@ class wpage_humidityState extends State<wpage_humidity> with SingleTickerProvide
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        resizeToAvoidBottomInset: false,
+        resizeToAvoidBottomInset: true,
         body: Column(children: [
           Container(
             color: Colors.black12,

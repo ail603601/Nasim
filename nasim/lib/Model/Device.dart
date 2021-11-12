@@ -19,6 +19,8 @@ class Device {
   String username;
   DeviceAccessibility accessibility;
 
+  int _discoverTimeOutTimer = 1;
+
   Device({
     this.name = "unknown",
     this.ip = "0.0.0.0",
@@ -36,5 +38,14 @@ class Device {
 
   bool has_valid_ip() {
     return (!ip.isEmpty && ip != "0.0.0.0");
+  }
+
+  void discovered() {
+    _discoverTimeOutTimer = 1;
+  }
+
+  bool un_discovered() {
+    _discoverTimeOutTimer--;
+    return _discoverTimeOutTimer <= 0;
   }
 }

@@ -146,7 +146,8 @@ class _TemperaturePageState extends State<TemperaturePage> with SingleTickerProv
             Expanded(child: Text("Room Temp:")),
             Expanded(
               child: TextField(
-                // // inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
                 controller: TextEditingController()..text = (int.tryParse(value) ?? 0).toString(),
@@ -158,7 +159,6 @@ class _TemperaturePageState extends State<TemperaturePage> with SingleTickerProv
                     ConnectionManager.Favourite_Room_Temp_Day_ = int.parse(value).toString().padLeft(3, '0');
                   }
                 },
-                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 decoration: InputDecoration(suffix: Text(' °C'), counterText: ""),
               ),
             )
@@ -174,7 +174,8 @@ class _TemperaturePageState extends State<TemperaturePage> with SingleTickerProv
             Expanded(child: Text("Room Temp Sensetivity:")),
             Expanded(
               child: TextField(
-                // // inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                inputFormatters: [WhitelistingTextInputFormatter(RegExp("^\d+\.+\d{0,2}"))],
+                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
                 controller: TextEditingController()..text = value,
@@ -187,7 +188,6 @@ class _TemperaturePageState extends State<TemperaturePage> with SingleTickerProv
                     ConnectionManager.Room_Temp_Sensitivity_Day = max(0, min((val_f), 2)).toString().padLeft(3, '0');
                   }
                 },
-                keyboardType: TextInputType.numberWithOptions(decimal: true, signed: false),
                 decoration: InputDecoration(suffix: Text(' °C'), counterText: ""),
               ),
             )
@@ -203,7 +203,8 @@ class _TemperaturePageState extends State<TemperaturePage> with SingleTickerProv
             Expanded(child: Text("Cooler Start Temp: ")),
             Expanded(
               child: TextField(
-                // inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
                 controller: TextEditingController()..text = (int.tryParse(value) ?? 0).toString(),
@@ -215,7 +216,6 @@ class _TemperaturePageState extends State<TemperaturePage> with SingleTickerProv
                     ConnectionManager.Cooler_Start_Temp_Day = int.parse(value).toString().padLeft(3, '0');
                   }
                 },
-                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 decoration: InputDecoration(suffix: Text(' °C'), counterText: ""),
               ),
             )
@@ -230,7 +230,8 @@ class _TemperaturePageState extends State<TemperaturePage> with SingleTickerProv
             Expanded(child: Text("Cooler Stop Temp: ")),
             Expanded(
               child: TextField(
-                // inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
                 controller: TextEditingController()..text = (int.tryParse(value) ?? 0).toString(),
@@ -242,7 +243,6 @@ class _TemperaturePageState extends State<TemperaturePage> with SingleTickerProv
                     ConnectionManager.Cooler_Stop_Temp_Day = int.parse(cooler_stop_temp).toString().padLeft(3, '0');
                   }
                 },
-                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 decoration: InputDecoration(suffix: Text(' °C'), counterText: ""),
               ),
             )
@@ -257,7 +257,8 @@ class _TemperaturePageState extends State<TemperaturePage> with SingleTickerProv
             Expanded(child: Text("Heater Start Temp: ")),
             Expanded(
               child: TextField(
-                // inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
                 controller: TextEditingController()..text = (int.tryParse(value) ?? 0).toString(),
@@ -270,7 +271,6 @@ class _TemperaturePageState extends State<TemperaturePage> with SingleTickerProv
                     ConnectionManager.Heater_Start_Temp_Day = int.parse(heater_start_temp).toString().padLeft(3, '0');
                   }
                 },
-                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 decoration: InputDecoration(suffix: Text(' °C'), counterText: ""),
               ),
             )
@@ -285,7 +285,8 @@ class _TemperaturePageState extends State<TemperaturePage> with SingleTickerProv
             Expanded(child: Text("Heater Stop Temp: ")),
             Expanded(
               child: TextField(
-                // inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
                 controller: TextEditingController()..text = (int.tryParse(value) ?? 0).toString(),
@@ -297,7 +298,6 @@ class _TemperaturePageState extends State<TemperaturePage> with SingleTickerProv
                     ConnectionManager.Heater_Stop_Temp_Day = int.parse(heater_stop_temp).toString().padLeft(3, '0');
                   }
                 },
-                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 decoration: InputDecoration(suffix: Text(' °C'), counterText: ""),
               ),
             )
@@ -383,7 +383,7 @@ class _TemperaturePageState extends State<TemperaturePage> with SingleTickerProv
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        resizeToAvoidBottomInset: false,
+        resizeToAvoidBottomInset: true,
         body: Column(children: [
           Container(
             color: Colors.black12,

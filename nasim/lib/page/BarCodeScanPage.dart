@@ -31,7 +31,7 @@ class _BarcodeScanPageState extends State<BarcodeScanPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: false,
+      resizeToAvoidBottomInset: true,
       body: Column(
         children: <Widget>[
           Expanded(flex: 4, child: _buildQrView(context)),

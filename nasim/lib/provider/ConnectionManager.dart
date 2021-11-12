@@ -11,6 +11,7 @@ import 'package:nasim/Model/InternetTimedRequest.dart';
 import 'package:nasim/Model/UdpTimedRequest.dart';
 import 'package:nasim/Model/WsTimedRequest.dart';
 import 'package:nasim/provider/SavedevicesChangeNofiter.dart';
+import 'package:nasim/splash.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import 'package:http/http.dart' as http;
@@ -79,6 +80,7 @@ class ConnectionManager extends ChangeNotifier {
                           //but we make other things the same just for safety
                           found_devices[found_devices.indexOf(device)].ip = device.ip;
                           found_devices[found_devices.indexOf(device)].name = device.name;
+                          found_devices[found_devices.indexOf(device)].discovered();
                         }
                       });
                     }
@@ -174,6 +176,8 @@ class ConnectionManager extends ChangeNotifier {
   void sendDiscoverSignal(bool flush_prev_list) {
     if (flush_prev_list) found_devices = [];
 
+    found_devices.removeWhere((element) => element.un_discovered());
+
     if (udpSocket == null) {
       // createSocket();
       return;
@@ -185,11 +189,13 @@ class ConnectionManager extends ChangeNotifier {
     return udp_request(request, "255.255.255.255");
   }
 
+  Future<bool> isWifi() async {
+    bool b1 = await Connectivity().checkConnectivity() == ConnectivityResult.wifi;
+    return b1 || found_devices.length > 0;
+  }
+
   Future<void> CheckConnectivityToDevice(Device d) async {
     if (d.accessibility == DeviceAccessibility.InAccessible) {
-      //try to make local connection, if fail, try remote
-      // bool wifi_available = await Connectivity().checkConnectivity() == ConnectivityResult.wifi;
-      // if (wifi_available) {
       try {
         d.ip = await findDeviceIp(d.serial);
         wsConnect(d.ip);
@@ -198,7 +204,7 @@ class ConnectionManager extends ChangeNotifier {
       } catch (e) {
         print("Device was not found locally");
         String response = await internet_request("", d.serial, 5);
-        if (response == "a" || response == "b") {
+        if ((response == "a" || response == "b") && d.accessibility != DeviceAccessibility.AccessibleLocal) {
           d.accessibility = DeviceAccessibility.AccessibleInternet;
           d.ip = "103.215.221.180";
           print("Device found via internet.");
@@ -207,31 +213,30 @@ class ConnectionManager extends ChangeNotifier {
           print("Device did not have connection to internet.");
         }
       }
-      // }
-      //couldn't get device in local netowrk, maybe we can connect to internet
-
+      d.accessibility = DeviceAccessibility.InAccessible;
+      return;
     }
     if (d.accessibility == DeviceAccessibility.AccessibleInternet) {
       //try to  connect locally if possible
-      if (await Connectivity().checkConnectivity() == ConnectivityResult.wifi) {
-        try {
-          d.ip = await findDeviceIp(d.serial);
-          wsConnect(d.ip);
-          d.accessibility = DeviceAccessibility.AccessibleLocal;
-          return;
-        } catch (e) {}
-      }
+
+      try {
+        d.ip = await findDeviceIp(d.serial);
+        wsConnect(d.ip);
+        d.accessibility = DeviceAccessibility.AccessibleLocal;
+        return;
+      } catch (e) {}
+
       // or check if internet still connected
       try {
         final String response = await internet_request("", d.serial, 5);
-        if (response == "a" || response == "b") {
+        if (response == "a" || response == "b" && d.accessibility != DeviceAccessibility.AccessibleLocal) {
           return;
         } else {
           //server said no connection to the device
-          d.accessibility = DeviceAccessibility.InAccessible;
+          if (d.accessibility == DeviceAccessibility.AccessibleInternet) d.accessibility = DeviceAccessibility.InAccessible;
         }
       } catch (e) {
-        d.accessibility = DeviceAccessibility.InAccessible;
+        if (d.accessibility == DeviceAccessibility.AccessibleInternet) d.accessibility = DeviceAccessibility.InAccessible;
       }
     }
     if (d.accessibility == DeviceAccessibility.AccessibleLocal) {
@@ -250,7 +255,7 @@ class ConnectionManager extends ChangeNotifier {
           d.accessibility = DeviceAccessibility.InAccessible;
         }
       } catch (e) {
-        d.accessibility = DeviceAccessibility.InAccessible;
+        if (d.accessibility == DeviceAccessibility.AccessibleLocal) d.accessibility = DeviceAccessibility.InAccessible;
       }
     }
   }
@@ -309,7 +314,7 @@ class ConnectionManager extends ChangeNotifier {
   }
 
   Future<bool> setRequest(int number, String value, [context]) async {
-    value = value.replaceAll("[^\\x00-\\x7F]", "");
+    // value = value.replaceAll("[^\\x00-\\x7F]", "");
     //check if value encodeable
     try {
       List<int> data = AsciiCodec().encode(value);

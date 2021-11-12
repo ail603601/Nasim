@@ -169,7 +169,7 @@ class wpage_air_qualityState extends State<wpage_air_quality> with SingleTickerP
                     ConnectionManager.Max_Day_IAQ = newvalue;
                   }
                 },
-                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: false),
+                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 decoration: InputDecoration(suffix: Text("ppm", style: Theme.of(context).textTheme.bodyText1), counterText: ""),
               ),
             )
@@ -198,7 +198,7 @@ class wpage_air_qualityState extends State<wpage_air_quality> with SingleTickerP
                     ConnectionManager.Min_Day_IAQ = newvalue;
                   }
                 },
-                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: false),
+                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 decoration: InputDecoration(suffix: Text("ppm", style: Theme.of(context).textTheme.bodyText1), counterText: ""),
               ),
             )
@@ -228,7 +228,7 @@ class wpage_air_qualityState extends State<wpage_air_quality> with SingleTickerP
                     ConnectionManager.Max_Day_CO2 = newvalue;
                   }
                 },
-                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: false),
+                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 decoration: InputDecoration(suffix: Text("ppm", style: Theme.of(context).textTheme.bodyText1), counterText: ""),
               ),
             )
@@ -257,7 +257,7 @@ class wpage_air_qualityState extends State<wpage_air_quality> with SingleTickerP
                     ConnectionManager.Min_Day_CO2 = newvalue;
                   }
                 },
-                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: false),
+                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 decoration: InputDecoration(suffix: Text("ppm", style: Theme.of(context).textTheme.bodyText1), counterText: ""),
               ),
             )
@@ -378,7 +378,7 @@ class wpage_air_qualityState extends State<wpage_air_quality> with SingleTickerP
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        resizeToAvoidBottomInset: false,
+        resizeToAvoidBottomInset: true,
         body: Column(children: [
           Container(
             color: Colors.black12,

@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:nasim/Model/Device.dart';
 import 'package:nasim/enums.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
@@ -39,10 +41,7 @@ class _SearchDevicesState extends State<SearchDevices> {
   }
 
   refresh() async {
-    // Provider.of<ConnectionManager>(context, listen: false).found_devices.forEach((element) async {
-    //   element.ping = await Provider.of<ConnectionManager>(context, listen: false).pingDevice(element);
-    // });
-    conneteced_wifi = (await Connectivity().checkConnectivity() == ConnectivityResult.wifi);
+    conneteced_wifi = await Provider.of<ConnectionManager>(context, listen: false).isWifi();
     if ((mounted)) setState(() {});
 
     // if (mounted) Utils.setTimeOut(interval, refresh);
@@ -146,6 +145,7 @@ class _SearchDevicesState extends State<SearchDevices> {
           return AlertDialog(
             title: Text('Set Device Name', style: Theme.of(context).textTheme.bodyText1),
             content: TextField(
+              inputFormatters: [WhitelistingTextInputFormatter(RegExp(r"[a-zA-Z0-9]+|\s"))],
               maxLength: 10,
               style: Theme.of(context).textTheme.bodyText1,
               onChanged: (value) {
@@ -212,7 +212,7 @@ class _SearchDevicesState extends State<SearchDevices> {
             .toList());
 
     return Scaffold(
-        resizeToAvoidBottomInset: false,
+        resizeToAvoidBottomInset: true,
         appBar: AppBar(
           title: Text(AppLocalizations.of(context)!.searchingAvailableDevices, style: Theme.of(context).textTheme.headline5!),
           centerTitle: true,

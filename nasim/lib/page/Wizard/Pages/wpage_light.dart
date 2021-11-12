@@ -134,7 +134,7 @@ class _wpage_lightState extends State<wpage_light> {
                 onChanged: (value) {
                   ConnectionManager.Max_Night_Lux = value;
                 },
-                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: false),
+                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 decoration: InputDecoration(suffix: Text("Lux"), counterText: ""),
               ),
             )
@@ -156,7 +156,7 @@ class _wpage_lightState extends State<wpage_light> {
                 onChanged: (value) {
                   ConnectionManager.Min_Day_Lux = value;
                 },
-                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: false),
+                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 decoration: InputDecoration(suffix: Text("Lux"), counterText: ""),
               ),
             )

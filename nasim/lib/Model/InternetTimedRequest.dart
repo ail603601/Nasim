@@ -75,7 +75,6 @@ class InternetTimedRequest {
       } catch (e) {
         printError("Internet failure request {$request} type $request_type reason : $e");
         completer.completeError(result);
-        ;
       }
     }
   }
