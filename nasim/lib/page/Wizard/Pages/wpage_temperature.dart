@@ -222,7 +222,7 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
             Expanded(child: Text("Room Temp Sensetivity:")),
             Expanded(
               child: TextField(
-                inputFormatters: [WhitelistingTextInputFormatter(RegExp("^\d+\.+\d{0,2}"))],
+                inputFormatters: [WhitelistingTextInputFormatter(RegExp("^\d\.\d{0,1}"))],
                 keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
