@@ -90,7 +90,7 @@ class WizardPageState extends State<WizardPage> {
     }
 
     return Scaffold(
-        resizeToAvoidBottomInset: true,
+        resizeToAvoidBottomInset: false,
         appBar: AppBar(
           title: Text(SavedDevicesChangeNotifier.getSelectedDevice()!.name, style: Theme.of(context).textTheme.headline5!),
           centerTitle: true,

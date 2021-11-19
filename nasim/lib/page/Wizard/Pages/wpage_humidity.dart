@@ -313,7 +313,7 @@ class wpage_humidityState extends State<wpage_humidity> with SingleTickerProvide
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        resizeToAvoidBottomInset: true,
+        resizeToAvoidBottomInset: false,
         body: Column(children: [
           Container(
             color: Colors.black12,

@@ -251,6 +251,9 @@ class Utils {
                   ],
                 ),
               ),
+              SizedBox(
+                height: MediaQuery.of(context).viewInsets.bottom,
+              )
             ]));
 
     return return_value;
@@ -333,6 +336,9 @@ class Utils {
                   ],
                 ),
               ),
+              SizedBox(
+                height: MediaQuery.of(context).viewInsets.bottom,
+              )
             ]));
 
     await done(return_value, Option_selected);

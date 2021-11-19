@@ -265,7 +265,7 @@ class DevicesListConnectState extends State<DevicesListConnect> {
     return ChangeNotifierProvider(
       create: (context) => DeviceListFabChangeNotifier(),
       child: Scaffold(
-        resizeToAvoidBottomInset: true,
+        resizeToAvoidBottomInset: false,
         appBar: AppBar(
           title: Text(AppLocalizations.of(context)!.devices, style: Theme.of(context).textTheme.headline5!),
           centerTitle: true,

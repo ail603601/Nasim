@@ -23,7 +23,7 @@ class DeivceMainPage extends StatelessWidget {
     ];
     return Stack(children: [
       Scaffold(
-        resizeToAvoidBottomInset: true,
+        resizeToAvoidBottomInset: false,
         body: Container(
           decoration: BoxDecoration(
             image: DecorationImage(

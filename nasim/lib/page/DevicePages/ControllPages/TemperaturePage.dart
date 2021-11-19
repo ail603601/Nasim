@@ -174,8 +174,8 @@ class _TemperaturePageState extends State<TemperaturePage> with SingleTickerProv
             Expanded(child: Text("Room Temp Sensetivity:")),
             Expanded(
               child: TextField(
-                inputFormatters: [WhitelistingTextInputFormatter(RegExp("^\d\.\d{0,1}"))],
-                keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
+                inputFormatters: [WhitelistingTextInputFormatter(RegExp(r"^\d+\.?\d{0,1}"))],
+                keyboardType: TextInputType.numberWithOptions(decimal: true, signed: false),
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
                 controller: TextEditingController()..text = value,
@@ -304,25 +304,29 @@ class _TemperaturePageState extends State<TemperaturePage> with SingleTickerProv
           ],
         ),
       );
-  Widget temperature_fragment_day() => Column(
-        children: [
-          row_room_temp(ConnectionManager.Favourite_Room_Temp_Day_),
-          row_room_temp_sensivity((double.tryParse(ConnectionManager.Room_Temp_Sensitivity_Day) ?? 0.0).toString()),
-          row_cooler_start_temp(ConnectionManager.Cooler_Start_Temp_Day),
-          row_cooler_stop_temp(ConnectionManager.Cooler_Stop_Temp_Day),
-          row_heater_start_temp(ConnectionManager.Heater_Start_Temp_Day),
-          row_heater_stop_temp(ConnectionManager.Heater_Stop_Temp_Day),
-        ],
+  Widget temperature_fragment_day() => SingleChildScrollView(
+        child: Column(
+          children: [
+            row_room_temp(ConnectionManager.Favourite_Room_Temp_Day_),
+            row_room_temp_sensivity((double.tryParse(ConnectionManager.Room_Temp_Sensitivity_Day) ?? 0.0).toString()),
+            row_cooler_start_temp(ConnectionManager.Cooler_Start_Temp_Day),
+            row_cooler_stop_temp(ConnectionManager.Cooler_Stop_Temp_Day),
+            row_heater_start_temp(ConnectionManager.Heater_Start_Temp_Day),
+            row_heater_stop_temp(ConnectionManager.Heater_Stop_Temp_Day),
+          ],
+        ),
       );
-  Widget temperature_fragment_night() => Column(
-        children: [
-          row_room_temp(ConnectionManager.Favourite_Room_Temp_Night),
-          row_room_temp_sensivity((double.tryParse(ConnectionManager.Room_Temp_Sensitivity_Night) ?? 0.0).toString()),
-          row_cooler_start_temp(ConnectionManager.Cooler_Start_Temp_Night),
-          row_cooler_stop_temp(ConnectionManager.Cooler_Stop_Temp_Night),
-          row_heater_start_temp(ConnectionManager.Heater_Start_Temp_Night),
-          row_heater_stop_temp(ConnectionManager.Heater_Stop_Temp_Night),
-        ],
+  Widget temperature_fragment_night() => SingleChildScrollView(
+        child: Column(
+          children: [
+            row_room_temp(ConnectionManager.Favourite_Room_Temp_Night),
+            row_room_temp_sensivity((double.tryParse(ConnectionManager.Room_Temp_Sensitivity_Night) ?? 0.0).toString()),
+            row_cooler_start_temp(ConnectionManager.Cooler_Start_Temp_Night),
+            row_cooler_stop_temp(ConnectionManager.Cooler_Stop_Temp_Night),
+            row_heater_start_temp(ConnectionManager.Heater_Start_Temp_Night),
+            row_heater_stop_temp(ConnectionManager.Heater_Stop_Temp_Night),
+          ],
+        ),
       );
   build_apply_button(click) => Align(
         alignment: Alignment.bottomCenter,
@@ -383,7 +387,7 @@ class _TemperaturePageState extends State<TemperaturePage> with SingleTickerProv
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        resizeToAvoidBottomInset: true,
+        resizeToAvoidBottomInset: false,
         body: Column(children: [
           Container(
             color: Colors.black12,

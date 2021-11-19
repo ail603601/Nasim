@@ -148,7 +148,7 @@ class _InternetPageState extends State<InternetPage> {
                     child: build_boxed_titlebox(
                         title: "Notes:",
                         child: Text(
-                            "● Changes will only effect on next reboot.\n● Changing device settings is limited via internet.\n● Local wifi clients will have full access to the device if they are in users list.\n● In case of fail, the device will create its own wifi again.",
+                            "● This Action will Restart your device.\n\n● Changing device settings is limited via internet.\n\n● In case of fail, the device will create its own wifi like before.",
                             style: TextStyle(
                               fontSize: 10.0,
                               color: Colors.black,
@@ -175,12 +175,13 @@ class _InternetPageState extends State<InternetPage> {
         child: OutlinedButton(
           onPressed: () async {
             if (is_locall_conntection(context)) {
-              await cmg.setRequest(123, _wifinameController.text, context);
-              await cmg.setRequest(124, _wifipassController.text, context);
-              await cmg.setRequest(125, "1", context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Internet Connection Enabled.')),
               );
+
+              await cmg.setRequest(123, _wifinameController.text);
+              await cmg.setRequest(124, _wifipassController.text);
+              await cmg.setRequest(125, "1");
             }
           },
           style: OutlinedButton.styleFrom(
@@ -198,12 +199,12 @@ class _InternetPageState extends State<InternetPage> {
         child: OutlinedButton(
           onPressed: () async {
             if (is_locall_conntection(context)) {
-              await cmg.setRequest(123, "");
-              await cmg.setRequest(124, "");
-              await cmg.setRequest(125, "0");
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Internet Connection diasbled.')),
               );
+              await cmg.setRequest(123, "");
+              await cmg.setRequest(124, "");
+              await cmg.setRequest(125, "0");
             }
           },
           style: OutlinedButton.styleFrom(

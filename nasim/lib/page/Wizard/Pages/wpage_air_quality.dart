@@ -378,7 +378,7 @@ class wpage_air_qualityState extends State<wpage_air_quality> with SingleTickerP
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        resizeToAvoidBottomInset: true,
+        resizeToAvoidBottomInset: false,
         body: Column(children: [
           Container(
             color: Colors.black12,

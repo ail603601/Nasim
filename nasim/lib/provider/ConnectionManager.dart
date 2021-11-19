@@ -101,6 +101,7 @@ class ConnectionManager extends ChangeNotifier {
       },
     ).onError((error, stackTrace) {
       found_devices = [];
+      udpSocket!.close();
 
       Utils.setTimeOut(1000, udpCreateSocket);
     });
@@ -213,7 +214,7 @@ class ConnectionManager extends ChangeNotifier {
           print("Device did not have connection to internet.");
         }
       }
-      d.accessibility = DeviceAccessibility.InAccessible;
+      // d.accessibility = DeviceAccessibility.InAccessible;
       return;
     }
     if (d.accessibility == DeviceAccessibility.AccessibleInternet) {

@@ -212,7 +212,7 @@ class _SearchDevicesState extends State<SearchDevices> {
             .toList());
 
     return Scaffold(
-        resizeToAvoidBottomInset: true,
+        resizeToAvoidBottomInset: false,
         appBar: AppBar(
           title: Text(AppLocalizations.of(context)!.searchingAvailableDevices, style: Theme.of(context).textTheme.headline5!),
           centerTitle: true,
