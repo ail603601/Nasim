@@ -23,27 +23,30 @@ class _ControllersStatusPageState extends State<ControllersStatusPage> {
 
   late ConnectionManager cmg;
   refresh() async {
-    ConnectionManager.Cooler_Controller_Day_Mode = Utils.int_str(await cmg.getRequest(112), ConnectionManager.Cooler_Controller_Day_Mode);
-    ConnectionManager.Cooler_Controller_Night_Mod = Utils.int_str(await cmg.getRequest(113), ConnectionManager.Cooler_Controller_Night_Mod);
-    ConnectionManager.Heater_Controller_Day_Mode = Utils.int_str(await cmg.getRequest(114), ConnectionManager.Heater_Controller_Day_Mode);
-    ConnectionManager.Heater_Controller_Night_Mode = Utils.int_str(await cmg.getRequest(115), ConnectionManager.Heater_Controller_Night_Mode);
-    ConnectionManager.Humidity_Controller_Day_Mode = Utils.int_str(await cmg.getRequest(116), ConnectionManager.Humidity_Controller_Day_Mode);
-    ConnectionManager.Humidity_Controller_Night_Mode = Utils.int_str(await cmg.getRequest(117), ConnectionManager.Humidity_Controller_Night_Mode);
-    ConnectionManager.Air_Purifier_Controller_Day_Mode = Utils.int_str(await cmg.getRequest(118), ConnectionManager.Air_Purifier_Controller_Day_Mode);
-    ConnectionManager.Air_Purifier_Controller_Night_Mode = Utils.int_str(await cmg.getRequest(119), ConnectionManager.Air_Purifier_Controller_Night_Mode);
-    if (is_night) {
-      cooler_mod_val = ConnectionManager.Cooler_Controller_Night_Mod == "1" ? true : false;
-      heater_mod_val = ConnectionManager.Heater_Controller_Night_Mode == "1" ? true : false;
-      humidity_mod_val = ConnectionManager.Humidity_Controller_Night_Mode == "1" ? true : false;
-      ap_mod_val = ConnectionManager.Air_Purifier_Controller_Night_Mode == "1" ? true : false;
-    } else {
-      cooler_mod_val = ConnectionManager.Cooler_Controller_Day_Mode == "1" ? true : false;
-      heater_mod_val = ConnectionManager.Heater_Controller_Day_Mode == "1" ? true : false;
-      humidity_mod_val = ConnectionManager.Humidity_Controller_Day_Mode == "1" ? true : false;
-      ap_mod_val = ConnectionManager.Air_Purifier_Controller_Day_Mode == "1" ? true : false;
-    }
-
-    setState(() {});
+    await Utils.show_loading_timed(
+        context: context,
+        done: () async {
+          ConnectionManager.Cooler_Controller_Day_Mode = Utils.int_str(await cmg.getRequest(112), ConnectionManager.Cooler_Controller_Day_Mode);
+          ConnectionManager.Cooler_Controller_Night_Mod = Utils.int_str(await cmg.getRequest(113), ConnectionManager.Cooler_Controller_Night_Mod);
+          ConnectionManager.Heater_Controller_Day_Mode = Utils.int_str(await cmg.getRequest(114), ConnectionManager.Heater_Controller_Day_Mode);
+          ConnectionManager.Heater_Controller_Night_Mode = Utils.int_str(await cmg.getRequest(115), ConnectionManager.Heater_Controller_Night_Mode);
+          ConnectionManager.Humidity_Controller_Day_Mode = Utils.int_str(await cmg.getRequest(116), ConnectionManager.Humidity_Controller_Day_Mode);
+          ConnectionManager.Humidity_Controller_Night_Mode = Utils.int_str(await cmg.getRequest(117), ConnectionManager.Humidity_Controller_Night_Mode);
+          ConnectionManager.Air_Purifier_Controller_Day_Mode = Utils.int_str(await cmg.getRequest(118), ConnectionManager.Air_Purifier_Controller_Day_Mode);
+          ConnectionManager.Air_Purifier_Controller_Night_Mode = Utils.int_str(await cmg.getRequest(119), ConnectionManager.Air_Purifier_Controller_Night_Mode);
+          if (is_night) {
+            cooler_mod_val = ConnectionManager.Cooler_Controller_Night_Mod == "1" ? true : false;
+            heater_mod_val = ConnectionManager.Heater_Controller_Night_Mode == "1" ? true : false;
+            humidity_mod_val = ConnectionManager.Humidity_Controller_Night_Mode == "1" ? true : false;
+            ap_mod_val = ConnectionManager.Air_Purifier_Controller_Night_Mode == "1" ? true : false;
+          } else {
+            cooler_mod_val = ConnectionManager.Cooler_Controller_Day_Mode == "1" ? true : false;
+            heater_mod_val = ConnectionManager.Heater_Controller_Day_Mode == "1" ? true : false;
+            humidity_mod_val = ConnectionManager.Humidity_Controller_Day_Mode == "1" ? true : false;
+            ap_mod_val = ConnectionManager.Air_Purifier_Controller_Day_Mode == "1" ? true : false;
+          }
+          if (mounted) setState(() {});
+        });
   }
 
   apply() async {

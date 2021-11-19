@@ -373,17 +373,56 @@ class _SmsPageState extends State<SmsPage> {
           secondary: Icon(icon),
           title: Text(title),
           onChanged: (value) {
-            ConnectionManager.SMS_Priorities_State = replaceCharAt(ConnectionManager.SMS_Priorities_State, index, value ? "1" : "0");
-            apply_reasons();
-            setState(() {});
+            ChangeReasons(index);
+            // ConnectionManager.SMS_Priorities_State = replaceCharAt(ConnectionManager.SMS_Priorities_State, index, value ? "1" : "0");
           },
-          value: ConnectionManager.SMS_Priorities_State.characters.elementAt(index) == "1",
+          value: ConnectionManager.SMS_Priorities_State.characters.elementAt(index) != "0",
         ),
         Divider(
           height: 2,
           thickness: 2,
         )
       ];
+
+  Future<void> ChangeReasons(int index) async {
+    int value = await showDialog<int>(
+            context: context,
+            builder: (BuildContext context) {
+              return SimpleDialog(
+                title: Text('Priority:', style: Theme.of(context).textTheme.bodyText1),
+                children: <Widget>[
+                  SimpleDialogOption(
+                    onPressed: () {
+                      Navigator.pop(context, 0);
+                    },
+                    child: const Text('Off'),
+                  ),
+                  SimpleDialogOption(
+                    onPressed: () {
+                      Navigator.pop(context, 1);
+                    },
+                    child: const Text('Low'),
+                  ),
+                  SimpleDialogOption(
+                    onPressed: () {
+                      Navigator.pop(context, 2);
+                    },
+                    child: const Text('Medium'),
+                  ),
+                  SimpleDialogOption(
+                    onPressed: () {
+                      Navigator.pop(context, 3);
+                    },
+                    child: const Text('Critical'),
+                  ),
+                ],
+              );
+            }) ??
+        0;
+    ConnectionManager.SMS_Priorities_State = replaceCharAt(ConnectionManager.SMS_Priorities_State, index, value.toString());
+    apply_reasons();
+    setState(() {});
+  }
 
   build_reasons_list() => Column(
         children: [

@@ -11,6 +11,7 @@ import 'package:nasim/provider/FirstTimeUsageChangeNotifier.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
 import 'package:nasim/provider/SavedevicesChangeNofiter.dart';
 import 'Model/menu_info.dart';
+import 'Widgets/CustomMaterialPageRoute.dart';
 import 'enums.dart';
 import 'provider/ThemeChangeNotifer.dart';
 import 'localizations/L10n.dart';
@@ -67,7 +68,7 @@ class MyApp extends StatelessWidget {
             return CupertinoPageRoute(builder: (context) => BarcodeScanPage());
           }
           if (settings.name == "/main_device") {
-            return CupertinoPageRoute(builder: (context) => DeivceMainPage());
+            return CustomMaterialPageRoute(builder: (context) => DeivceMainPage());
           }
           if (settings.name == "/wizard") {
             return CupertinoPageRoute(builder: (context) => WizardPage());

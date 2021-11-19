@@ -164,61 +164,64 @@ class DevicesListConnectState extends State<DevicesListConnect> {
     // Provider.of<SavedDevicesChangeNotifier>(context, listen: false).setSelectedDevice(d);
     // await Navigator.pushNamed(context, "/wizard");
     // return;
+    try {
+      var device_init_state = await Provider.of<ConnectionManager>(context, listen: false).getRequest(121);
 
-    var device_init_state = await Provider.of<ConnectionManager>(context, listen: false).getRequest(121);
-
-    if (device_init_state == "") {
-      //go to wizard
-      if (SavedDevicesChangeNotifier.getSelectedDevice()!.accessibility == DeviceAccessibility.AccessibleInternet) {
-        Utils.show_error_dialog(context, "Permission Denied.", "This device is Uninitialized. Initialization is not allowed over internet connection.", null);
-        timer_run = true;
-
-        return;
-      }
-
-      flag_only_user = false;
-      timer_run = false;
-      if (await Navigator.pushNamed(context, "/wizard") == true) {
-        await Navigator.pushNamed(context, "/main_device");
-        timer_run = true;
-      }
-    }
-    if (device_init_state == "1") {
-      if (!await babyCheck(context)) {
-        return;
-      }
-
-      //already initialized
-      Provider.of<MenuInfo>(context, listen: false).updateMenu(MenuInfo(MenuType.Licenses));
-      timer_run = false;
-
-      if (await can_login()) {
-        await Provider.of<SavedDevicesChangeNotifier>(context, listen: false)
-          ..addDevice(SavedDevicesChangeNotifier.getSelectedDevice()!);
-
-        await Navigator.pushNamed(context, "/main_device");
-        timer_run = true;
-      } else {
+      if (device_init_state == "") {
+        //go to wizard
         if (SavedDevicesChangeNotifier.getSelectedDevice()!.accessibility == DeviceAccessibility.AccessibleInternet) {
+          Utils.show_error_dialog(context, "Permission Denied.", "This device is Uninitialized. Initialization is not allowed over internet connection.", null);
           timer_run = true;
-
-          Utils.show_error_dialog(
-              context,
-              "Permission Denied.",
-              "Your phone is not defined in users list or might have been removed by another user. in order to access your device; connect to it locally and add your phone again.",
-              null);
 
           return;
         }
-        flag_only_user = true;
 
+        flag_only_user = false;
+        timer_run = false;
         if (await Navigator.pushNamed(context, "/wizard") == true) {
-          Utils.setTimeOut(0, () async {
-            await Navigator.pushNamed(context, "/main_device");
-            timer_run = true;
-          });
+          await Navigator.pushNamed(context, "/main_device");
+          timer_run = true;
         }
       }
+      if (device_init_state == "1") {
+        if (!await babyCheck(context)) {
+          return;
+        }
+
+        //already initialized
+        Provider.of<MenuInfo>(context, listen: false).updateMenu(MenuInfo(MenuType.Licenses));
+        timer_run = false;
+
+        if (await can_login()) {
+          await Provider.of<SavedDevicesChangeNotifier>(context, listen: false)
+            ..addDevice(SavedDevicesChangeNotifier.getSelectedDevice()!);
+
+          await Navigator.pushNamed(context, "/main_device");
+          timer_run = true;
+        } else {
+          if (SavedDevicesChangeNotifier.getSelectedDevice()!.accessibility == DeviceAccessibility.AccessibleInternet) {
+            timer_run = true;
+
+            Utils.show_error_dialog(
+                context,
+                "Permission Denied.",
+                "Your phone is not defined in users list or might have been removed by another user. in order to access your device; connect to it locally and add your phone again.",
+                null);
+
+            return;
+          }
+          flag_only_user = true;
+
+          if (await Navigator.pushNamed(context, "/wizard") == true) {
+            Utils.setTimeOut(0, () async {
+              await Navigator.pushNamed(context, "/main_device");
+              timer_run = true;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      timer_run = true;
     }
   }
 
