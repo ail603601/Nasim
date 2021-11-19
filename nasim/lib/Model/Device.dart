@@ -19,7 +19,7 @@ class Device {
   String username;
   DeviceAccessibility accessibility;
 
-  int _discoverTimeOutTimer = 1;
+  int _discoverTimeOutTimer = 2;
 
   Device({
     this.name = "unknown",
@@ -41,7 +41,7 @@ class Device {
   }
 
   void discovered() {
-    _discoverTimeOutTimer = 1;
+    _discoverTimeOutTimer = 2;
   }
 
   bool un_discovered() {

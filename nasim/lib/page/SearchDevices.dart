@@ -133,6 +133,9 @@ class _SearchDevicesState extends State<SearchDevices> {
                   ],
                 ),
               ),
+              SizedBox(
+                height: MediaQuery.of(context).viewInsets.bottom,
+              )
             ]));
   }
 
