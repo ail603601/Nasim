@@ -65,17 +65,30 @@ class _AirQualityPageState extends State<AirQualityPage> with SingleTickerProvid
       }
     }
 
-    if (_tabController!.index == 0) {
+    if (radio_gid == 0) {
+      if ((int.tryParse(ConnectionManager.Max_Day_IAQ) ?? 0) == 0) ConnectionManager.Max_Day_IAQ = ConnectionManager.Max_Night_IAQ;
+      if ((int.tryParse(ConnectionManager.Min_Day_IAQ) ?? 0) == 0) ConnectionManager.Min_Day_IAQ = ConnectionManager.Min_Night_IAQ;
+      if ((int.tryParse(ConnectionManager.Max_Night_IAQ) ?? 0) == 0) ConnectionManager.Max_Night_IAQ = ConnectionManager.Max_Day_IAQ;
+      if ((int.tryParse(ConnectionManager.Min_Night_IAQ) ?? 0) == 0) ConnectionManager.Min_Night_IAQ = ConnectionManager.Min_Day_IAQ;
+
       await cmg.setRequest(65, Utils.lim_0_9999(ConnectionManager.Max_Day_IAQ), context);
       await cmg.setRequest(66, Utils.lim_0_9999(ConnectionManager.Min_Day_IAQ), context);
-      await cmg.setRequest(70, Utils.lim_0_9999(ConnectionManager.Max_Day_CO2), context);
-      await cmg.setRequest(71, Utils.lim_0_9999(ConnectionManager.Min_Day_CO2), context);
-    } else {
       await cmg.setRequest(67, Utils.lim_0_9999(ConnectionManager.Max_Night_IAQ), context);
       await cmg.setRequest(68, Utils.lim_0_9999(ConnectionManager.Min_Night_IAQ), context);
+    } else {
+      if ((int.tryParse(ConnectionManager.Max_Day_CO2) ?? 0) == 0) ConnectionManager.Max_Day_CO2 = ConnectionManager.Max_Night_CO2;
+      if ((int.tryParse(ConnectionManager.Min_Day_CO2) ?? 0) == 0) ConnectionManager.Min_Day_CO2 = ConnectionManager.Min_Night_CO2;
+      if ((int.tryParse(ConnectionManager.Max_Night_CO2) ?? 0) == 0) ConnectionManager.Max_Night_CO2 = ConnectionManager.Max_Day_CO2;
+      if ((int.tryParse(ConnectionManager.Min_Night_CO2) ?? 0) == 0) ConnectionManager.Min_Night_CO2 = ConnectionManager.Min_Day_CO2;
+
+      await cmg.setRequest(70, Utils.lim_0_9999(ConnectionManager.Max_Day_CO2), context);
+      await cmg.setRequest(71, Utils.lim_0_9999(ConnectionManager.Min_Day_CO2), context);
       await cmg.setRequest(72, Utils.lim_0_9999(ConnectionManager.Max_Night_CO2), context);
       await cmg.setRequest(73, Utils.lim_0_9999(ConnectionManager.Min_Night_CO2), context);
     }
+
+    if (_tabController!.index == 0) {
+    } else {}
 
     await cmg.setRequest(64, radio_gid == 0 ? "1" : "0", context);
     await cmg.setRequest(69, radio_gid == 0 ? "0" : "1", context);
