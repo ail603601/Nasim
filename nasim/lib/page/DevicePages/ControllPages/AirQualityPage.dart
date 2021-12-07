@@ -32,6 +32,17 @@ class _AirQualityPageState extends State<AirQualityPage> with SingleTickerProvid
           ConnectionManager.IAQ_Flag = await cmg.getRequest(64);
           ConnectionManager.CO2_Flag = await cmg.getRequest(69);
 
+          ConnectionManager.Max_Day_IAQ = (int.tryParse(ConnectionManager.Max_Day_IAQ) ?? 0).toString();
+          ConnectionManager.Min_Day_IAQ = (int.tryParse(ConnectionManager.Min_Day_IAQ) ?? 0).toString();
+          ConnectionManager.Max_Night_IAQ = (int.tryParse(ConnectionManager.Max_Night_IAQ) ?? 0).toString();
+          ConnectionManager.Min_Night_IAQ = (int.tryParse(ConnectionManager.Min_Night_IAQ) ?? 0).toString();
+          ConnectionManager.Max_Day_CO2 = (int.tryParse(ConnectionManager.Max_Day_CO2) ?? 0).toString();
+          ConnectionManager.Min_Day_CO2 = (int.tryParse(ConnectionManager.Min_Day_CO2) ?? 0).toString();
+          ConnectionManager.Max_Night_CO2 = (int.tryParse(ConnectionManager.Max_Night_CO2) ?? 0).toString();
+          ConnectionManager.Min_Night_CO2 = (int.tryParse(ConnectionManager.Min_Night_CO2) ?? 0).toString();
+          ConnectionManager.IAQ_Flag = (int.tryParse(ConnectionManager.IAQ_Flag) ?? 0).toString();
+          ConnectionManager.CO2_Flag = (int.tryParse(ConnectionManager.CO2_Flag) ?? 0).toString();
+
           radio_gid = ConnectionManager.IAQ_Flag == "1" ? 0 : 1;
           radio_gid = ConnectionManager.CO2_Flag == "1" ? 1 : 0;
           if (mounted) setState(() {});

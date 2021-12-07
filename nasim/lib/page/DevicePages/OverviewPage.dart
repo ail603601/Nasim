@@ -97,6 +97,11 @@ class _OverviePageState extends State<OverviePage> {
     ConnectionManager.Air_Purifier_Status = await cmg.getRequest(99);
     ConnectionManager.Humidity_Controller_Status = await cmg.getRequest(100);
 
+    ConnectionManager.Cooler_Status = (int.tryParse(ConnectionManager.Cooler_Status) ?? 0).toString();
+    ConnectionManager.Heater_Status = (int.tryParse(ConnectionManager.Heater_Status) ?? 0).toString();
+    ConnectionManager.Air_Purifier_Status = (int.tryParse(ConnectionManager.Air_Purifier_Status) ?? 0).toString();
+    ConnectionManager.Humidity_Controller_Status = (int.tryParse(ConnectionManager.Humidity_Controller_Status) ?? 0).toString();
+
     if (SavedDevicesChangeNotifier.getSelectedDevice()!.accessibility == DeviceAccessibility.AccessibleInternet) {
       last_updated_time = await cmg.getRequest(127);
     } else {
@@ -164,7 +169,7 @@ class _OverviePageState extends State<OverviePage> {
           if (lcn.room_temp_8) ...build_text_row(title: "Room Temperature 8", value: ConnectionManager.Real_Room_Temp_8),
           if (lcn.outdoor_temp) ...build_text_row(title: "Outdoor Temperature", value: ConnectionManager.Real_Outdoor_Temp),
           ...build_text_row(title: "Negative Pressure", value: ConnectionManager.Real_Negative_Pressure_, suffix: 'hpa'),
-          ...build_text_row(title: "Humiditoy", value: ConnectionManager.Real_Humidity, suffix: '%'),
+          ...build_text_row(title: "Humidity", value: ConnectionManager.Real_Humidity, suffix: '%'),
           ...iaq_or_co
               ? (build_text_row(title: "IAQ", value: ConnectionManager.Real_IAQ, suffix: 'ppm'))
               : (build_text_row(title: "Co2", value: ConnectionManager.Real_CO2, suffix: 'ppm')),

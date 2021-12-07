@@ -67,7 +67,7 @@ class _SearchDevicesState extends State<SearchDevices> {
         onChanged: (value) {
           serialNumberTextFieldValue = value;
         },
-
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         decoration: InputDecoration(
           hintText: AppLocalizations.of(context)!.enterSerialNumber,
           hintStyle: Theme.of(context).textTheme.bodyText1!,

@@ -572,8 +572,10 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
         build_apply_button(() async {
           if (_tabController!.index == 0) {
             await set_air_speed_min_negative_pressure(minimum_negative_presure_fan_speed);
+            Utils.showSnackBar(context, "Done.");
           } else {
             await set_air_speed_max_negative_pressure(maximum_negative_presure_fan_speed);
+            Utils.showSnackBar(context, "Done.");
           }
           wait_for_fan_power().then((value) {
             refresh();

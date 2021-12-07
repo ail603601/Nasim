@@ -26,10 +26,12 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
   // late Timer refresher;
   late ConnectionManager cmg;
   bool refresh_disable = false;
+
   static bool is_minimum_day_set = false;
   static bool is_minimum_night_set = false;
   static bool is_maximum_day_set = false;
   static bool is_maximum_night_set = false;
+
   late Timer soft_reftresh_timer;
 
   double minimum_inlet_fan_speed_day = 0;
@@ -238,56 +240,136 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
 
   Future<void> set_all_to_board_min() async {
     try {
-      if (!expanded_min_day) {
-        toggle_min_day();
-        return;
-      } else {
-        is_minimum_day_set = true;
+      if (expanded_min_day) {
         await cmg.setRequest(41, ConnectionManager.Min_Valid_Input_Fan_Speed_Day, context);
 
         if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5)) {
           ConnectionManager.Max_Valid_Input_Fan_Speed_Day = (int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5).toString().padLeft(3, '0');
           await cmg.setRequest(43, ConnectionManager.Max_Valid_Input_Fan_Speed_Day, context);
         }
+        is_minimum_day_set = true;
+
+        toggle_min_day();
+
+        if (!is_minimum_night_set) {
+          if (expanded_min_night) {
+            await cmg.setRequest(42, ConnectionManager.Min_Valid_Input_Fan_Speed_Night, context);
+            if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5)) {
+              ConnectionManager.Max_Valid_Input_Fan_Speed_Night = (int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5).toString().padLeft(3, '0');
+
+              await cmg.setRequest(44, ConnectionManager.Max_Valid_Input_Fan_Speed_Night, context);
+            }
+            is_minimum_night_set = true;
+
+            Utils.showSnackBar(context, "Done.");
+            _tabController!.animateTo(1);
+          } else {
+            toggle_min_night();
+          }
+        } else {
+          Utils.showSnackBar(context, "Done.");
+          _tabController!.animateTo(1);
+        }
+
+        return;
       }
-      if (!expanded_min_night) {
-        toggle_min_night();
-      } else {
-        is_minimum_night_set = true;
+      if (expanded_min_night) {
         await cmg.setRequest(42, ConnectionManager.Min_Valid_Input_Fan_Speed_Night, context);
         if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5)) {
           ConnectionManager.Max_Valid_Input_Fan_Speed_Night = (int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5).toString().padLeft(3, '0');
 
           await cmg.setRequest(44, ConnectionManager.Max_Valid_Input_Fan_Speed_Night, context);
         }
+        is_minimum_night_set = true;
+
+        toggle_min_night();
+
+        if (!is_minimum_day_set) {
+          if (expanded_min_day) {
+            await cmg.setRequest(41, ConnectionManager.Min_Valid_Input_Fan_Speed_Day, context);
+
+            if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5)) {
+              ConnectionManager.Max_Valid_Input_Fan_Speed_Day = (int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5).toString().padLeft(3, '0');
+              await cmg.setRequest(43, ConnectionManager.Max_Valid_Input_Fan_Speed_Day, context);
+            }
+            is_minimum_day_set = true;
+            Utils.showSnackBar(context, "Done.");
+            _tabController!.animateTo(1);
+          } else {
+            toggle_min_day();
+          }
+        } else {
+          Utils.showSnackBar(context, "Done.");
+          _tabController!.animateTo(1);
+        }
+
+        return;
       }
     } catch (e) {}
   }
 
   Future<void> set_all_to_board_max() async {
     try {
-      if (!expanded_max_day) {
-        toggle_max_day();
-        return;
-      } else {
-        is_maximum_day_set = true;
+      if (expanded_max_day) {
         if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5)) {
           await Utils.alert(context, "", "Day time maximum fan speed must at least be 5 more than minimum.");
           return;
         }
-
         await cmg.setRequest(43, ConnectionManager.Max_Valid_Input_Fan_Speed_Day, context);
-      }
-      if (!expanded_max_night) {
-        toggle_max_night();
+
+        is_maximum_day_set = true;
+
+        toggle_max_day();
+
+        if (!is_maximum_night_set) {
+          if (expanded_max_night) {
+            if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5)) {
+              await Utils.alert(context, "", "Night time maximum fan speed must at least be 5 more than minimum.");
+              return;
+            }
+            await cmg.setRequest(44, ConnectionManager.Max_Valid_Input_Fan_Speed_Night, context);
+
+            is_maximum_night_set = true;
+            Utils.showSnackBar(context, "Done.");
+            IntroductionScreenState.force_next();
+          } else {
+            toggle_max_night();
+          }
+        } else
+          Utils.showSnackBar(context, "Done.");
+        IntroductionScreenState.force_next();
         return;
-      } else {
+      }
+      if (expanded_max_night) {
         if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5)) {
           await Utils.alert(context, "", "Night time maximum fan speed must at least be 5 more than minimum.");
           return;
         }
+        await cmg.setRequest(44, ConnectionManager.Max_Valid_Input_Fan_Speed_Night, context);
+
         is_maximum_night_set = true;
-        cmg.setRequest(44, ConnectionManager.Max_Valid_Input_Fan_Speed_Night, context);
+        toggle_max_night();
+
+        if (!is_maximum_day_set) {
+          if (expanded_max_day) {
+            if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5)) {
+              await Utils.alert(context, "", "Day time maximum fan speed must at least be 5 more than minimum.");
+              return;
+            }
+            await cmg.setRequest(43, ConnectionManager.Max_Valid_Input_Fan_Speed_Day, context);
+
+            is_maximum_day_set = true;
+            Utils.showSnackBar(context, "Done.");
+            IntroductionScreenState.force_next();
+          } else {
+            toggle_max_day();
+          }
+        } else {
+          Utils.showSnackBar(context, "Done.");
+          IntroductionScreenState.force_next();
+        }
+
+        return;
       }
     } catch (e) {}
   }

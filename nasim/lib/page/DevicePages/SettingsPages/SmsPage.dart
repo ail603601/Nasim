@@ -308,7 +308,7 @@ class _SmsPageState extends State<SmsPage> {
                   ),
                   ListTile(
                     leading: Text("Signal Power:", style: Theme.of(context).textTheme.bodyText1),
-                    title: Text(ConnectionManager.GSM_Signal_Power + " db", style: Theme.of(context).textTheme.bodyText1),
+                    title: Text(ConnectionManager.GSM_Signal_Power + " %", style: Theme.of(context).textTheme.bodyText1),
                   ),
                   ListTile(
                     leading: Text("Sim Number:", style: Theme.of(context).textTheme.bodyText1),

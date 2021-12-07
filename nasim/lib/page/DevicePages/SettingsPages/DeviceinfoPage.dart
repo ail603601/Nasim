@@ -87,8 +87,8 @@ class _DeviceInfoPageState extends State<DeviceInfoPage> {
                 padding: const EdgeInsets.all(8.0),
                 child: OutlinedButton(
                   onPressed: () async {
-                    const url = "https://Fotrousi.com";
-                    if (await canLaunch(url)) await launch(url);
+                    // const url = "https://Fotrousi.com";
+                    // if (await canLaunch(url)) await launch(url);
                   },
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),

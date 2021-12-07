@@ -53,6 +53,12 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
           ConnectionManager.Max_Day_Humidity = await cmg.getRequest(60);
           ConnectionManager.Max_Night_Humidity = await cmg.getRequest(62);
 
+          ConnectionManager.Humidity_Controller = (int.tryParse(ConnectionManager.Humidity_Controller) ?? 0).toString();
+          ConnectionManager.Min_Day_Humidity = (int.tryParse(ConnectionManager.Min_Day_Humidity) ?? 0).toString();
+          ConnectionManager.Min_Night_Humidity = (int.tryParse(ConnectionManager.Min_Night_Humidity) ?? 0).toString();
+          ConnectionManager.Max_Day_Humidity = (int.tryParse(ConnectionManager.Max_Day_Humidity) ?? 0).toString();
+          ConnectionManager.Max_Night_Humidity = (int.tryParse(ConnectionManager.Max_Night_Humidity) ?? 0).toString();
+
           if (mounted)
             setState(() {
               humidity_controller_radio_gvalue = (int.tryParse(ConnectionManager.Humidity_Controller) ?? 0);
