@@ -18,8 +18,8 @@ class _LightPageState extends State<LightPage> {
     await Utils.show_loading_timed(
         context: context,
         done: () async {
-          ConnectionManager.Min_Day_Lux = (await cmg.getRequest(74));
-          ConnectionManager.Max_Night_Lux = (await cmg.getRequest(75));
+          ConnectionManager.Min_Day_Lux = (await cmg.getRequest(74, context));
+          ConnectionManager.Max_Night_Lux = (await cmg.getRequest(75, context));
           setState(() {});
         });
   }

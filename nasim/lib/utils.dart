@@ -374,7 +374,7 @@ class Utils {
     Navigator.of(context, rootNavigator: true).pop(); //pop dialog
   }
 
-  static Future<void> show_loading_timed({context, String title = "Fetching data...", int duration = 5000, required Future<void> Function() done}) async {
+  static Future<void> show_loading_timed({context, String title = "Loading...", int duration = 5000, required Future<void> Function() done}) async {
     showDialog(
       context: context,
       barrierDismissible: false,

@@ -35,8 +35,8 @@ class _DeviceInfoPageState extends State<DeviceInfoPage> {
   refresh() async {
     if (!mounted) return;
 
-    ConnectionManager.Device_Model = await cmg.getRequest(2);
-    ConnectionManager.Real_Output_Fan_Power = (int.tryParse(await cmg.getRequest(39)) ?? 0).toString();
+    ConnectionManager.Device_Model = await cmg.getRequest(2, context);
+    ConnectionManager.Real_Output_Fan_Power = (int.tryParse(await cmg.getRequest(39, context)) ?? 0).toString();
   }
 
   bool bg_dark = true;

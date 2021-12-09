@@ -4,8 +4,11 @@ import 'dart:core';
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:nasim/Model/Device.dart';
 import 'package:nasim/Model/InternetTimedRequest.dart';
 import 'package:nasim/Model/UdpTimedRequest.dart';
@@ -68,7 +71,7 @@ class ConnectionManager extends ChangeNotifier {
                       ws_send_request("get000").then((value) {
                         value = removeSpecialChars(value);
                         if (["", null, false, 0].contains(value)) {
-                          device.name = "New Air Conditioner (un named)";
+                          device.name = "New Air Conditioner (unnamed)";
                         } else {
                           device.name = value;
                         }
@@ -107,12 +110,14 @@ class ConnectionManager extends ChangeNotifier {
     });
   }
 
+  String ws_last_connected_ip = "";
   void wsConnect(String device_ip) {
     if (wsChannel != null) wsChannel!.sink.close();
 
     wsChannel = WebSocketChannel.connect(
       Uri.parse('ws://' + device_ip + ':7072'),
     );
+    ws_last_connected_ip = device_ip;
     wsChannel!.stream.listen((stringReceived) {
       if (stringReceived[stringReceived.length - 1] == '\n') {
         stringReceived = stringReceived.substring(0, stringReceived.length - 1);
@@ -261,16 +266,64 @@ class ConnectionManager extends ChangeNotifier {
     }
   }
 
+  Future<bool> until_local(context, Device device) {
+    Completer<bool> completer = new Completer<bool>();
+
+    Utils.show_loading_timed(
+        context: context,
+        done: () async {
+          await CheckConnectivityToDevice(device);
+          completer.complete(device.accessibility == DeviceAccessibility.AccessibleLocal);
+        });
+    return completer.future;
+  }
+
+  Future<void> ForceReconnect(context, Device device) async {
+    device.accessibility = DeviceAccessibility.InAccessible;
+    Utils.setTimeOut(100, () {
+      Utils.alert(context, "", "Disconnected.");
+    });
+    Navigator.of(context, rootNavigator: true).popUntil((route) => route.isFirst);
+    // showDialog(
+    //   context: context,
+    //   useRootNavigator: false,
+    //   barrierDismissible: false,
+    //   builder: (BuildContext context) {
+    //     Widget okButton = FlatButton(
+    //       child: Text("OK", style: Theme.of(context).textTheme.bodyText1!),
+    //       onPressed: () async {
+    //         // bool x = await until_local(context, device);
+    //         // if (x) {
+    //         //   Navigator.of(context, rootNavigator: true).pop(); //pop dialog
+    //         // } else {
+    //         //   // ForceReconnect(context, device);
+    //         // }
+    //         // Navigator.of(context).pop();
+    //       },
+    //     );
+
+    //     // set up the AlertDialog
+    //     AlertDialog alert = AlertDialog(
+    //       title: Text("Error", style: Theme.of(context).textTheme.bodyText1!),
+    //       content: Text("Connection is lost.", style: Theme.of(context).textTheme.bodyText1!),
+    //       actions: [
+    //         okButton,
+    //       ],
+    //     );
+    //     return WillPopScope(onWillPop: () async => false, child: alert);
+    //   },
+    // );
+  }
+
   void handleFailures(String msg, [context]) {
     if (context != null) {
       Utils.show_error_dialog(context, "Something went wrong.", msg, null);
     }
-    throw Exception(msg);
   }
 
   void handle_timeout([context]) {
     if (context != null) {
-      Utils.show_error_dialog(context, "Something went wrong.", "Probably air conditioner is offline; Request has failed after 3 retries.", null);
+      // Utils.show_error_dialog(context, "Something went wrong.", "Probably air conditioner is offline; Request has failed after 3 retries.", null);
     }
 
     throw Exception('timedout');
@@ -284,14 +337,19 @@ class ConnectionManager extends ChangeNotifier {
     if (_device.accessibility == DeviceAccessibility.AccessibleLocal) {
       if (wsChannel == null || wsChannel!.closeCode != null) //closed or destroyed?
       {
-        handleFailures('no ws socket for device, cant get {$number}', context);
+        if (context != null) {
+          await ForceReconnect(context, _device);
+        }
+        // handleFailures('Wifi Connection lost. please try again.', context);
       }
       var numberStr = number.toString().padLeft(3, '0');
       String result = "";
       try {
         result = await ws_send_request("get" + numberStr);
       } catch (e) {
-        if (e == "timeout") handle_timeout(context);
+        if (e == "timeout") {
+          handle_timeout(context);
+        }
       }
       result = removeSpecialChars(result);
       return result;
@@ -303,13 +361,13 @@ class ConnectionManager extends ChangeNotifier {
       try {
         result = await internet_request("get" + numberStr, serial);
       } catch (e) {
-        if (e == "timeout") handle_timeout(context);
+        handle_timeout(context);
       }
       result = removeSpecialChars(result);
       return result;
     } else {
       //error: device offline
-      handleFailures('device offline, cant get ${number}', context);
+      // handleFailures('device offline, cant get ${number}', context);
       return ""; //won't reach this line
     }
   }
@@ -327,7 +385,10 @@ class ConnectionManager extends ChangeNotifier {
     if (_device.accessibility == DeviceAccessibility.AccessibleLocal) {
       if (wsChannel == null || wsChannel!.closeCode != null) //closed or destroyed?
       {
-        handleFailures('no ws socket for device, cant set {$number}', context);
+        if (context != null) {
+          await ForceReconnect(context, _device);
+        } else
+          handleFailures('Wifi Connection lost. please try again.', context);
       }
       var numberStr = number.toString().padLeft(3, '0');
 

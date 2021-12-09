@@ -74,18 +74,18 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
     await Utils.show_loading_timed(
         context: context,
         done: () async {
-          ConnectionManager.Favourite_Room_Temp_Day_ = await cmg.getRequest(47);
-          ConnectionManager.Favourite_Room_Temp_Night = await cmg.getRequest(53);
-          ConnectionManager.Room_Temp_Sensitivity_Day = await cmg.getRequest(48);
-          ConnectionManager.Room_Temp_Sensitivity_Night = await cmg.getRequest(54);
-          ConnectionManager.Cooler_Start_Temp_Day = await cmg.getRequest(49);
-          ConnectionManager.Cooler_Start_Temp_Night = await cmg.getRequest(55);
-          ConnectionManager.Cooler_Stop_Temp_Day = await cmg.getRequest(50);
-          ConnectionManager.Cooler_Stop_Temp_Night = await cmg.getRequest(56);
-          ConnectionManager.Heater_Start_Temp_Day = await cmg.getRequest(51);
-          ConnectionManager.Heater_Start_Temp_Night = await cmg.getRequest(57);
-          ConnectionManager.Heater_Stop_Temp_Day = await cmg.getRequest(52);
-          ConnectionManager.Heater_Stop_Temp_Night = await cmg.getRequest(58);
+          ConnectionManager.Favourite_Room_Temp_Day_ = await cmg.getRequest(47,context);
+          ConnectionManager.Favourite_Room_Temp_Night = await cmg.getRequest(53,context);
+          ConnectionManager.Room_Temp_Sensitivity_Day = await cmg.getRequest(48,context);
+          ConnectionManager.Room_Temp_Sensitivity_Night = await cmg.getRequest(54,context);
+          ConnectionManager.Cooler_Start_Temp_Day = await cmg.getRequest(49,context);
+          ConnectionManager.Cooler_Start_Temp_Night = await cmg.getRequest(55,context);
+          ConnectionManager.Cooler_Stop_Temp_Day = await cmg.getRequest(50,context);
+          ConnectionManager.Cooler_Stop_Temp_Night = await cmg.getRequest(56,context);
+          ConnectionManager.Heater_Start_Temp_Day = await cmg.getRequest(51,context);
+          ConnectionManager.Heater_Start_Temp_Night = await cmg.getRequest(57,context);
+          ConnectionManager.Heater_Stop_Temp_Day = await cmg.getRequest(52,context);
+          ConnectionManager.Heater_Stop_Temp_Night = await cmg.getRequest(58,context);
 
           if (mounted)
             setState(() {
@@ -126,11 +126,11 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
         return;
       }
       if (!(_room_temp_sensivity > 0)) {
-        Utils.alert(context, "Error", "Sensetivity must be positive.");
+        Utils.alert(context, "Error", "Sensitivity must be positive.");
         return;
       }
       if (!(_room_temp_sensivity <= 2)) {
-        Utils.alert(context, "Error", "Sensetivity maximum is 2.");
+        Utils.alert(context, "Error", "Sensitivity maximum is 2.");
         return;
       }
       if (!(_heater_start_temp < _heater_stop_temp && _heater_start_temp < (_room_temp - _room_temp_sensivity))) {
@@ -180,7 +180,7 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
         return;
       }
     } catch (e) {
-      if (!(e is FormatException)) Utils.alert(context, "Error", "please check your input and try again.");
+      // if (!(e is FormatException)) Utils.alert(context, "Error", "please check your input and try again.");
     }
     await refresh();
   }
@@ -220,7 +220,7 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
-            Expanded(child: Text("Room Temp Sensetivity:")),
+            Expanded(child: Text("Room Temp Sensitivity:")),
             Expanded(
               child: TextField(
                 inputFormatters: [WhitelistingTextInputFormatter(RegExp(r"^\d+\.?\d{0,1}"))],

@@ -63,8 +63,8 @@ class _InternetPageState extends State<InternetPage> {
           try {
             if (!mounted) return;
 
-            ConnectionManager.DEVICE_WIFI_TO_CONNECT_NAME = await cmg.getRequest(123);
-            ConnectionManager.DEVICE_WIFI_TO_CONNECT_PASS = await cmg.getRequest(124);
+            ConnectionManager.DEVICE_WIFI_TO_CONNECT_NAME = await cmg.getRequest(123, context);
+            ConnectionManager.DEVICE_WIFI_TO_CONNECT_PASS = await cmg.getRequest(124, context);
             // ConnectionManager.DEVICE_CONNECT_TO_INTERNET = await cmg.getRequest(125);
             _wifinameController.text = (ConnectionManager.DEVICE_WIFI_TO_CONNECT_NAME).toString();
             _wifipassController.text = (ConnectionManager.DEVICE_WIFI_TO_CONNECT_PASS).toString();

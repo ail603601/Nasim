@@ -48,7 +48,7 @@ class _wpage_wellcomeState extends State<wpage_wellcome> {
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Text(
-              "Here we go step by step setting\n up your device for fist tim.",
+              "Here we go step by step setting\n up your device for first time.",
               style: Theme.of(context).textTheme.headline6!,
               textAlign: TextAlign.center,
             ),

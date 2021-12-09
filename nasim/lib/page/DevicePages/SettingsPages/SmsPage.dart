@@ -54,12 +54,12 @@ class _SmsPageState extends State<SmsPage> {
   }
 
   refresh() async {
-    ConnectionManager.Mobile_Number_0 = await cmg.getRequest(101);
-    ConnectionManager.Mobile_Number_1 = await cmg.getRequest(102);
-    ConnectionManager.Mobile_Number_2 = await cmg.getRequest(103);
-    ConnectionManager.Mobile_Number_3 = await cmg.getRequest(104);
-    ConnectionManager.Mobile_Number_4 = await cmg.getRequest(105);
-    ConnectionManager.Mobile_Number_5 = await cmg.getRequest(106);
+    ConnectionManager.Mobile_Number_0 = await cmg.getRequest(101, context);
+    ConnectionManager.Mobile_Number_1 = await cmg.getRequest(102, context);
+    ConnectionManager.Mobile_Number_2 = await cmg.getRequest(103, context);
+    ConnectionManager.Mobile_Number_3 = await cmg.getRequest(104, context);
+    ConnectionManager.Mobile_Number_4 = await cmg.getRequest(105, context);
+    ConnectionManager.Mobile_Number_5 = await cmg.getRequest(106, context);
 
     if (ConnectionManager.Mobile_Number_0 != "") {
       numbers_to_show[0] = await PhoneNumber.getRegionInfoFromPhoneNumber(ConnectionManager.Mobile_Number_0);
@@ -91,10 +91,10 @@ class _SmsPageState extends State<SmsPage> {
       current_mobile_sms_count = 6;
     }
 
-    ConnectionManager.GSM_SIM_Number = await cmg.getRequest(108);
-    ConnectionManager.GSM_Signal_Power = (int.tryParse(await cmg.getRequest(107)) ?? 0).toString();
-    ConnectionManager.GSM_SIM_Balance = (int.tryParse(await cmg.getRequest(109)) ?? 0).toString();
-    ConnectionManager.SMS_Priorities_State = await cmg.getRequest(110);
+    ConnectionManager.GSM_SIM_Number = await cmg.getRequest(108, context);
+    ConnectionManager.GSM_Signal_Power = (int.tryParse(await cmg.getRequest(107, context)) ?? 0).toString();
+    ConnectionManager.GSM_SIM_Balance = (int.tryParse(await cmg.getRequest(109, context)) ?? 0).toString();
+    ConnectionManager.SMS_Priorities_State = await cmg.getRequest(110, context);
     ConnectionManager.SMS_Priorities_State = ConnectionManager.SMS_Priorities_State == "" ? "0000000" : ConnectionManager.SMS_Priorities_State;
 
     if (mounted) setState(() {});
@@ -431,7 +431,7 @@ class _SmsPageState extends State<SmsPage> {
           ...buildonoffrow("Outlet Fan falut", Icons.error_outline, 2),
           ...buildonoffrow("Posibility of fire", Icons.local_fire_department, 3),
           ...buildonoffrow("Posibility of Asphyxia", Icons.night_shelter, 4),
-          ...buildonoffrow("Over Presure", Icons.settings_overscan, 5),
+          ...buildonoffrow("Over Pressure", Icons.settings_overscan, 5),
           ...buildonoffrow("Sim Balance Low", Icons.money_off, 6)
         ],
       );

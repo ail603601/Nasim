@@ -40,31 +40,31 @@ class _OverviePageState extends State<OverviePage> {
   refresh() async {
     if (!mounted) return;
     bg_dark = true;
-    await cmg.getRequest(121);
-    ConnectionManager.Real_Room_Temp_0 = await cmg.getRequest(79);
-    ConnectionManager.Real_Room_Temp_1 = await cmg.getRequest(80);
-    ConnectionManager.Real_Room_Temp_2 = await cmg.getRequest(81);
-    ConnectionManager.Real_Room_Temp_3 = await cmg.getRequest(82);
-    ConnectionManager.Real_Room_Temp_4 = await cmg.getRequest(83);
-    ConnectionManager.Real_Room_Temp_5 = await cmg.getRequest(84);
-    ConnectionManager.Real_Room_Temp_6 = await cmg.getRequest(85);
-    ConnectionManager.Real_Room_Temp_7 = await cmg.getRequest(86);
-    ConnectionManager.Real_Room_Temp_8 = await cmg.getRequest(87);
-    ConnectionManager.Real_Outdoor_Temp = await cmg.getRequest(89);
-    ConnectionManager.Real_Negative_Pressure_ = await cmg.getRequest(90);
-    ConnectionManager.Real_Humidity = await cmg.getRequest(91);
-    ConnectionManager.IAQ_Flag = await cmg.getRequest(64);
+    await cmg.getRequest(121, context);
+    ConnectionManager.Real_Room_Temp_0 = await cmg.getRequest(79, context);
+    ConnectionManager.Real_Room_Temp_1 = await cmg.getRequest(80, context);
+    ConnectionManager.Real_Room_Temp_2 = await cmg.getRequest(81, context);
+    ConnectionManager.Real_Room_Temp_3 = await cmg.getRequest(82, context);
+    ConnectionManager.Real_Room_Temp_4 = await cmg.getRequest(83, context);
+    ConnectionManager.Real_Room_Temp_5 = await cmg.getRequest(84, context);
+    ConnectionManager.Real_Room_Temp_6 = await cmg.getRequest(85, context);
+    ConnectionManager.Real_Room_Temp_7 = await cmg.getRequest(86, context);
+    ConnectionManager.Real_Room_Temp_8 = await cmg.getRequest(87, context);
+    ConnectionManager.Real_Outdoor_Temp = await cmg.getRequest(89, context);
+    ConnectionManager.Real_Negative_Pressure_ = await cmg.getRequest(90, context);
+    ConnectionManager.Real_Humidity = await cmg.getRequest(91, context);
+    ConnectionManager.IAQ_Flag = await cmg.getRequest(64, context);
 
-    ConnectionManager.CO2_Flag = await cmg.getRequest(69);
+    ConnectionManager.CO2_Flag = await cmg.getRequest(69, context);
     if (iaq_or_co) {
-      ConnectionManager.Real_IAQ = await cmg.getRequest(92);
+      ConnectionManager.Real_IAQ = await cmg.getRequest(92, context);
     } else {
-      ConnectionManager.Real_CO2 = await cmg.getRequest(93);
+      ConnectionManager.Real_CO2 = await cmg.getRequest(93, context);
     }
-    ConnectionManager.Real_Light_Level = await cmg.getRequest(94);
-    ConnectionManager.Real_Input_Fan_Speed = await cmg.getRequest(95);
-    ConnectionManager.Real_Output_Fan_Speed = await cmg.getRequest(96);
-    ConnectionManager.Real_Output_Fan_Power = await cmg.getRequest(39);
+    ConnectionManager.Real_Light_Level = await cmg.getRequest(94, context);
+    ConnectionManager.Real_Input_Fan_Speed = await cmg.getRequest(95, context);
+    ConnectionManager.Real_Output_Fan_Speed = await cmg.getRequest(96, context);
+    ConnectionManager.Real_Output_Fan_Power = await cmg.getRequest(39, context);
 
     ConnectionManager.Real_Room_Temp_0 = (int.tryParse(ConnectionManager.Real_Room_Temp_0) ?? 0).toString();
     ConnectionManager.Real_Room_Temp_1 = (int.tryParse(ConnectionManager.Real_Room_Temp_1) ?? 0).toString();
@@ -103,7 +103,7 @@ class _OverviePageState extends State<OverviePage> {
     ConnectionManager.Humidity_Controller_Status = (int.tryParse(ConnectionManager.Humidity_Controller_Status) ?? 0).toString();
 
     if (SavedDevicesChangeNotifier.getSelectedDevice()!.accessibility == DeviceAccessibility.AccessibleInternet) {
-      last_updated_time = await cmg.getRequest(127);
+      last_updated_time = await cmg.getRequest(127, context);
     } else {
       final DateTime now = DateTime.now();
       final DateFormat formatter = DateFormat('yyyy-MM-dd hh-mm');

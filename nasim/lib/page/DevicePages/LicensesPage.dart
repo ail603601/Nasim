@@ -74,7 +74,7 @@ class _LicensesPageState extends State<LicensesPage> {
           if (data == "" && data != "null") {
             return;
           }
-          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(5, data);
+          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(5, data, context);
           if (is_valid) {
             lcn.license_gsm_modem(context);
 
@@ -96,7 +96,7 @@ class _LicensesPageState extends State<LicensesPage> {
           ),
           Text("Optional", style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 10))
         ]),
-        leading: Icon(Icons.sensor_door),
+        leading: Icon(Icons.thermostat_rounded),
         trailing: Icon(
           lcn.outdoor_temp ? Icons.check_box : Icons.check_box_outline_blank,
           color: Theme.of(context).accentColor,
@@ -109,7 +109,7 @@ class _LicensesPageState extends State<LicensesPage> {
           if (data == "" && data != "null") {
             return;
           }
-          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(15, data);
+          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(15, data, context);
           if (is_valid) {
             lcn.license_outdoor_temp(context);
             setState(() {});
@@ -146,7 +146,7 @@ class _LicensesPageState extends State<LicensesPage> {
           if (data == "" && data != "null") {
             return;
           }
-          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(4, data);
+          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(4, data, context);
           if (is_valid) {
             lcn.license_power_box(context);
 
@@ -232,7 +232,7 @@ class _LicensesPageState extends State<LicensesPage> {
           if (data == "" && data != "null") {
             return;
           }
-          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(6, data);
+          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(6, data, context);
           if (is_valid) {
             await lcn.license_room_temp(0, context);
 
@@ -270,7 +270,7 @@ class _LicensesPageState extends State<LicensesPage> {
           if (data == "" && data != "null") {
             return;
           }
-          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest((num + 6), data);
+          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest((num + 6), data, context);
           if (is_valid) {
             onvalidated();
 
@@ -312,8 +312,8 @@ class _LicensesPageState extends State<LicensesPage> {
                   (String serial, String selected_option) async {
                 if (serial != "") {
                   int index_selected = _license_types.indexOf(selected_option);
-                  await Provider.of<ConnectionManager>(context, listen: false).setRequest(76, index_selected.toString());
-                  if (await Provider.of<ConnectionManager>(context, listen: false).setRequest(77, serial)) {
+                  await Provider.of<ConnectionManager>(context, listen: false).setRequest(76, index_selected.toString(), context);
+                  if (await Provider.of<ConnectionManager>(context, listen: false).setRequest(77, serial, context)) {
                     Utils.showSnackBar(context, "License accepted.");
                   } else {
                     Utils.showSnackBar(context, "License not accepted.");

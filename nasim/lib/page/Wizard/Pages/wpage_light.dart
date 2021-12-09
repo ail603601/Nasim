@@ -29,8 +29,12 @@ class _wpage_lightState extends State<wpage_light> {
     await Utils.show_loading_timed(
         context: context,
         done: () async {
-          ConnectionManager.Min_Day_Lux = (await cmg.getRequest(74));
-          ConnectionManager.Max_Night_Lux = (await cmg.getRequest(75));
+          ConnectionManager.Min_Day_Lux = (await cmg.getRequest(74, context));
+          ConnectionManager.Max_Night_Lux = (await cmg.getRequest(75, context));
+
+          ConnectionManager.Min_Day_Lux = (int.tryParse(ConnectionManager.Min_Day_Lux) ?? 0).toString();
+          ConnectionManager.Max_Night_Lux = (int.tryParse(ConnectionManager.Max_Night_Lux) ?? 0).toString();
+
           setState(() {});
         });
   }
@@ -52,7 +56,7 @@ class _wpage_lightState extends State<wpage_light> {
   apply() async {
     try {
       if (int.parse(ConnectionManager.Min_Day_Lux) + 50 > int.parse(ConnectionManager.Max_Night_Lux)) {
-        Utils.alert(context, "", "Minimum must be 50 lower than maximum.");
+        Utils.alert(context, "", "Maximum must be 50Lux higher than maximum.");
         return false;
       }
 
@@ -60,12 +64,12 @@ class _wpage_lightState extends State<wpage_light> {
 
       await cmg.setRequest(75, Utils.lim_0_9999(ConnectionManager.Max_Night_Lux), context);
       is_both_set = true;
-      Utils.show_done_dialog(context, "Settings finsihed successfuly.", "Your device is set up and ready to use.", () {
+      Utils.show_done_dialog(context, "Settings finsihed successfuly.", "Your device is initialized completely and ready to use.", () {
         WizardPageState.wizardEnded(context);
       });
       await refresh();
     } catch (e) {
-      if (!(e is FormatException)) Utils.alert(context, "Error", "please check your input and try again.");
+      // if (!(e is FormatException)) Utils.alert(context, "Error", "please check your input and try again.");
     }
   }
 

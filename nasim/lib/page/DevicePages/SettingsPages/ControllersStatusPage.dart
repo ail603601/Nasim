@@ -26,14 +26,17 @@ class _ControllersStatusPageState extends State<ControllersStatusPage> {
     await Utils.show_loading_timed(
         context: context,
         done: () async {
-          ConnectionManager.Cooler_Controller_Day_Mode = Utils.int_str(await cmg.getRequest(112), ConnectionManager.Cooler_Controller_Day_Mode);
-          ConnectionManager.Cooler_Controller_Night_Mod = Utils.int_str(await cmg.getRequest(113), ConnectionManager.Cooler_Controller_Night_Mod);
-          ConnectionManager.Heater_Controller_Day_Mode = Utils.int_str(await cmg.getRequest(114), ConnectionManager.Heater_Controller_Day_Mode);
-          ConnectionManager.Heater_Controller_Night_Mode = Utils.int_str(await cmg.getRequest(115), ConnectionManager.Heater_Controller_Night_Mode);
-          ConnectionManager.Humidity_Controller_Day_Mode = Utils.int_str(await cmg.getRequest(116), ConnectionManager.Humidity_Controller_Day_Mode);
-          ConnectionManager.Humidity_Controller_Night_Mode = Utils.int_str(await cmg.getRequest(117), ConnectionManager.Humidity_Controller_Night_Mode);
-          ConnectionManager.Air_Purifier_Controller_Day_Mode = Utils.int_str(await cmg.getRequest(118), ConnectionManager.Air_Purifier_Controller_Day_Mode);
-          ConnectionManager.Air_Purifier_Controller_Night_Mode = Utils.int_str(await cmg.getRequest(119), ConnectionManager.Air_Purifier_Controller_Night_Mode);
+          ConnectionManager.Cooler_Controller_Day_Mode = Utils.int_str(await cmg.getRequest(112, context), ConnectionManager.Cooler_Controller_Day_Mode);
+          ConnectionManager.Cooler_Controller_Night_Mod = Utils.int_str(await cmg.getRequest(113, context), ConnectionManager.Cooler_Controller_Night_Mod);
+          ConnectionManager.Heater_Controller_Day_Mode = Utils.int_str(await cmg.getRequest(114, context), ConnectionManager.Heater_Controller_Day_Mode);
+          ConnectionManager.Heater_Controller_Night_Mode = Utils.int_str(await cmg.getRequest(115, context), ConnectionManager.Heater_Controller_Night_Mode);
+          ConnectionManager.Humidity_Controller_Day_Mode = Utils.int_str(await cmg.getRequest(116, context), ConnectionManager.Humidity_Controller_Day_Mode);
+          ConnectionManager.Humidity_Controller_Night_Mode =
+              Utils.int_str(await cmg.getRequest(117, context), ConnectionManager.Humidity_Controller_Night_Mode);
+          ConnectionManager.Air_Purifier_Controller_Day_Mode =
+              Utils.int_str(await cmg.getRequest(118, context), ConnectionManager.Air_Purifier_Controller_Day_Mode);
+          ConnectionManager.Air_Purifier_Controller_Night_Mode =
+              Utils.int_str(await cmg.getRequest(119, context), ConnectionManager.Air_Purifier_Controller_Night_Mode);
           if (is_night) {
             cooler_mod_val = ConnectionManager.Cooler_Controller_Night_Mod == "1" ? true : false;
             heater_mod_val = ConnectionManager.Heater_Controller_Night_Mode == "1" ? true : false;

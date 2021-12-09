@@ -47,11 +47,11 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
     await Utils.show_loading_timed(
         context: context,
         done: () async {
-          ConnectionManager.Humidity_Controller = await cmg.getRequest(59);
-          ConnectionManager.Min_Day_Humidity = await cmg.getRequest(61);
-          ConnectionManager.Min_Night_Humidity = await cmg.getRequest(63);
-          ConnectionManager.Max_Day_Humidity = await cmg.getRequest(60);
-          ConnectionManager.Max_Night_Humidity = await cmg.getRequest(62);
+          ConnectionManager.Humidity_Controller = await cmg.getRequest(59, context);
+          ConnectionManager.Min_Day_Humidity = await cmg.getRequest(61, context);
+          ConnectionManager.Min_Night_Humidity = await cmg.getRequest(63, context);
+          ConnectionManager.Max_Day_Humidity = await cmg.getRequest(60, context);
+          ConnectionManager.Max_Night_Humidity = await cmg.getRequest(62, context);
 
           ConnectionManager.Humidity_Controller = (int.tryParse(ConnectionManager.Humidity_Controller) ?? 0).toString();
           ConnectionManager.Min_Day_Humidity = (int.tryParse(ConnectionManager.Min_Day_Humidity) ?? 0).toString();
@@ -206,7 +206,7 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
 
   apply_humidity() async {
     if (int.parse(humidity_min) + 5 > int.parse(humidity_max)) {
-      Utils.alert(context, "Error", "Humidity min and max must have more than 5 diffrentiate , and be positive.");
+      Utils.alert(context, "Error", "Humidity max must be 5 percent more than min.");
       return;
     }
     await cmg.setRequest(59, (ConnectionManager.Humidity_Controller).padLeft(1), context);
@@ -269,10 +269,10 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
 
   final List<Tab> tabs = <Tab>[
     new Tab(
-      text: "Day Time",
+      text: "Day",
     ),
     new Tab(
-      text: "Night Time",
+      text: "Night",
     ),
   ];
   @override
@@ -285,6 +285,7 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
             padding: EdgeInsets.symmetric(horizontal: 8),
             child: Row(
               children: [
+                 Text("Humidity", style: Theme.of(context).textTheme.bodyText1),
                 Expanded(
                   child: Align(
                     alignment: Alignment.centerRight,
@@ -308,7 +309,6 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
                     ),
                   ),
                 ),
-                Expanded(child: Text("Humidity", style: Theme.of(context).textTheme.bodyText1)),
               ],
             ),
           ),

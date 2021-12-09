@@ -139,7 +139,7 @@ class _SearchDevicesState extends State<SearchDevices> {
             ]));
   }
 
-  String deviceNameDialogInputValue = "BREEZE N25";
+  String deviceNameDialogInputValue = "Home 1";
   Future<bool> _displayDeviceNameDialog(BuildContext context, d) async {
     Completer<bool> dialog_beify_answer = new Completer<bool>();
     await showDialog(
@@ -156,7 +156,7 @@ class _SearchDevicesState extends State<SearchDevices> {
                   deviceNameDialogInputValue = value;
                 });
               },
-              decoration: InputDecoration(hintText: "BREEZE N25", counterText: ""),
+              decoration: InputDecoration(hintText: "Home 1", counterText: ""),
             ),
             actions: <Widget>[
               FlatButton(

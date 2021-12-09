@@ -37,9 +37,9 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
   late String current_license_selected;
 
   void soft_refresh() async {
-    ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest(34)) ?? "0").toString();
-    ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest(35)) ?? "0").toString();
-    ConnectionManager.Pressure_change = (int.tryParse(await cmg.getRequest(36)) ?? "0").toString();
+    ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest(34, context)) ?? "0").toString();
+    ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest(35, context)) ?? "0").toString();
+    ConnectionManager.Pressure_change = (int.tryParse(await cmg.getRequest(36, context)) ?? "0").toString();
 
     if (mounted)
       setState(() {
@@ -97,12 +97,16 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
     await Utils.show_loading_timed(
         context: context,
         done: () async {
-          ConnectionManager.Min_Valid_Output_Fan_Speed = await cmg.getRequest(37);
-          ConnectionManager.Real_Output_Fan_Power = await cmg.getRequest(39);
-          ConnectionManager.Pressure_change = await cmg.getRequest(36);
-          ConnectionManager.Max_Valid_Output_Fan_Speed = await cmg.getRequest(38);
-          ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest(34)) ?? "").toString();
-          ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest(35)) ?? "").toString();
+          ConnectionManager.Min_Valid_Output_Fan_Speed = await cmg.getRequest(37, context);
+          ConnectionManager.Real_Output_Fan_Power = await cmg.getRequest(39, context);
+          ConnectionManager.Pressure_change = await cmg.getRequest(36, context);
+          ConnectionManager.Max_Valid_Output_Fan_Speed = await cmg.getRequest(38, context);
+          ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest(34, context)) ?? "").toString();
+          ConnectionManager.Pressure = (int.tryParse(
+                    await cmg.getRequest(35, context),
+                  ) ??
+                  "")
+              .toString();
 
           if (mounted)
             setState(() {
@@ -130,7 +134,7 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
   Future<bool> wait_for_fan_power() async {
     await Utils.show_loading(context, () async {
       await Utils.waitMsec(10 * 1000);
-    }, title: "waiting for fan power...");
+    }, title: "Intializing Fan Speed...");
     // await Utils.waitMsec(10 * 1000);
 
     int device_fan_power = int.tryParse(await cmg.getRequest(3)) ?? 0;
@@ -185,7 +189,7 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
           children: [
             Expanded(
               child: build_boxed_titlebox(
-                title: "Elevatoin",
+                title: "Elevation",
                 child: Center(child: Text((int.tryParse(ConnectionManager.Elevation) ?? 0).toString() + " m", style: Theme.of(context).textTheme.bodyText1)),
               ),
             ),
@@ -213,7 +217,7 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
   Future<void> set_air_speed_max_negative_pressure(double value) async {
     try {
       if (minimum_negative_presure_fan_speed + 5 > value) {
-        await Utils.alert(context, "Error", "maximum negative fan presue must at least be 5 more than minimum.");
+        await Utils.alert(context, "Error", "Maximum negative fan pressure must be at least 5 percent more than minimum.");
         return;
       }
       ConnectionManager.Max_Valid_Output_Fan_Speed = value.toInt().toString().padLeft(3, '0');
@@ -229,7 +233,7 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
 
   Widget build_air_speed_min_negative_pressure() {
     return build_boxed_titlebox(
-      title: "Minimum Negative Presure",
+      title: "Minimum Negative Pressure",
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Row(
           children: [
@@ -351,7 +355,7 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
       );
     else
       return build_boxed_titlebox(
-        title: "Maximum Negative Presure",
+        title: "Maximum Negative Pressure",
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Row(
             children: [
@@ -572,12 +576,11 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
         build_apply_button(() async {
           if (_tabController!.index == 0) {
             await set_air_speed_min_negative_pressure(minimum_negative_presure_fan_speed);
-            Utils.showSnackBar(context, "Done.");
           } else {
             await set_air_speed_max_negative_pressure(maximum_negative_presure_fan_speed);
-            Utils.showSnackBar(context, "Done.");
           }
           wait_for_fan_power().then((value) {
+            Utils.showSnackBar(context, "Done.");
             refresh();
           });
 

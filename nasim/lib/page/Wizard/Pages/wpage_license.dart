@@ -33,7 +33,7 @@ class _wpage_licenseState extends State<wpage_license> {
         width: double.infinity,
         padding: EdgeInsets.all(16),
         color: Theme.of(context).hintColor,
-        child: Text("In order to continue:\nyou have to provide required licenses.\nyou can provide other licenses later.",
+        child: Text("In order to continue:\nyou have to provide required licenses.\nyou can enter other licenses later.",
             style: Theme.of(context).textTheme.bodyText1!.copyWith(color: Colors.white)),
       );
   license_gsm_modem_row(LicenseChangeNotifier lcn) => ListTile(
@@ -63,7 +63,7 @@ class _wpage_licenseState extends State<wpage_license> {
           if (data == "" && data != "null") {
             return;
           }
-          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(5, data);
+          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(5, data, context);
           if (is_valid) {
             lcn.license_gsm_modem(context);
 
@@ -86,7 +86,7 @@ class _wpage_licenseState extends State<wpage_license> {
           ),
           Text("Optional", style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 10))
         ]),
-        leading: Icon(Icons.sensor_door),
+        leading: Icon(Icons.thermostat_rounded),
         trailing: Icon(
           lcn.outdoor_temp ? Icons.check_box : Icons.check_box_outline_blank,
           color: Theme.of(context).accentColor,
@@ -99,7 +99,7 @@ class _wpage_licenseState extends State<wpage_license> {
           if (data == "" && data != "null") {
             return;
           }
-          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(15, data);
+          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(15, data, context);
           if (is_valid) {
             lcn.license_outdoor_temp(context);
             setState(() {});
@@ -137,7 +137,7 @@ class _wpage_licenseState extends State<wpage_license> {
           if (data == "" && data != "null") {
             return;
           }
-          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(4, data);
+          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(4, data, context);
           if (is_valid) {
             lcn.license_power_box(context);
 
@@ -224,7 +224,7 @@ class _wpage_licenseState extends State<wpage_license> {
           if (data == "" && data != "null") {
             return;
           }
-          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(6, data);
+          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(6, data, context);
           if (is_valid) {
             await lcn.license_room_temp(0, context);
 
@@ -263,7 +263,7 @@ class _wpage_licenseState extends State<wpage_license> {
           if (data == "" && data != "null") {
             return;
           }
-          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest((num + 6), data);
+          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest((num + 6), data, context);
           if (is_valid) {
             onvalidated();
 

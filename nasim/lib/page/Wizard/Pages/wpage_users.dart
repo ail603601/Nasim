@@ -29,14 +29,16 @@ class wpage_usersState extends State<wpage_users> {
       return can_next;
     };
     cmg = Provider.of<ConnectionManager>(context, listen: false);
-    Utils.setTimeOut(0, refresh);
+    Utils.setTimeOut(0, () {
+      refresh(context);
+    });
     can_next = false;
   }
 
   static bool can_next = false;
 
   add_device() async {
-    await refresh();
+    await refresh(context);
 
     if (can_next) {
       Utils.showSnackBar(context, "you can't add your phone again.");
@@ -76,7 +78,7 @@ class wpage_usersState extends State<wpage_users> {
 
           await Provider.of<ConnectionManager>(context, listen: false)
               .setRequest(users_found.length + 28, SavedDevicesChangeNotifier.getSelectedDevice()!.serial + name, context);
-          await refresh();
+          await refresh(context);
           can_next = true;
           if (DevicesListConnectState.flag_only_user == false) Utils.setTimeOut(100, IntroductionScreenState.force_next);
         } else {
@@ -88,8 +90,8 @@ class wpage_usersState extends State<wpage_users> {
 
   late ConnectionManager cmg;
 
-  Future<void> process_user(i) async {
-    String name_n = await cmg.getRequest(i + 16);
+  Future<void> process_user(i, context) async {
+    String name_n = await cmg.getRequest(i + 16, context);
     name_n = name_n.trim();
     if (name_n != "") users_found.add(User(name: name_n, id_table: i + 16));
     // String user_key = await cmg.getRequest(${i + 16 + 12}");
@@ -103,18 +105,18 @@ class wpage_usersState extends State<wpage_users> {
   }
 
   List<User> users_found = [];
-  Future<void> refresh() async {
+  Future<void> refresh(context) async {
     await Utils.show_loading_timed(
         context: context,
         done: () async {
           users_found = [];
           can_next = false;
-          await process_user(0);
-          await process_user(1);
-          await process_user(2);
-          await process_user(3);
-          await process_user(4);
-          await process_user(5);
+          await process_user(0, context);
+          await process_user(1, context);
+          await process_user(2, context);
+          await process_user(3, context);
+          await process_user(4, context);
+          await process_user(5, context);
           String usernaem = SavedDevicesChangeNotifier.getSelectedDevice()!.username;
 
           users_found.forEach((element) {
@@ -185,16 +187,16 @@ class wpage_usersState extends State<wpage_users> {
     // Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
-  DeleteUser(User user) async {
+  DeleteUser(User user, context) async {
     if (SavedDevicesChangeNotifier.getSelectedDevice()!.username == user.name) {
       // await Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelectedDeviceUserName("");
       // Provider.of<SavedDevicesChangeNotifier>(context, listen: false).removeDevice(SavedDevicesChangeNotifier.getSelectedDevice()!);
       can_next = false;
     }
-    await cmg.setRequest(user.id_table, "???????????");
-    await cmg.setRequest(user.id_table + 12, "???????????????????");
+    await cmg.setRequest(user.id_table, "???????????", context);
+    await cmg.setRequest(user.id_table + 12, "???????????????????", context);
     users_found = [];
-    refresh();
+    refresh(context);
   }
 
   Widget buildTitleBox(context) => Container(
@@ -217,7 +219,7 @@ class wpage_usersState extends State<wpage_users> {
           trailing: FlatButton(
             child: Text("Delete", style: Theme.of(context).textTheme.bodyText1!.copyWith(color: Colors.red)),
             onPressed: () {
-              DeleteUser(user);
+              DeleteUser(user, context);
             },
           ),
         ),
@@ -259,7 +261,7 @@ class wpage_usersState extends State<wpage_users> {
                 padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
                 side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
                 shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
-            child: Text("Add yourphone", style: Theme.of(context).textTheme.bodyText1),
+            child: Text("Add your phone", style: Theme.of(context).textTheme.bodyText1),
           ),
         ),
         SizedBox(

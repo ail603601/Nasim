@@ -69,11 +69,11 @@ class wpage_humidityState extends State<wpage_humidity> with SingleTickerProvide
     await Utils.show_loading_timed(
         context: context,
         done: () async {
-          ConnectionManager.Humidity_Controller = await cmg.getRequest(59);
-          ConnectionManager.Min_Day_Humidity = await cmg.getRequest(61);
-          ConnectionManager.Min_Night_Humidity = await cmg.getRequest(63);
-          ConnectionManager.Max_Day_Humidity = await cmg.getRequest(60);
-          ConnectionManager.Max_Night_Humidity = await cmg.getRequest(62);
+          ConnectionManager.Humidity_Controller = await cmg.getRequest(59, context);
+          ConnectionManager.Min_Day_Humidity = await cmg.getRequest(61, context);
+          ConnectionManager.Min_Night_Humidity = await cmg.getRequest(63, context);
+          ConnectionManager.Max_Day_Humidity = await cmg.getRequest(60, context);
+          ConnectionManager.Max_Night_Humidity = await cmg.getRequest(62, context);
 
           ConnectionManager.Humidity_Controller = (int.tryParse(ConnectionManager.Humidity_Controller) ?? 0).toString();
           ConnectionManager.Min_Day_Humidity = (int.tryParse(ConnectionManager.Min_Day_Humidity) ?? 0).toString();
@@ -229,7 +229,7 @@ class wpage_humidityState extends State<wpage_humidity> with SingleTickerProvide
   apply_humidity() async {
     try {
       if (int.parse(humidity_min) + 5 > int.parse(humidity_max)) {
-        Utils.alert(context, "Error", "Humidity min and max must have more than 5 diffrentiate , and be positive.");
+        Utils.alert(context, "Error", "Humidity max must be 5 percent more than min.");
         return;
       }
 
@@ -259,7 +259,7 @@ class wpage_humidityState extends State<wpage_humidity> with SingleTickerProvide
         IntroductionScreenState.force_next();
       }
     } catch (e) {
-      if (!(e is FormatException)) Utils.alert(context, "Error", "please check your input and try again.");
+      // if (!(e is FormatException)) Utils.alert(context, "Error", "please check your input and try again.");
     }
   }
 

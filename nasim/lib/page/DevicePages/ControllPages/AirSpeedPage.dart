@@ -29,9 +29,9 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
   late String current_license_selected;
 
   void soft_refresh() async {
-    ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest(34)) ?? "0").toString();
-    ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest(35)) ?? "0").toString();
-    ConnectionManager.Pressure_change = (int.tryParse(await cmg.getRequest(36)) ?? "0").toString();
+    ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest(34, context)) ?? "0").toString();
+    ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest(35, context)) ?? "0").toString();
+    ConnectionManager.Pressure_change = (int.tryParse(await cmg.getRequest(36, context)) ?? "0").toString();
 
     if (mounted)
       setState(() {
@@ -62,12 +62,12 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
     await Utils.show_loading_timed(
         context: context,
         done: () async {
-          ConnectionManager.Min_Valid_Output_Fan_Speed = await cmg.getRequest(37);
-          ConnectionManager.Real_Output_Fan_Power = await cmg.getRequest(39);
-          ConnectionManager.Pressure_change = await cmg.getRequest(36);
-          ConnectionManager.Max_Valid_Output_Fan_Speed = await cmg.getRequest(38);
-          ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest(34)) ?? "").toString();
-          ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest(35)) ?? "").toString();
+          ConnectionManager.Min_Valid_Output_Fan_Speed = await cmg.getRequest(37, context);
+          ConnectionManager.Real_Output_Fan_Power = await cmg.getRequest(39, context);
+          ConnectionManager.Pressure_change = await cmg.getRequest(36, context);
+          ConnectionManager.Max_Valid_Output_Fan_Speed = await cmg.getRequest(38, context);
+          ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest(34, context)) ?? "").toString();
+          ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest(35, context)) ?? "").toString();
 
           if (mounted)
             setState(() {
@@ -95,11 +95,11 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
   Future<bool> wait_for_fan_power() async {
     await Utils.show_loading(context, () async {
       await Utils.waitMsec(10 * 1000);
-    }, title: "waiting for fan power...");
+    }, title: "Intializing Fan Speed...");
     // await Utils.waitMsec(10 * 1000);
 
-    int device_fan_power = int.tryParse(await cmg.getRequest(3)) ?? 0;
-    int output_fan_power = int.tryParse(await cmg.getRequest(39)) ?? 0;
+    int device_fan_power = int.tryParse(await cmg.getRequest(3, context)) ?? 0;
+    int output_fan_power = int.tryParse(await cmg.getRequest(39, context)) ?? 0;
     device_fan_power = parse_device_fan(device_fan_power);
 
     if (device_fan_power < output_fan_power) {
@@ -150,7 +150,7 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
           children: [
             Expanded(
               child: build_boxed_titlebox(
-                title: "Elevatoin",
+                title: "Elevation",
                 child: Center(child: Text((int.tryParse(ConnectionManager.Elevation) ?? 0).toString() + " m", style: Theme.of(context).textTheme.bodyText1)),
               ),
             ),
@@ -178,26 +178,26 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
   }
 
   Future<void> set_air_speed_max_negative_pressure(double value) async {
-      if (minimum_negative_presure_fan_speed + 5 > value) {
-        await Utils.alert(context, "Error", "maximum negative fan presue must at least be 5 more than minimum.");
-        return;
-      }
-      ConnectionManager.Max_Valid_Output_Fan_Speed = value.toInt().toString().padLeft(3, '0');
-      await cmg.setRequest(38, ConnectionManager.Max_Valid_Output_Fan_Speed, context);
+    if (minimum_negative_presure_fan_speed + 5 > value) {
+      await Utils.alert(context, "Error", "Maximum negative fan pressure must be at least 5 percent more than minimum.");
+      return;
+    }
+    ConnectionManager.Max_Valid_Output_Fan_Speed = value.toInt().toString().padLeft(3, '0');
+    await cmg.setRequest(38, ConnectionManager.Max_Valid_Output_Fan_Speed, context);
 
-      if (value >= minimum_negative_presure_fan_speed + 5) {}
+    if (value >= minimum_negative_presure_fan_speed + 5) {}
 
-      wait_for_fan_power().then((value) async {
-        await refresh();
-        Utils.showSnackBar(context, "Done.");
-      });
+    wait_for_fan_power().then((value) async {
+      await refresh();
+      Utils.showSnackBar(context, "Done.");
+    });
   }
 
   build_icon_btn(bool up, Function() clicked) {}
 
   Widget build_air_speed_min_negative_pressure() {
     return build_boxed_titlebox(
-      title: "Minimum Negative Presure",
+      title: "Minimum Negative Pressure",
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Row(
           children: [
@@ -304,7 +304,7 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
 
   Widget build_air_speed_max_negative_pressure() {
     return build_boxed_titlebox(
-      title: "Maximum Negative Presure",
+      title: "Maximum Negative Pressure",
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Row(
           children: [
@@ -482,6 +482,7 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
           padding: EdgeInsets.symmetric(horizontal: 8),
           child: Row(
             children: [
+              Text("Outlet Fan Speed", style: Theme.of(context).textTheme.bodyText1),
               Expanded(
                 child: Align(
                   alignment: Alignment.centerRight,
@@ -505,7 +506,6 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
                   ),
                 ),
               ),
-              Expanded(child: Text("Outlet Fan Speed", style: Theme.of(context).textTheme.bodyText1)),
             ],
           ),
         ),

@@ -82,8 +82,8 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
   }
 
   void soft_refresh() async {
-    ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest(34)) ?? "0").toString();
-    ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest(35)) ?? "0").toString();
+    ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest(34, context)) ?? "0").toString();
+    ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest(35, context)) ?? "0").toString();
 
     if (mounted) setState(() {});
   }
@@ -92,14 +92,14 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
     await Utils.show_loading_timed(
         context: context,
         done: () async {
-          ConnectionManager.Min_Valid_Input_Fan_Speed_Night = (int.tryParse(await cmg.getRequest(42)) ?? "0").toString();
-          ConnectionManager.Max_Valid_Input_Fan_Speed_Night = (int.tryParse(await cmg.getRequest(44)) ?? "0").toString();
-          ConnectionManager.Min_Valid_Input_Fan_Speed_Day = (int.tryParse(await cmg.getRequest(41)) ?? "0").toString();
-          ConnectionManager.Max_Valid_Input_Fan_Speed_Day = (int.tryParse(await cmg.getRequest(43)) ?? "0").toString();
+          ConnectionManager.Min_Valid_Input_Fan_Speed_Night = (int.tryParse(await cmg.getRequest(42, context)) ?? "0").toString();
+          ConnectionManager.Max_Valid_Input_Fan_Speed_Night = (int.tryParse(await cmg.getRequest(44, context)) ?? "0").toString();
+          ConnectionManager.Min_Valid_Input_Fan_Speed_Day = (int.tryParse(await cmg.getRequest(41, context)) ?? "0").toString();
+          ConnectionManager.Max_Valid_Input_Fan_Speed_Day = (int.tryParse(await cmg.getRequest(43, context)) ?? "0").toString();
           // ConnectionManager.Input_Fan_Power = await cmg.getRequest(45");
 
-          ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest(34)) ?? "0").toString();
-          ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest(35)) ?? "0").toString();
+          ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest(34, context)) ?? "0").toString();
+          ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest(35, context)) ?? "0").toString();
 
           if (mounted) {
             setState(() {
@@ -113,7 +113,7 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
   }
 
   Future<void> start() async {
-    is_inlet_fan_available = await Provider.of<ConnectionManager>(context, listen: false).getRequest(122) == "1";
+    is_inlet_fan_available = await Provider.of<ConnectionManager>(context, listen: false).getRequest(122,context) == "1";
 
     if (!is_inlet_fan_available) {
       await showAlertDialog(context);
@@ -262,12 +262,16 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
             is_minimum_night_set = true;
 
             Utils.showSnackBar(context, "Done.");
+            await refresh();
+
             _tabController!.animateTo(1);
           } else {
             toggle_min_night();
           }
         } else {
           Utils.showSnackBar(context, "Done.");
+          await refresh();
+
           _tabController!.animateTo(1);
         }
 
@@ -294,12 +298,16 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
             }
             is_minimum_day_set = true;
             Utils.showSnackBar(context, "Done.");
+            await refresh();
+
             _tabController!.animateTo(1);
           } else {
             toggle_min_day();
           }
         } else {
           Utils.showSnackBar(context, "Done.");
+          await refresh();
+
           _tabController!.animateTo(1);
         }
 
@@ -335,9 +343,11 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
           } else {
             toggle_max_night();
           }
-        } else
+        } else {
           Utils.showSnackBar(context, "Done.");
-        IntroductionScreenState.force_next();
+          IntroductionScreenState.force_next();
+        }
+
         return;
       }
       if (expanded_max_night) {
@@ -572,7 +582,7 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
           children: [
             Expanded(
               child: build_boxed_titlebox(
-                title: "Elevatoin",
+                title: "Elevation",
                 child: Center(child: Text((int.tryParse(ConnectionManager.Elevation) ?? 0).toString() + " m", style: Theme.of(context).textTheme.bodyText1)),
               ),
             ),
@@ -773,11 +783,10 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
               build_apply_button(() async {
                 if (_tabController!.index == 0) {
                   await set_all_to_board_min();
-                  await refresh();
                   return;
                 } else {
                   await set_all_to_board_max();
-                  await refresh();
+                  // await refresh();
                   return;
                 }
 

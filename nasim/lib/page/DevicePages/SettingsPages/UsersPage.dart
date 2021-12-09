@@ -82,7 +82,7 @@ class _UsersPageState extends State<UsersPage> {
   late ConnectionManager cmg;
 
   Future<void> process_user(i) async {
-    String name_n = await cmg.getRequest(i + 16);
+    String name_n = await cmg.getRequest(i + 16, context);
     name_n = name_n.trim();
     if (name_n != "") users_found.add(User(name: name_n, id_table: i + 16));
     // String user_key = await cmg.getRequest(${i + 16 + 12}");
@@ -183,8 +183,8 @@ class _UsersPageState extends State<UsersPage> {
       // Provider.of<SavedDevicesChangeNotifier>(context, listen: false).removeDevice(SavedDevicesChangeNotifier.getSelectedDevice()!);
       can_next = false;
     }
-    await cmg.setRequest(user.id_table, "???????????");
-    await cmg.setRequest(user.id_table + 12, "???????????????????");
+    await cmg.setRequest(user.id_table, "???????????", context);
+    await cmg.setRequest(user.id_table + 12, "???????????????????", context);
     users_found = [];
     refresh();
   }
@@ -253,7 +253,7 @@ class _UsersPageState extends State<UsersPage> {
                 padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
                 side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
                 shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
-            child: Text("Add yourphone", style: Theme.of(context).textTheme.bodyText1),
+            child: Text("Add your phone", style: Theme.of(context).textTheme.bodyText1),
           ),
         ),
       ],

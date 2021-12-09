@@ -80,8 +80,8 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
   }
 
   void soft_refresh() async {
-    ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest(34)) ?? "0").toString();
-    ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest(35)) ?? "0").toString();
+    ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest(34, context)) ?? "0").toString();
+    ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest(35, context)) ?? "0").toString();
 
     if (mounted) setState(() {});
   }
@@ -90,14 +90,14 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
     await Utils.show_loading_timed(
         context: context,
         done: () async {
-          ConnectionManager.Min_Valid_Input_Fan_Speed_Night = (int.tryParse(await cmg.getRequest(42)) ?? "0").toString();
-          ConnectionManager.Max_Valid_Input_Fan_Speed_Night = (int.tryParse(await cmg.getRequest(44)) ?? "0").toString();
-          ConnectionManager.Min_Valid_Input_Fan_Speed_Day = (int.tryParse(await cmg.getRequest(41)) ?? "0").toString();
-          ConnectionManager.Max_Valid_Input_Fan_Speed_Day = (int.tryParse(await cmg.getRequest(43)) ?? "0").toString();
+          ConnectionManager.Min_Valid_Input_Fan_Speed_Night = (int.tryParse(await cmg.getRequest(42, context)) ?? "0").toString();
+          ConnectionManager.Max_Valid_Input_Fan_Speed_Night = (int.tryParse(await cmg.getRequest(44, context)) ?? "0").toString();
+          ConnectionManager.Min_Valid_Input_Fan_Speed_Day = (int.tryParse(await cmg.getRequest(41, context)) ?? "0").toString();
+          ConnectionManager.Max_Valid_Input_Fan_Speed_Day = (int.tryParse(await cmg.getRequest(43, context)) ?? "0").toString();
           // ConnectionManager.Input_Fan_Power = await cmg.getRequest(45");
 
-          ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest(34)) ?? "0").toString();
-          ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest(35)) ?? "0").toString();
+          ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest(34, context)) ?? "0").toString();
+          ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest(35, context)) ?? "0").toString();
 
           if (mounted) {
             setState(() {
@@ -201,51 +201,51 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
   }
 
   Future<void> set_all_to_board_min() async {
-      if (!expanded_min_day) {
-        toggle_min_day();
-        return;
-      } else {
-        await cmg.setRequest(41, ConnectionManager.Min_Valid_Input_Fan_Speed_Day, context);
+    if (!expanded_min_day) {
+      toggle_min_day();
+      return;
+    } else {
+      await cmg.setRequest(41, ConnectionManager.Min_Valid_Input_Fan_Speed_Day, context);
 
-        if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5)) {
-          ConnectionManager.Max_Valid_Input_Fan_Speed_Day = (int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5).toString().padLeft(3, '0');
-          await cmg.setRequest(43, ConnectionManager.Max_Valid_Input_Fan_Speed_Day, context);
-        }
+      if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5)) {
+        ConnectionManager.Max_Valid_Input_Fan_Speed_Day = (int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5).toString().padLeft(3, '0');
+        await cmg.setRequest(43, ConnectionManager.Max_Valid_Input_Fan_Speed_Day, context);
       }
-      if (!expanded_min_night) {
-        toggle_min_night();
-      } else {
-        await cmg.setRequest(42, ConnectionManager.Min_Valid_Input_Fan_Speed_Night, context);
-        if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5)) {
-          ConnectionManager.Max_Valid_Input_Fan_Speed_Night = (int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5).toString().padLeft(3, '0');
+    }
+    if (!expanded_min_night) {
+      toggle_min_night();
+    } else {
+      await cmg.setRequest(42, ConnectionManager.Min_Valid_Input_Fan_Speed_Night, context);
+      if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5)) {
+        ConnectionManager.Max_Valid_Input_Fan_Speed_Night = (int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5).toString().padLeft(3, '0');
 
-          await cmg.setRequest(44, ConnectionManager.Max_Valid_Input_Fan_Speed_Night, context);
-        }
+        await cmg.setRequest(44, ConnectionManager.Max_Valid_Input_Fan_Speed_Night, context);
       }
+    }
   }
 
   Future<void> set_all_to_board_max() async {
-      if (!expanded_max_day) {
-        toggle_max_day();
+    if (!expanded_max_day) {
+      toggle_max_day();
+      return;
+    } else {
+      if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5)) {
+        await Utils.alert(context, "", "Day time maximum fan speed must at least be 5 more than minimum.");
         return;
-      } else {
-        if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5)) {
-          await Utils.alert(context, "", "Day time maximum fan speed must at least be 5 more than minimum.");
-          return;
-        }
+      }
 
-        await cmg.setRequest(43, ConnectionManager.Max_Valid_Input_Fan_Speed_Day, context);
-      }
-      if (!expanded_max_night) {
-        toggle_max_night();
+      await cmg.setRequest(43, ConnectionManager.Max_Valid_Input_Fan_Speed_Day, context);
+    }
+    if (!expanded_max_night) {
+      toggle_max_night();
+      return;
+    } else {
+      if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5)) {
+        await Utils.alert(context, "", "Night time maximum fan speed must at least be 5 more than minimum.");
         return;
-      } else {
-        if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5)) {
-          await Utils.alert(context, "", "Night time maximum fan speed must at least be 5 more than minimum.");
-          return;
-        }
-        cmg.setRequest(44, ConnectionManager.Max_Valid_Input_Fan_Speed_Night, context);
       }
+      cmg.setRequest(44, ConnectionManager.Max_Valid_Input_Fan_Speed_Night, context);
+    }
   }
 
   Future<bool> inc_min_inlet_fan(bool is_night) async {
@@ -446,7 +446,7 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
           children: [
             Expanded(
               child: build_boxed_titlebox(
-                title: "Elevatoin",
+                title: "Elevation",
                 child: Center(child: Text((int.tryParse(ConnectionManager.Elevation) ?? 0).toString() + " m", style: Theme.of(context).textTheme.bodyText1)),
               ),
             ),
@@ -479,6 +479,7 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
                 padding: EdgeInsets.symmetric(horizontal: 8),
                 child: Row(
                   children: [
+                    Text("Inlet Fan Speed", style: Theme.of(context).textTheme.bodyText1),
                     Expanded(
                       child: Align(
                         alignment: Alignment.centerRight,
@@ -502,7 +503,6 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
                         ),
                       ),
                     ),
-                    Expanded(child: Text("Inlet Fan Speed", style: Theme.of(context).textTheme.bodyText1)),
                   ],
                 ),
               ),

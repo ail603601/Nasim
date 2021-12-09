@@ -49,7 +49,7 @@ class DevicesListConnectState extends State<DevicesListConnect> {
             Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelectedDeviceName(element.name);
 
           if (["", null, false, 0].contains(element.name)) {
-            element.name = "New Air Conditioner (un named)";
+            element.name = "New Air Conditioner (unnamed)";
           }
         } catch (e) {
           print(e);
@@ -164,6 +164,9 @@ class DevicesListConnectState extends State<DevicesListConnect> {
     // Provider.of<SavedDevicesChangeNotifier>(context, listen: false).setSelectedDevice(d);
     // await Navigator.pushNamed(context, "/wizard");
     // return;
+    if (SavedDevicesChangeNotifier.getSelectedDevice()!.accessibility == DeviceAccessibility.InAccessible) {
+      return;
+    }
     try {
       var device_init_state = await Provider.of<ConnectionManager>(context, listen: false).getRequest(121);
 
@@ -178,10 +181,11 @@ class DevicesListConnectState extends State<DevicesListConnect> {
 
         flag_only_user = false;
         timer_run = false;
-        if (await Navigator.pushNamed(context, "/wizard") == true) {
+        bool wiz_ended_correct = await Navigator.pushNamed(context, "/wizard") == true;
+        if (wiz_ended_correct) {
           await Navigator.pushNamed(context, "/main_device");
-          timer_run = true;
         }
+        timer_run = true;
       }
       if (device_init_state == "1") {
         if (!await babyCheck(context)) {
@@ -189,7 +193,7 @@ class DevicesListConnectState extends State<DevicesListConnect> {
         }
 
         //already initialized
-        Provider.of<MenuInfo>(context, listen: false).updateMenu(MenuInfo(MenuType.Licenses));
+        // Provider.of<MenuInfo>(context, listen: false).updateMenu(MenuInfo(MenuType.Licenses));
         timer_run = false;
 
         if (await can_login()) {
@@ -211,13 +215,13 @@ class DevicesListConnectState extends State<DevicesListConnect> {
             return;
           }
           flag_only_user = true;
-
-          if (await Navigator.pushNamed(context, "/wizard") == true) {
+          bool wiz_ended_correct = await Navigator.pushNamed(context, "/wizard") == true;
+          if (wiz_ended_correct) {
             Utils.setTimeOut(0, () async {
               await Navigator.pushNamed(context, "/main_device");
-              timer_run = true;
             });
           }
+          timer_run = true;
         }
       }
     } catch (e) {

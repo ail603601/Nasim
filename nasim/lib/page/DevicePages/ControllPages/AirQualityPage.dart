@@ -21,16 +21,16 @@ class _AirQualityPageState extends State<AirQualityPage> with SingleTickerProvid
     await Utils.show_loading_timed(
         context: context,
         done: () async {
-          ConnectionManager.Max_Day_IAQ = await cmg.getRequest(65);
-          ConnectionManager.Min_Day_IAQ = await cmg.getRequest(66);
-          ConnectionManager.Max_Night_IAQ = await cmg.getRequest(67);
-          ConnectionManager.Min_Night_IAQ = await cmg.getRequest(68);
-          ConnectionManager.Max_Day_CO2 = await cmg.getRequest(70);
-          ConnectionManager.Min_Day_CO2 = await cmg.getRequest(71);
-          ConnectionManager.Max_Night_CO2 = await cmg.getRequest(72);
-          ConnectionManager.Min_Night_CO2 = await cmg.getRequest(73);
-          ConnectionManager.IAQ_Flag = await cmg.getRequest(64);
-          ConnectionManager.CO2_Flag = await cmg.getRequest(69);
+          ConnectionManager.Max_Day_IAQ = await cmg.getRequest(65, context);
+          ConnectionManager.Min_Day_IAQ = await cmg.getRequest(66, context);
+          ConnectionManager.Max_Night_IAQ = await cmg.getRequest(67, context);
+          ConnectionManager.Min_Night_IAQ = await cmg.getRequest(68, context);
+          ConnectionManager.Max_Day_CO2 = await cmg.getRequest(70, context);
+          ConnectionManager.Min_Day_CO2 = await cmg.getRequest(71, context);
+          ConnectionManager.Max_Night_CO2 = await cmg.getRequest(72, context);
+          ConnectionManager.Min_Night_CO2 = await cmg.getRequest(73, context);
+          ConnectionManager.IAQ_Flag = await cmg.getRequest(64, context);
+          ConnectionManager.CO2_Flag = await cmg.getRequest(69, context);
 
           ConnectionManager.Max_Day_IAQ = (int.tryParse(ConnectionManager.Max_Day_IAQ) ?? 0).toString();
           ConnectionManager.Min_Day_IAQ = (int.tryParse(ConnectionManager.Min_Day_IAQ) ?? 0).toString();
@@ -53,24 +53,24 @@ class _AirQualityPageState extends State<AirQualityPage> with SingleTickerProvid
     if (is_night) {
       if (radio_gid == 0) {
         if (int.parse(ConnectionManager.Min_Night_IAQ) + 20 > int.parse(ConnectionManager.Max_Night_IAQ)) {
-          Utils.alert(context, "Error", "IAQ max and min must have more than 20 differntiate");
+          Utils.alert(context, "Error", "IAQ maximum must be 20ppm higher than minimum");
           return;
         }
       } else {
         if (int.parse(ConnectionManager.Min_Night_CO2) + 100 > int.parse(ConnectionManager.Max_Night_CO2)) {
-          Utils.alert(context, "Error", "CO2 max and min must have more than 100 differntiate");
+          Utils.alert(context, "Error", "CO2 maximum must be 100ppm higher than minimum");
           return;
         }
       }
     } else {
       if (radio_gid == 0) {
         if (int.parse(ConnectionManager.Min_Day_IAQ) + 20 > int.parse(ConnectionManager.Max_Day_IAQ)) {
-          Utils.alert(context, "Error", "IAQ max and min must have more than 20 differntiate");
+          Utils.alert(context, "Error", "IAQ maximum must be 20ppm higher than minimum");
           return;
         }
       } else {
         if (int.parse(ConnectionManager.Min_Day_CO2) + 100 > int.parse(ConnectionManager.Max_Day_CO2)) {
-          Utils.alert(context, "Error", "CO2 max and min must have more than 100 differntiate");
+          Utils.alert(context, "Error", "CO2 maximum must be 100ppm higher than minimum");
           return;
         }
       }
@@ -357,6 +357,7 @@ class _AirQualityPageState extends State<AirQualityPage> with SingleTickerProvid
             padding: EdgeInsets.symmetric(horizontal: 8),
             child: Row(
               children: [
+                Text("Air Quality", style: Theme.of(context).textTheme.bodyText1),
                 Expanded(
                   child: Align(
                     alignment: Alignment.centerRight,
@@ -380,7 +381,6 @@ class _AirQualityPageState extends State<AirQualityPage> with SingleTickerProvid
                     ),
                   ),
                 ),
-                Expanded(child: Text("Air Quality", style: Theme.of(context).textTheme.bodyText1)),
               ],
             ),
           ),
