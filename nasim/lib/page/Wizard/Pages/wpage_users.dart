@@ -19,6 +19,7 @@ class wpage_users extends StatefulWidget {
   wpage_usersState createState() => wpage_usersState();
 
   bool Function()? Next = null;
+  bool Function()? Back = null;
 }
 
 class wpage_usersState extends State<wpage_users> {
@@ -188,6 +189,11 @@ class wpage_usersState extends State<wpage_users> {
   }
 
   DeleteUser(User user, context) async {
+    if (users_found.length <= 1) {
+      Utils.showSnackBar(context, "Atleast 1 user must remain.");
+      return;
+    }
+
     if (SavedDevicesChangeNotifier.getSelectedDevice()!.username == user.name) {
       // await Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelectedDeviceUserName("");
       // Provider.of<SavedDevicesChangeNotifier>(context, listen: false).removeDevice(SavedDevicesChangeNotifier.getSelectedDevice()!);

@@ -12,6 +12,7 @@ class wpage_license extends StatefulWidget {
   _wpage_licenseState createState() => _wpage_licenseState();
 
   bool Function()? Next = null;
+  bool Function()? Back = null;
 }
 
 class _wpage_licenseState extends State<wpage_license> {
@@ -121,7 +122,7 @@ class _wpage_licenseState extends State<wpage_license> {
             SizedBox(
               width: 8,
             ),
-            Text("Reuired", style: Theme.of(context).textTheme.bodyText2!.copyWith(color: Colors.red, fontSize: 10))
+            Text("Required", style: Theme.of(context).textTheme.bodyText2!.copyWith(color: Colors.red, fontSize: 10))
           ],
         ),
         leading: Icon(Icons.power),
@@ -209,7 +210,7 @@ class _wpage_licenseState extends State<wpage_license> {
             SizedBox(
               width: 8,
             ),
-            Text("Reuired", style: Theme.of(context).textTheme.bodyText2!.copyWith(color: Colors.red, fontSize: 10))
+            Text("Required", style: Theme.of(context).textTheme.bodyText2!.copyWith(color: Colors.red, fontSize: 10))
           ],
         ),
         trailing: Icon(

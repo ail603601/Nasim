@@ -178,6 +178,11 @@ class _UsersPageState extends State<UsersPage> {
   }
 
   DeleteUser(User user) async {
+    if (users_found.length <= 1) {
+      Utils.showSnackBar(context, "Atleast 1 user must remain.");
+      return;
+    }
+
     if (SavedDevicesChangeNotifier.getSelectedDevice()!.username == user.name) {
       // await Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelectedDeviceUserName("");
       // Provider.of<SavedDevicesChangeNotifier>(context, listen: false).removeDevice(SavedDevicesChangeNotifier.getSelectedDevice()!);

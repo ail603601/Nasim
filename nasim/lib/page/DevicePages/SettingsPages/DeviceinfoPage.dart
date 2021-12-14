@@ -32,11 +32,26 @@ class _DeviceInfoPageState extends State<DeviceInfoPage> {
     });
   }
 
+  int parse_device_fan(int i) {
+    if (i == 0) return 300;
+    if (i == 1) return 600;
+    if (i == 2) return 900;
+    if (i == 3) return 1200;
+    if (i == 4) return 1500;
+    if (i == 5) return 1800;
+    if (i == 6) return 2100;
+
+    return 0;
+  }
+
+  int device_fan_power = 0;
   refresh() async {
     if (!mounted) return;
 
     ConnectionManager.Device_Model = await cmg.getRequest(2, context);
-    ConnectionManager.Real_Output_Fan_Power = (int.tryParse(await cmg.getRequest(39, context)) ?? 0).toString();
+    ConnectionManager.Device_Fan_Power = (int.tryParse(await cmg.getRequest(3, context)) ?? 0).toString();
+    device_fan_power = parse_device_fan(int.parse(ConnectionManager.Device_Fan_Power));
+    setState(() {});
   }
 
   bool bg_dark = true;
@@ -74,10 +89,10 @@ class _DeviceInfoPageState extends State<DeviceInfoPage> {
         child: SafeArea(
             child: SingleChildScrollView(
           child: Column(mainAxisSize: MainAxisSize.max, children: [
-            build_text_row(title: "Company", value: "Fotrousi Electrnics"),
+            build_text_row(title: "Company", value: "Fotrousi Electronics"),
             build_text_row(title: "Serial Number", value: SavedDevicesChangeNotifier.getSelectedDevice()!.serial),
             build_text_row(title: "Model", value: ConnectionManager.Device_Model),
-            build_text_row(title: "Outlet Fan Power", value: ConnectionManager.Real_Output_Fan_Power + " W"),
+            build_text_row(title: "Device Fan Power", value: device_fan_power.toString() + " W"),
             build_text_row(title: "Application Version", value: "0.16"),
             Center(
               child: Text("more information at:", style: Theme.of(context).textTheme.bodyText1),

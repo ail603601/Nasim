@@ -17,6 +17,7 @@ class wpage_inlet_fan extends StatefulWidget {
   @override
   wpage_inlet_fanState createState() => wpage_inlet_fanState();
   bool Function()? Next = null;
+  bool Function()? Back = null;
 }
 
 class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProviderStateMixin {
@@ -113,7 +114,7 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
   }
 
   Future<void> start() async {
-    is_inlet_fan_available = await Provider.of<ConnectionManager>(context, listen: false).getRequest(122,context) == "1";
+    is_inlet_fan_available = await Provider.of<ConnectionManager>(context, listen: false).getRequest(122, context) == "1";
 
     if (!is_inlet_fan_available) {
       await showAlertDialog(context);
@@ -124,6 +125,13 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
 
       refresh();
 
+      widget.Back = () {
+        if (_tabController!.index == 1) {
+          _tabController!.animateTo(0);
+          return false;
+        }
+        return true;
+      };
       widget.Next = () {
         // return true;
         if (_tabController!.index == 0) {
@@ -251,27 +259,26 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
 
         toggle_min_day();
 
-        if (!is_minimum_night_set) {
-          if (expanded_min_night) {
-            await cmg.setRequest(42, ConnectionManager.Min_Valid_Input_Fan_Speed_Night, context);
-            if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5)) {
-              ConnectionManager.Max_Valid_Input_Fan_Speed_Night = (int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5).toString().padLeft(3, '0');
+        if (expanded_min_night) {
+          await cmg.setRequest(42, ConnectionManager.Min_Valid_Input_Fan_Speed_Night, context);
+          if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5)) {
+            ConnectionManager.Max_Valid_Input_Fan_Speed_Night = (int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5).toString().padLeft(3, '0');
 
-              await cmg.setRequest(44, ConnectionManager.Max_Valid_Input_Fan_Speed_Night, context);
-            }
-            is_minimum_night_set = true;
-
-            Utils.showSnackBar(context, "Done.");
-            await refresh();
-
-            _tabController!.animateTo(1);
-          } else {
-            toggle_min_night();
+            await cmg.setRequest(44, ConnectionManager.Max_Valid_Input_Fan_Speed_Night, context);
           }
-        } else {
+          is_minimum_night_set = true;
+
           Utils.showSnackBar(context, "Done.");
           await refresh();
 
+          _tabController!.animateTo(1);
+        } else {
+          toggle_min_night();
+        }
+
+        if (is_minimum_night_set) {
+          Utils.showSnackBar(context, "Done.");
+          await refresh();
           _tabController!.animateTo(1);
         }
 
@@ -288,26 +295,11 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
 
         toggle_min_night();
 
-        if (!is_minimum_day_set) {
-          if (expanded_min_day) {
-            await cmg.setRequest(41, ConnectionManager.Min_Valid_Input_Fan_Speed_Day, context);
+        toggle_min_day();
 
-            if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5)) {
-              ConnectionManager.Max_Valid_Input_Fan_Speed_Day = (int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5).toString().padLeft(3, '0');
-              await cmg.setRequest(43, ConnectionManager.Max_Valid_Input_Fan_Speed_Day, context);
-            }
-            is_minimum_day_set = true;
-            Utils.showSnackBar(context, "Done.");
-            await refresh();
-
-            _tabController!.animateTo(1);
-          } else {
-            toggle_min_day();
-          }
-        } else {
+        if (is_minimum_day_set) {
           Utils.showSnackBar(context, "Done.");
           await refresh();
-
           _tabController!.animateTo(1);
         }
 
@@ -329,21 +321,21 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
 
         toggle_max_day();
 
-        if (!is_maximum_night_set) {
-          if (expanded_max_night) {
-            if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5)) {
-              await Utils.alert(context, "", "Night time maximum fan speed must at least be 5 more than minimum.");
-              return;
-            }
-            await cmg.setRequest(44, ConnectionManager.Max_Valid_Input_Fan_Speed_Night, context);
-
-            is_maximum_night_set = true;
-            Utils.showSnackBar(context, "Done.");
-            IntroductionScreenState.force_next();
-          } else {
-            toggle_max_night();
+        if (expanded_max_night) {
+          if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5)) {
+            await Utils.alert(context, "", "Night time maximum fan speed must at least be 5 more than minimum.");
+            return;
           }
+          await cmg.setRequest(44, ConnectionManager.Max_Valid_Input_Fan_Speed_Night, context);
+
+          is_maximum_night_set = true;
+          Utils.showSnackBar(context, "Done.");
+          IntroductionScreenState.force_next();
         } else {
+          toggle_max_night();
+        }
+
+        if (is_maximum_night_set) {
           Utils.showSnackBar(context, "Done.");
           IntroductionScreenState.force_next();
         }
@@ -360,21 +352,21 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
         is_maximum_night_set = true;
         toggle_max_night();
 
-        if (!is_maximum_day_set) {
-          if (expanded_max_day) {
-            if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5)) {
-              await Utils.alert(context, "", "Day time maximum fan speed must at least be 5 more than minimum.");
-              return;
-            }
-            await cmg.setRequest(43, ConnectionManager.Max_Valid_Input_Fan_Speed_Day, context);
-
-            is_maximum_day_set = true;
-            Utils.showSnackBar(context, "Done.");
-            IntroductionScreenState.force_next();
-          } else {
-            toggle_max_day();
+        if (expanded_max_day) {
+          if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5)) {
+            await Utils.alert(context, "", "Day time maximum fan speed must at least be 5 more than minimum.");
+            return;
           }
+          await cmg.setRequest(43, ConnectionManager.Max_Valid_Input_Fan_Speed_Day, context);
+
+          is_maximum_day_set = true;
+          Utils.showSnackBar(context, "Done.");
+          IntroductionScreenState.force_next();
         } else {
+          toggle_max_day();
+        }
+
+        if (is_maximum_day_set) {
           Utils.showSnackBar(context, "Done.");
           IntroductionScreenState.force_next();
         }
@@ -615,6 +607,7 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
                 padding: EdgeInsets.symmetric(horizontal: 8),
                 child: Row(
                   children: [
+                    Text("Inlet Fan Speed", style: Theme.of(context).textTheme.bodyText1),
                     Expanded(
                       child: Align(
                         alignment: Alignment.centerRight,
@@ -638,7 +631,6 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
                         ),
                       ),
                     ),
-                    Expanded(child: Text("Inlet Fan Speed", style: Theme.of(context).textTheme.bodyText1)),
                   ],
                 ),
               ),

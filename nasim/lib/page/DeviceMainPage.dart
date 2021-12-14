@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:nasim/Model/Device.dart';
 import 'package:nasim/Model/menu_info.dart';
@@ -124,6 +127,60 @@ class DeivceMainPage extends StatelessWidget {
     ]);
   }
 
+  bool simple_check_done = false;
+  var simplecheckDialogInputValue = "";
+  Future<bool> simplecheck(BuildContext context) async {
+    var rng = new Random();
+    var num1 = rng.nextInt(10);
+    var num2 = rng.nextInt(10);
+    var math_res = (num1 * num2).toString();
+    Completer<bool> dialog_beify_answer = new Completer<bool>();
+    await showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("Result of  $num1 * $num2 ?", style: Theme.of(context).textTheme.bodyText1),
+            content: TextField(
+              maxLength: 10,
+              style: Theme.of(context).textTheme.bodyText1,
+              keyboardType: TextInputType.number,
+              onChanged: (value) {
+                simplecheckDialogInputValue = value;
+              },
+              decoration: InputDecoration(hintText: "", counterText: ""),
+            ),
+            actions: <Widget>[
+              FlatButton(
+                // color: Colors.red,
+                textColor: Colors.black,
+                child: Text('CANCEL', style: Theme.of(context).textTheme.bodyText1),
+                onPressed: () {
+                  dialog_beify_answer.complete(false);
+                  Navigator.pop(context);
+                },
+              ),
+              FlatButton(
+                // color: Colors.green,
+                textColor: Colors.black,
+                child: Text('OK', style: Theme.of(context).textTheme.bodyText1),
+                onPressed: () async {
+                  if (math_res == simplecheckDialogInputValue) {
+                    dialog_beify_answer.complete(true);
+                    Navigator.pop(context);
+                  } else {
+                    dialog_beify_answer.complete(false);
+                    Navigator.pop(context);
+                  }
+                },
+              ),
+            ],
+          );
+        });
+    if (!dialog_beify_answer.isCompleted) dialog_beify_answer.complete(false);
+
+    return dialog_beify_answer.future;
+  }
+
   Widget buildMenuButton(MenuInfo currentMenuInfo) {
     return Consumer<MenuInfo>(
       builder: (BuildContext context, MenuInfo value, Widget? child) {
@@ -131,10 +188,16 @@ class DeivceMainPage extends StatelessWidget {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.only(topRight: Radius.circular(32))),
           padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 0),
           color: currentMenuInfo.menuType == value.menuType ? Colors.black26 : Colors.transparent,
-          onPressed: () {
+          onPressed: () async {
             var menuInfo = Provider.of<MenuInfo>(context, listen: false);
-
-            menuInfo.updateMenu(currentMenuInfo);
+            if (!simple_check_done && (currentMenuInfo.menuType == MenuType.Settings || currentMenuInfo.menuType == MenuType.Controll)) {
+              if (await simplecheck(context)) {
+                simple_check_done = true;
+                menuInfo.updateMenu(currentMenuInfo);
+              }
+            } else {
+              menuInfo.updateMenu(currentMenuInfo);
+            }
           },
           child: Column(
             children: <Widget>[

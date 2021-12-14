@@ -144,6 +144,25 @@ class _InternetPageState extends State<InternetPage> {
                 SizedBox(
                   height: 28,
                 ),
+                ListTile(
+                    leading: Icon(Icons.qr_code),
+                    title: Text("Scan Wifi BarCode", style: Theme.of(context).textTheme.bodyText1!),
+                    onTap: () async {
+                      String return_value = (await Navigator.pushNamed(context, "/scan_barcode")).toString();
+                      if (return_value == "null") {
+                        return_value = "";
+                      }
+                      String _name = return_value.substring(return_value.indexOf("S:"));
+                      _name = _name.substring(0, _name.indexOf(";"));
+
+                      String _pass = return_value.substring(return_value.indexOf("P:"));
+                      _pass = _pass.substring(0, _pass.indexOf(";"));
+
+                      Navigator.pop(context);
+                    }),
+                Divider(
+                  color: Theme.of(context).accentColor,
+                ),
                 Center(
                     child: build_boxed_titlebox(
                         title: "Notes:",

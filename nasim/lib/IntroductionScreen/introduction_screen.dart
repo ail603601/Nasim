@@ -21,6 +21,9 @@ class IntroductionScreen extends StatefulWidget {
   /// Callback when next button is pressed
   final bool Function(int) onNext;
 
+  /// Callback when back button is pressed
+  final bool Function(int) onBack;
+
   /// Done button
   final Widget? done;
 
@@ -167,6 +170,7 @@ class IntroductionScreen extends StatefulWidget {
     this.pages,
     this.rawPages,
     required this.onNext,
+    required this.onBack,
     this.onDone,
     this.done,
     this.onSkip,
@@ -249,7 +253,7 @@ class IntroductionScreenState extends State<IntroductionScreen> {
   }
 
   void back() {
-    if (_currentPage.round() > 0) {
+    if (widget.onBack(_currentPage.round()) && _currentPage.round() > 0) {
       animateScroll(_currentPage.round() - 1);
       setState(() => _currentPage = _currentPage.round() - 1);
     }

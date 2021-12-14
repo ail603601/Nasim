@@ -19,12 +19,17 @@ class wpage_light extends StatefulWidget {
   _wpage_lightState createState() => _wpage_lightState();
 
   bool Function()? Next = null;
+  bool Function()? Back = null;
 }
 
 class _wpage_lightState extends State<wpage_light> {
   late ConnectionManager cmg;
   static bool is_both_set = false;
 
+  late Timer soft_reftresh_timer;
+
+  final TextEditingController max_lux_controller = TextEditingController();
+  final TextEditingController min_lux_controller = TextEditingController();
   refresh() async {
     await Utils.show_loading_timed(
         context: context,
@@ -35,8 +40,17 @@ class _wpage_lightState extends State<wpage_light> {
           ConnectionManager.Min_Day_Lux = (int.tryParse(ConnectionManager.Min_Day_Lux) ?? 0).toString();
           ConnectionManager.Max_Night_Lux = (int.tryParse(ConnectionManager.Max_Night_Lux) ?? 0).toString();
 
+          max_lux_controller.text = ConnectionManager.Min_Day_Lux;
+          min_lux_controller.text = ConnectionManager.Max_Night_Lux;
+
           setState(() {});
         });
+  }
+
+  void soft_refresh() async {
+    ConnectionManager.Real_Light_Level = await cmg.getRequest(94, context);
+    ConnectionManager.Real_Light_Level = (int.tryParse(ConnectionManager.Real_Light_Level) ?? 0).toString();
+    if (mounted) setState(() {});
   }
 
   @override
@@ -49,12 +63,23 @@ class _wpage_lightState extends State<wpage_light> {
       return is_both_set;
     };
     cmg = Provider.of<ConnectionManager>(context, listen: false);
-
+    soft_reftresh_timer = Timer.periodic(new Duration(seconds: 1), (timer) async {
+      soft_refresh();
+    });
     Utils.setTimeOut(0, refresh);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    soft_reftresh_timer.cancel();
   }
 
   apply() async {
     try {
+      ConnectionManager.Min_Day_Lux = (int.tryParse(max_lux_controller.text) ?? 0).toString();
+      ConnectionManager.Max_Night_Lux = (int.tryParse(min_lux_controller.text) ?? 0).toString();
+
       if (int.parse(ConnectionManager.Min_Day_Lux) + 50 > int.parse(ConnectionManager.Max_Night_Lux)) {
         Utils.alert(context, "", "Maximum must be 50Lux higher than maximum.");
         return false;
@@ -72,6 +97,19 @@ class _wpage_lightState extends State<wpage_light> {
       // if (!(e is FormatException)) Utils.alert(context, "Error", "please check your input and try again.");
     }
   }
+
+  Widget build_boxed_titlebox({required title, required child}) {
+    return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: new InputDecorator(
+            decoration: InputDecoration(
+                labelText: title, labelStyle: Theme.of(context).textTheme.bodyText1, border: OutlineInputBorder(borderSide: BorderSide(color: Colors.yellow))),
+            child: child));
+  }
+
+  Widget row_actual_light_level() => build_boxed_titlebox(
+      title: "Actual Light level: ",
+      child: Center(child: Text((int.tryParse(ConnectionManager.Real_Light_Level) ?? 0).toString() + " Lux", style: Theme.of(context).textTheme.bodyText1)));
 
   build_apply_button() => Align(
         alignment: Alignment.bottomCenter,
@@ -134,10 +172,8 @@ class _wpage_lightState extends State<wpage_light> {
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
-                controller: TextEditingController()..text = (int.tryParse(ConnectionManager.Max_Night_Lux) ?? 0).toString(),
-                onChanged: (value) {
-                  ConnectionManager.Max_Night_Lux = value;
-                },
+                controller: max_lux_controller,
+                onTap: () => max_lux_controller.selection = TextSelection(baseOffset: 0, extentOffset: max_lux_controller.value.text.length),
                 keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 decoration: InputDecoration(suffix: Text("Lux"), counterText: ""),
               ),
@@ -156,10 +192,8 @@ class _wpage_lightState extends State<wpage_light> {
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
-                controller: TextEditingController()..text = (int.tryParse(ConnectionManager.Min_Day_Lux) ?? 0).toString(),
-                onChanged: (value) {
-                  ConnectionManager.Min_Day_Lux = value;
-                },
+                controller: min_lux_controller,
+                onTap: () => min_lux_controller.selection = TextSelection(baseOffset: 0, extentOffset: min_lux_controller.value.text.length),
                 keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 decoration: InputDecoration(suffix: Text("Lux"), counterText: ""),
               ),
@@ -167,16 +201,6 @@ class _wpage_lightState extends State<wpage_light> {
           ],
         ),
       );
-
-  Widget build_boxed_titlebox({required title, required child}) {
-    // debugger();
-    return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: new InputDecorator(
-            decoration: InputDecoration(
-                labelText: title, labelStyle: Theme.of(context).textTheme.bodyText1, border: OutlineInputBorder(borderSide: BorderSide(color: Colors.yellow))),
-            child: child));
-  }
 
   List<Widget> make_title(titile) {
     return [
@@ -201,6 +225,10 @@ class _wpage_lightState extends State<wpage_light> {
           color: Theme.of(context).canvasColor,
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             ...make_title("Light levels"),
+            SizedBox(
+              height: 16,
+            ),
+            row_actual_light_level(),
             SizedBox(
               height: 16,
             ),

@@ -27,7 +27,7 @@ class _OverviePageState extends State<OverviePage> {
   void initState() {
     super.initState();
     // runs every 1 second
-    refresher = Timer.periodic(new Duration(milliseconds: 5000), (timer) {
+    refresher = Timer.periodic(new Duration(milliseconds: 1000), (timer) {
       refresh();
     });
     cmg = Provider.of<ConnectionManager>(context, listen: false);
@@ -56,15 +56,21 @@ class _OverviePageState extends State<OverviePage> {
     ConnectionManager.IAQ_Flag = await cmg.getRequest(64, context);
 
     ConnectionManager.CO2_Flag = await cmg.getRequest(69, context);
-    if (iaq_or_co) {
-      ConnectionManager.Real_IAQ = await cmg.getRequest(92, context);
-    } else {
-      ConnectionManager.Real_CO2 = await cmg.getRequest(93, context);
-    }
+
+    // if (iaq_or_co) {
+    ConnectionManager.Real_IAQ = await cmg.getRequest(92, context);
+    // } else {
+    ConnectionManager.Real_CO2 = await cmg.getRequest(93, context);
+    // }
     ConnectionManager.Real_Light_Level = await cmg.getRequest(94, context);
     ConnectionManager.Real_Input_Fan_Speed = await cmg.getRequest(95, context);
     ConnectionManager.Real_Output_Fan_Speed = await cmg.getRequest(96, context);
     ConnectionManager.Real_Output_Fan_Power = await cmg.getRequest(39, context);
+
+    ConnectionManager.Cooler_Status = await cmg.getRequest(97);
+    ConnectionManager.Heater_Status = await cmg.getRequest(98);
+    ConnectionManager.Air_Purifier_Status = await cmg.getRequest(99);
+    ConnectionManager.Humidity_Controller_Status = await cmg.getRequest(100);
 
     ConnectionManager.Real_Room_Temp_0 = (int.tryParse(ConnectionManager.Real_Room_Temp_0) ?? 0).toString();
     ConnectionManager.Real_Room_Temp_1 = (int.tryParse(ConnectionManager.Real_Room_Temp_1) ?? 0).toString();
@@ -92,11 +98,6 @@ class _OverviePageState extends State<OverviePage> {
 
     iaq_or_co = (ConnectionManager.IAQ_Flag == "1");
 
-    ConnectionManager.Cooler_Status = await cmg.getRequest(97);
-    ConnectionManager.Heater_Status = await cmg.getRequest(98);
-    ConnectionManager.Air_Purifier_Status = await cmg.getRequest(99);
-    ConnectionManager.Humidity_Controller_Status = await cmg.getRequest(100);
-
     ConnectionManager.Cooler_Status = (int.tryParse(ConnectionManager.Cooler_Status) ?? 0).toString();
     ConnectionManager.Heater_Status = (int.tryParse(ConnectionManager.Heater_Status) ?? 0).toString();
     ConnectionManager.Air_Purifier_Status = (int.tryParse(ConnectionManager.Air_Purifier_Status) ?? 0).toString();
@@ -123,7 +124,7 @@ class _OverviePageState extends State<OverviePage> {
 
   bool bg_dark = true;
 
-  List<Widget> build_text_row({title, value, String suffix = "°C"}) {
+  List<Widget> build_text_row({title, required String value, String suffix = "°C"}) {
     bg_dark = !bg_dark;
     return [
       Container(

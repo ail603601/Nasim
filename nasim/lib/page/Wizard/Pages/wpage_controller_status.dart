@@ -1,27 +1,68 @@
+import 'dart:async';
+import 'dart:math';
+
+import 'package:bubble_tab_indicator/bubble_tab_indicator.dart';
 import 'package:day_night_switcher/day_night_switcher.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:nasim/IntroductionScreen/introduction_screen.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
-import 'package:nasim/utils.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 
-class ControllersStatusPage extends StatefulWidget {
+import '../../../utils.dart';
+import '../Wizardpage.dart';
+
+class wpage_controller_status extends StatefulWidget {
   @override
-  _ControllersStatusPageState createState() => _ControllersStatusPageState();
+  wpage_controller_statusState createState() => wpage_controller_statusState();
+
+  bool Function()? Next = null;
+  bool Function()? Back = null;
 }
 
-class _ControllersStatusPageState extends State<ControllersStatusPage> {
-  bool sml = false;
+class wpage_controller_statusState extends State<wpage_controller_status> with SingleTickerProviderStateMixin {
+  late ConnectionManager cmg;
+  TabController? _tabController;
+  bool is_night = false;
+
   @override
   void initState() {
     super.initState();
+    widget.Back = () {
+      if (_tabController!.index == 1) {
+        _tabController!.animateTo(0);
+        return false;
+      }
+      return true;
+    };
+    widget.Next = () {
+      if (_tabController!.index == 0) {
+        _tabController!.animateTo(1);
+      } else if (_tabController!.index == 1) {
+        return true;
+      }
+      return false;
+    };
+    _tabController = new TabController(vsync: this, length: tabs.length);
 
+    _tabController!.addListener(() {
+      is_night = _tabController!.index == 1;
+      refresh();
+    });
     cmg = Provider.of<ConnectionManager>(context, listen: false);
 
-    refresh();
+    Utils.setTimeOut(0, refresh);
   }
 
-  late ConnectionManager cmg;
+  @override
+  void dispose() {
+    super.dispose();
+    _tabController!.dispose();
+  }
+
   refresh() async {
     await Utils.show_loading_timed(
         context: context,
@@ -213,35 +254,61 @@ class _ControllersStatusPageState extends State<ControllersStatusPage> {
     ];
   }
 
-  bool is_night = true;
-  build_day_night_switch() => Container(
-        color: Color(0xff181818),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          child: Row(children: [
-            Expanded(child: Text("Settings for ${is_night ? "Night" : "Day"} Time ", style: Theme.of(context).textTheme.headline6)),
-            DayNightSwitcher(
-              isDarkModeEnabled: is_night,
-              onStateChanged: (is_night) {
-                setState(() {
-                  this.is_night = is_night;
-                  refresh();
-                });
-              },
-            )
-          ]),
-        ),
-      );
-
+  final List<Tab> tabs = <Tab>[
+    new Tab(
+      text: "Day",
+    ),
+    new Tab(
+      text: "Night",
+    ),
+  ];
+  @override
   Widget build(BuildContext context) {
-    return Container(
-        color: Theme.of(context).canvasColor,
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          build_day_night_switch(),
+    return Scaffold(
+        resizeToAvoidBottomInset: false,
+        body: Column(children: [
+          Container(
+            color: Colors.black12,
+            padding: EdgeInsets.symmetric(horizontal: 8),
+            child: Row(
+              children: [
+                Text("Controler status", style: Theme.of(context).textTheme.bodyText1),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: TabBar(
+                      isScrollable: false,
+                      unselectedLabelColor: Colors.grey,
+                      labelColor: Colors.white,
+                      indicatorSize: TabBarIndicatorSize.tab,
+                      indicator: new BubbleTabIndicator(
+                        indicatorHeight: 25.0,
+                        indicatorColor: Colors.blueAccent,
+                        tabBarIndicatorSize: TabBarIndicatorSize.tab,
+                        // Other flags
+                        // indicatorRadius: 1,
+                        // insets: EdgeInsets.all(1),
+                        // padding: EdgeInsets.all(10)
+                      ),
+                      labelStyle: Theme.of(context).textTheme.bodyText1,
+                      tabs: tabs,
+                      controller: _tabController,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(
+            height: 16,
+          ),
           ...cooler_mod(),
           ...heater_mod(),
           ...humidity_mod(),
           ...ap_mod(),
+          SizedBox(
+            height: 64,
+          )
         ]));
   }
 }

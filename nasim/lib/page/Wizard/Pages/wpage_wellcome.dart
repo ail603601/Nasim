@@ -10,6 +10,7 @@ class wpage_wellcome extends StatefulWidget {
   _wpage_wellcomeState createState() => _wpage_wellcomeState();
 
   bool Function()? Next = null;
+  bool Function()? Back = null;
 }
 
 class _wpage_wellcomeState extends State<wpage_wellcome> {

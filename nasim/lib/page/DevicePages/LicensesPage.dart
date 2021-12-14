@@ -130,7 +130,7 @@ class _LicensesPageState extends State<LicensesPage> {
             SizedBox(
               width: 8,
             ),
-            Text("Reuired", style: Theme.of(context).textTheme.bodyText2!.copyWith(color: Colors.red, fontSize: 10))
+            Text("Required", style: Theme.of(context).textTheme.bodyText2!.copyWith(color: Colors.red, fontSize: 10))
           ],
         ),
         leading: Icon(Icons.power),
@@ -217,7 +217,7 @@ class _LicensesPageState extends State<LicensesPage> {
             SizedBox(
               width: 8,
             ),
-            Text("Reuired", style: Theme.of(context).textTheme.bodyText2!.copyWith(color: Colors.red, fontSize: 10))
+            Text("Required", style: Theme.of(context).textTheme.bodyText2!.copyWith(color: Colors.red, fontSize: 10))
           ],
         ),
         trailing: Icon(

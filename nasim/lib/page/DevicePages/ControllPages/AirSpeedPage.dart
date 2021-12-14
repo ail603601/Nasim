@@ -6,7 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:holding_gesture/holding_gesture.dart';
 import 'package:nasim/Model/Device.dart';
 import 'package:nasim/Model/menu_info.dart';
+import 'package:nasim/enums.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
+import 'package:nasim/provider/SavedevicesChangeNofiter.dart';
 import 'package:nasim/utils.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -82,12 +84,13 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
   }
 
   int parse_device_fan(int i) {
-    if (i == 0) return 600;
-    if (i == 1) return 900;
-    if (i == 2) return 1200;
-    if (i == 3) return 1500;
-    if (i == 4) return 1800;
-    if (i == 5) return 2100;
+    if (i == 0) return 300;
+    if (i == 1) return 600;
+    if (i == 2) return 900;
+    if (i == 3) return 1200;
+    if (i == 4) return 1500;
+    if (i == 5) return 1800;
+    if (i == 6) return 2100;
 
     return 0;
   }
@@ -96,28 +99,39 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
     await Utils.show_loading(context, () async {
       await Utils.waitMsec(10 * 1000);
     }, title: "Intializing Fan Speed...");
-    // await Utils.waitMsec(10 * 1000);
 
-    int device_fan_power = int.tryParse(await cmg.getRequest(3, context)) ?? 0;
-    int output_fan_power = int.tryParse(await cmg.getRequest(39, context)) ?? 0;
+    int device_fan_power = int.tryParse(await cmg.getRequest(3)) ?? 0;
+    int output_fan_power = int.tryParse(await cmg.getRequest(39)) ?? 0;
+    double fan_speed = _tabController!.index == 0 ? minimum_negative_presure_fan_speed : maximum_negative_presure_fan_speed;
+
     device_fan_power = parse_device_fan(device_fan_power);
 
     if (device_fan_power < output_fan_power) {
       await Utils.ask_license_type_serial(
-          context, "You must provide license in order to increase your fan power limit", "Fan power to:", fan_power_licenses, fan_power_licenses[0],
-          (String serial, String selected_option) async {
+          context,
+          "You must provide license in order to increase your fan power,\nPower limit: ${device_fan_power}W\nOutlet fan power: ${output_fan_power}W for Outlet fan speed: ${fan_speed}%",
+          "Fan power limit to:",
+          fan_power_licenses,
+          fan_power_licenses[0], (String serial, String selected_option) async {
         if (serial != "") {
           int index_selected = fan_power_licenses.indexOf(selected_option);
+
+          ///+1 for being the same
           await cmg.setRequest(76, index_selected.toString(), context);
           bool isvalid = await cmg.setRequest(77, serial);
           if (isvalid) {
             await Utils.alert_license_valid(context);
+            Utils.showSnackBar(context, "Done.");
           } else {
             await Utils.alert_license_invalid(context);
           }
+        } else {
+          return;
         }
       });
-    }
+    } else
+      Utils.showSnackBar(context, "Done.");
+
     return false;
   }
 
@@ -172,7 +186,6 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
       }
       wait_for_fan_power().then((value) async {
         await refresh();
-        Utils.showSnackBar(context, "Done.");
       });
     } catch (e) {}
   }
@@ -189,7 +202,6 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
 
     wait_for_fan_power().then((value) async {
       await refresh();
-      Utils.showSnackBar(context, "Done.");
     });
   }
 
@@ -523,6 +535,11 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
           ]),
         ),
         build_apply_button(() async {
+          if (SavedDevicesChangeNotifier.getSelectedDevice()!.accessibility == DeviceAccessibility.AccessibleInternet) {
+            Utils.show_error_dialog(context, "Permission Denied.", "Chaning inlet fan speed is not allowed over internet connection.", null);
+            return;
+          }
+
           if (_tabController!.index == 0) {
             await set_air_speed_min_negative_pressure(minimum_negative_presure_fan_speed);
           } else {

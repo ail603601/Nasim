@@ -322,9 +322,9 @@ class ConnectionManager extends ChangeNotifier {
   }
 
   void handle_timeout([context]) {
-    if (context != null) {
-      // Utils.show_error_dialog(context, "Something went wrong.", "Probably air conditioner is offline; Request has failed after 3 retries.", null);
-    }
+    // if (context != null) {
+    //   // Utils.show_error_dialog(context, "Something went wrong.", "Probably air conditioner is offline; Request has failed after 3 retries.", null);
+    // }
 
     throw Exception('timedout');
   }
@@ -340,6 +340,7 @@ class ConnectionManager extends ChangeNotifier {
         if (context != null) {
           await ForceReconnect(context, _device);
         }
+        throw Exception('no socket');
         // handleFailures('Wifi Connection lost. please try again.', context);
       }
       var numberStr = number.toString().padLeft(3, '0');
@@ -349,7 +350,8 @@ class ConnectionManager extends ChangeNotifier {
       } catch (e) {
         if (e == "timeout") {
           handle_timeout(context);
-        }
+        } else
+          throw Exception('faild: ' + e.toString());
       }
       result = removeSpecialChars(result);
       return result;
@@ -361,7 +363,10 @@ class ConnectionManager extends ChangeNotifier {
       try {
         result = await internet_request("get" + numberStr, serial);
       } catch (e) {
-        handle_timeout(context);
+        if (e == "timeout")
+          handle_timeout(context);
+        else
+          throw Exception('faild: ' + e.toString());
       }
       result = removeSpecialChars(result);
       return result;
@@ -388,7 +393,7 @@ class ConnectionManager extends ChangeNotifier {
         if (context != null) {
           await ForceReconnect(context, _device);
         } else
-          handleFailures('Wifi Connection lost. please try again.', context);
+          throw Exception('no socket');
       }
       var numberStr = number.toString().padLeft(3, '0');
 
@@ -396,9 +401,11 @@ class ConnectionManager extends ChangeNotifier {
       try {
         result = await ws_send_request("set" + numberStr + ":" + value);
       } catch (e) {
-        if (e == "timeout") handle_timeout(context);
+        if (e == "timeout")
+          handle_timeout(context);
+        else
+          throw Exception('faild: ' + e.toString());
       }
-
       return (result.toLowerCase() == "ok");
     } else if (_device.accessibility == DeviceAccessibility.AccessibleInternet) {
       final String serial = _device.serial;
@@ -407,13 +414,15 @@ class ConnectionManager extends ChangeNotifier {
       try {
         result = await internet_request("set" + numberStr + ":" + value, serial);
       } catch (e) {
-        if (e == "timeout") handle_timeout(context);
+        if (e == "timeout")
+          handle_timeout(context);
+        else
+          throw Exception('faild: ' + e.toString());
       }
       result = removeSpecialChars(result);
       return (result.toLowerCase() == "ok");
     } else {
       //error: device offline
-      handleFailures('device offline, cant set ${number}', context);
       return false; //won't reach this line
     }
   }

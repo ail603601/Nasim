@@ -8,6 +8,7 @@ import 'package:nasim/Model/Device.dart';
 import 'package:nasim/Model/menu_info.dart';
 import 'package:nasim/Widgets/TabBarMaterialWidget.Dart';
 import 'package:nasim/enums.dart';
+import 'package:nasim/page/Wizard/Wizardpage.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
 import 'package:nasim/provider/DeviceListFabChangeNotifier.dart';
 import 'package:nasim/provider/SavedevicesChangeNofiter.dart';
@@ -23,6 +24,7 @@ class DevicesListConnect extends StatefulWidget {
 
 class DevicesListConnectState extends State<DevicesListConnect> {
   static bool flag_only_user = false;
+  String last_wizard_serial_num = "";
 
   int interval = 1500;
   late Timer refresher;
@@ -36,37 +38,33 @@ class DevicesListConnectState extends State<DevicesListConnect> {
     });
   }
 
+  void reestablish_connections() {
+    Provider.of<SavedDevicesChangeNotifier>(context, listen: false).saved_devices.forEach((element) {
+      element.accessibility = DeviceAccessibility.InAccessible;
+    });
+    setState(() {});
+  }
+
   refresh() {
     // return;
     if (mounted && timer_run) {
       Provider.of<SavedDevicesChangeNotifier>(context, listen: false).saved_devices.forEach((element) async {
         try {
           Provider.of<ConnectionManager>(context, listen: false).CheckConnectivityToDevice(element);
-          Provider.of<SavedDevicesChangeNotifier>(context, listen: false).setSelectedDevice(element);
-          String last_name = element.name;
-          element.name = await Provider.of<ConnectionManager>(context, listen: false).getRequest(0);
-          if (element.name != last_name && element.name != "")
-            Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelectedDeviceName(element.name);
+          if (element.accessibility != DeviceAccessibility.InAccessible) {
+            Provider.of<SavedDevicesChangeNotifier>(context, listen: false).setSelectedDevice(element);
+            String last_name = element.name;
+            String new_name = await Provider.of<ConnectionManager>(context, listen: false).getRequest(0);
 
-          if (["", null, false, 0].contains(element.name)) {
-            element.name = "New Air Conditioner (unnamed)";
+            if (![" ", "", null, false, 0].contains(new_name)) {
+              if (new_name != last_name) Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelectedDeviceName(new_name);
+            }
           }
         } catch (e) {
           print(e);
         }
       });
       setState(() {});
-
-      // for (var i = 0; i < Provider.of<SavedDevicesChangeNotifier>(context, listen: false).saved_devices.length; i++) {
-      //   Provider.of<ConnectionManager>(context, listen: false)
-      //       .CheckConnectivityToDevice(Provider.of<SavedDevicesChangeNotifier>(context, listen: false).saved_devices[i])
-      //       .then((Device? d) {
-      //     if (d != null && mounted) Provider.of<SavedDevicesChangeNotifier>(context, listen: false).saved_devices[i] = d;
-      //   });
-
-      // List device_after_ping = Provider.of<SavedDevicesChangeNotifier>(context, listen: falsec).saved_devices;
-      // setState(() {});
-      //   // }
     }
   }
 
@@ -77,67 +75,7 @@ class DevicesListConnectState extends State<DevicesListConnect> {
     super.dispose();
   }
 
-  var babycheckDialogInputValue = "";
-  Future<bool> babyCheck(BuildContext context) async {
-    var rng = new Random();
-    var num1 = rng.nextInt(10);
-    var num2 = rng.nextInt(10);
-    var math_res = (num1 * num2).toString();
-    Completer<bool> dialog_beify_answer = new Completer<bool>();
-    await showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text("Result of  $num1 * $num2 ?", style: Theme.of(context).textTheme.bodyText1),
-            content: TextField(
-              maxLength: 10,
-              style: Theme.of(context).textTheme.bodyText1,
-              keyboardType: TextInputType.number,
-              onChanged: (value) {
-                if (math_res == value)
-                  setState(() {
-                    babycheckDialogInputValue = value;
-                  });
-              },
-              decoration: InputDecoration(hintText: "", counterText: ""),
-            ),
-            actions: <Widget>[
-              FlatButton(
-                // color: Colors.red,
-                textColor: Colors.black,
-                child: Text('CANCEL', style: Theme.of(context).textTheme.bodyText1),
-                onPressed: () {
-                  dialog_beify_answer.complete(false);
-                  Navigator.pop(context);
-                },
-              ),
-              FlatButton(
-                // color: Colors.green,
-                textColor: Colors.black,
-                child: Text('OK', style: Theme.of(context).textTheme.bodyText1),
-                onPressed: () async {
-                  if (math_res == babycheckDialogInputValue) {
-                    dialog_beify_answer.complete(true);
-                    Navigator.pop(context);
-                  } else {
-                    dialog_beify_answer.complete(false);
-                    Navigator.pop(context);
-                  }
-                },
-              ),
-            ],
-          );
-        });
-    if (!dialog_beify_answer.isCompleted) dialog_beify_answer.complete(false);
-    // print(dialog_beify_answer.isCompleted);
-
-    return dialog_beify_answer.future;
-  }
-
   Future<bool> check_key_i(i) async {
-    // String name_n = await Provider.of<ConnectionManager>(context, listen: false).getRequest(${i + 16}");
-    // return SavedDevicesChangeNotifier.getSelectedDevice()!.name == name_n;
-
     String key_in_dev = await Provider.of<ConnectionManager>(context, listen: false).getRequest(i + 28);
     String serial = SavedDevicesChangeNotifier.getSelectedDevice()!.serial;
     String name = SavedDevicesChangeNotifier.getSelectedDevice()!.username;
@@ -161,9 +99,11 @@ class DevicesListConnectState extends State<DevicesListConnect> {
   }
 
   void connect_to_device(Device d) async {
-    // Provider.of<SavedDevicesChangeNotifier>(context, listen: false).setSelectedDevice(d);
-    // await Navigator.pushNamed(context, "/wizard");
-    // return;
+    if (last_wizard_serial_num != d.serial) {
+      last_wizard_serial_num = d.serial;
+      WizardPageState.wizardNewSetup();
+    }
+
     if (SavedDevicesChangeNotifier.getSelectedDevice()!.accessibility == DeviceAccessibility.InAccessible) {
       return;
     }
@@ -175,7 +115,6 @@ class DevicesListConnectState extends State<DevicesListConnect> {
         if (SavedDevicesChangeNotifier.getSelectedDevice()!.accessibility == DeviceAccessibility.AccessibleInternet) {
           Utils.show_error_dialog(context, "Permission Denied.", "This device is Uninitialized. Initialization is not allowed over internet connection.", null);
           timer_run = true;
-
           return;
         }
 
@@ -184,16 +123,11 @@ class DevicesListConnectState extends State<DevicesListConnect> {
         bool wiz_ended_correct = await Navigator.pushNamed(context, "/wizard") == true;
         if (wiz_ended_correct) {
           await Navigator.pushNamed(context, "/main_device");
+          reestablish_connections();
         }
         timer_run = true;
       }
       if (device_init_state == "1") {
-        if (!await babyCheck(context)) {
-          return;
-        }
-
-        //already initialized
-        // Provider.of<MenuInfo>(context, listen: false).updateMenu(MenuInfo(MenuType.Licenses));
         timer_run = false;
 
         if (await can_login()) {
@@ -201,6 +135,7 @@ class DevicesListConnectState extends State<DevicesListConnect> {
             ..addDevice(SavedDevicesChangeNotifier.getSelectedDevice()!);
 
           await Navigator.pushNamed(context, "/main_device");
+          reestablish_connections();
           timer_run = true;
         } else {
           if (SavedDevicesChangeNotifier.getSelectedDevice()!.accessibility == DeviceAccessibility.AccessibleInternet) {
@@ -219,6 +154,7 @@ class DevicesListConnectState extends State<DevicesListConnect> {
           if (wiz_ended_correct) {
             Utils.setTimeOut(0, () async {
               await Navigator.pushNamed(context, "/main_device");
+              reestablish_connections();
             });
           }
           timer_run = true;
@@ -248,7 +184,8 @@ class DevicesListConnectState extends State<DevicesListConnect> {
     Widget leading_icon(Device device) => Column(
           children: [
             Icon(Icons.network_check),
-            Text("${device.accessibility == DeviceAccessibility.InAccessible ? "InAccessible" : 'Available'} ",
+            Text(
+                "${device.accessibility == DeviceAccessibility.InAccessible ? "InAccessible" : device.accessibility == DeviceAccessibility.AccessibleLocal ? 'Local' : 'internet'} ",
                 style: Theme.of(context)
                     .textTheme
                     .bodyText2!

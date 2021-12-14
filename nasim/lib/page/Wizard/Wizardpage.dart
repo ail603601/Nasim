@@ -17,6 +17,8 @@ import 'Pages/wpage_outlet_fan.dart';
 import 'Pages/wpage_inlet_fan.dart';
 import 'Pages/wpage_humidity.dart';
 import 'Pages/wpage_air_quality.dart';
+import 'Pages/wpage_controller_status.dart';
+import 'Pages/wpage_sms.dart';
 import 'Pages/wpage_light.dart';
 
 class WizardPage extends StatefulWidget {
@@ -33,13 +35,21 @@ class WizardPageState extends State<WizardPage> {
   }
 
   static bool can_next = true;
-  static void wizardEnded(context) async {
+
+  static void wizardNewSetup() {
     wpage_outlet_fanState.is_maximum_set = false;
     wpage_outlet_fanState.is_minimum_set = false;
+
     wpage_inlet_fanState.is_maximum_day_set = false;
     wpage_inlet_fanState.is_maximum_night_set = false;
     wpage_inlet_fanState.is_minimum_day_set = false;
     wpage_inlet_fanState.is_minimum_night_set = false;
+
+    wpage_inlet_fanState.expanded_min_day = true;
+    wpage_inlet_fanState.expanded_min_night = false;
+    wpage_inlet_fanState.expanded_max_day = true;
+    wpage_inlet_fanState.expanded_max_night = false;
+    wpage_inlet_fanState.is_inlet_fan_available = false;
 
     wpage_temperatureState.is_day_set = false;
     wpage_temperatureState.is_night_set = false;
@@ -49,6 +59,11 @@ class WizardPageState extends State<WizardPage> {
 
     wpage_air_qualityState.is_day_set = false;
     wpage_air_qualityState.is_night_set = false;
+  }
+
+  static void wizardEnded(context) async {
+    wizardNewSetup();
+
     // if (DevicesListConnectState.flag_only_user == true) {
     // if (wpage_usersState.can_next) {
     //   await Provider.of<ConnectionManager>(context, listen: false).setRequest(121, "1");
@@ -69,6 +84,8 @@ class WizardPageState extends State<WizardPage> {
     wpage_temperature(),
     wpage_humidity(),
     wpage_air_quality(),
+    wpage_controller_status(),
+    wpage_sms(),
     wpage_light()
   ];
   void wizard_done() {
@@ -81,6 +98,13 @@ class WizardPageState extends State<WizardPage> {
   Widget build(BuildContext context) {
     bool can_next(int i) {
       return (raw_pages[i] as dynamic).Next();
+    }
+
+    bool can_back(int i) {
+      if ((raw_pages[i] as dynamic).Back != null)
+        return (raw_pages[i] as dynamic).Back();
+      else
+        return true;
     }
 
     if (DevicesListConnectState.flag_only_user == true) {
@@ -100,6 +124,7 @@ class WizardPageState extends State<WizardPage> {
           lazy: false,
           child: IntroductionScreen(
             onNext: can_next,
+            onBack: can_back,
             rawPages: raw_pages as List<Widget>,
             next: Icon(Icons.arrow_forward),
             done: Text(
