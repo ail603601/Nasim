@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:day_night_switcher/day_night_switcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,15 +15,34 @@ class LightPage extends StatefulWidget {
 class _LightPageState extends State<LightPage> {
   late ConnectionManager cmg;
   static bool is_both_set = false;
+  late Timer soft_reftresh_timer;
 
+  final TextEditingController max_lux_controller = TextEditingController();
+  final TextEditingController min_lux_controller = TextEditingController();
   refresh() async {
     await Utils.show_loading_timed(
         context: context,
         done: () async {
-          ConnectionManager.Min_Day_Lux = (await cmg.getRequest(74, context));
-          ConnectionManager.Max_Night_Lux = (await cmg.getRequest(75, context));
+          ConnectionManager.Min_Day_Lux = (int.tryParse(await cmg.getRequest(74, context)) ?? 0).toString();
+          ConnectionManager.Max_Night_Lux = (int.tryParse(await cmg.getRequest(75, context)) ?? 0).toString();
+
+          max_lux_controller.text = ConnectionManager.Min_Day_Lux;
+          min_lux_controller.text = ConnectionManager.Max_Night_Lux;
+
           setState(() {});
         });
+  }
+
+  void soft_refresh() async {
+    ConnectionManager.Real_Light_Level = await cmg.getRequest(94, context);
+    ConnectionManager.Real_Light_Level = (int.tryParse(ConnectionManager.Real_Light_Level) ?? 0).toString();
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    soft_reftresh_timer.cancel();
   }
 
   @override
@@ -29,11 +50,16 @@ class _LightPageState extends State<LightPage> {
     super.initState();
 
     cmg = Provider.of<ConnectionManager>(context, listen: false);
-
+    soft_reftresh_timer = Timer.periodic(new Duration(seconds: 1), (timer) async {
+      soft_refresh();
+    });
     Utils.setTimeOut(0, refresh);
   }
 
   apply() async {
+    ConnectionManager.Min_Day_Lux = (int.tryParse(min_lux_controller.text) ?? 0).toString();
+    ConnectionManager.Max_Night_Lux = (int.tryParse(max_lux_controller.text) ?? 0).toString();
+
     if (int.parse(ConnectionManager.Min_Day_Lux) + 50 > int.parse(ConnectionManager.Max_Night_Lux)) {
       Utils.alert(context, "", "Minimum must be 50 lower than maximum.");
       return false;
@@ -45,6 +71,19 @@ class _LightPageState extends State<LightPage> {
     is_both_set = true;
     Utils.showSnackBar(context, "Done.");
   }
+
+  Widget build_boxed_titlebox({required title, required child}) {
+    return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: new InputDecorator(
+            decoration: InputDecoration(
+                labelText: title, labelStyle: Theme.of(context).textTheme.bodyText1, border: OutlineInputBorder(borderSide: BorderSide(color: Colors.yellow))),
+            child: child));
+  }
+
+  Widget row_actual_light_level() => build_boxed_titlebox(
+      title: "Actual Light level: ",
+      child: Center(child: Text((int.tryParse(ConnectionManager.Real_Light_Level) ?? 0).toString() + " Lux", style: Theme.of(context).textTheme.bodyText1)));
 
   build_apply_button() => Align(
         alignment: Alignment.bottomCenter,
@@ -78,7 +117,7 @@ class _LightPageState extends State<LightPage> {
                 padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
                 side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
                 shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
-            child: Text("Restore Defaults", style: Theme.of(context).textTheme.bodyText1),
+            child: Text("Restore To Factory Defaults", style: Theme.of(context).textTheme.bodyText1),
           ),
         ),
       );
@@ -93,10 +132,8 @@ class _LightPageState extends State<LightPage> {
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
-                controller: TextEditingController()..text = (int.tryParse(ConnectionManager.Max_Night_Lux) ?? 0).toString(),
-                onChanged: (value) {
-                  ConnectionManager.Max_Night_Lux = value;
-                },
+                controller: max_lux_controller,
+                onTap: () => max_lux_controller.selection = TextSelection(baseOffset: 0, extentOffset: max_lux_controller.value.text.length),
                 keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 decoration: InputDecoration(suffix: Text("Lux"), counterText: ""),
               ),
@@ -115,10 +152,8 @@ class _LightPageState extends State<LightPage> {
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
-                controller: TextEditingController()..text = (int.tryParse(ConnectionManager.Min_Day_Lux) ?? 0).toString(),
-                onChanged: (value) {
-                  ConnectionManager.Min_Day_Lux = value;
-                },
+                controller: min_lux_controller,
+                onTap: () => min_lux_controller.selection = TextSelection(baseOffset: 0, extentOffset: min_lux_controller.value.text.length),
                 keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 decoration: InputDecoration(suffix: Text("Lux"), counterText: ""),
               ),
@@ -126,16 +161,6 @@ class _LightPageState extends State<LightPage> {
           ],
         ),
       );
-
-  Widget build_boxed_titlebox({required title, required child}) {
-    // debugger();
-    return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        child: new InputDecorator(
-            decoration: InputDecoration(
-                labelText: title, labelStyle: Theme.of(context).textTheme.bodyText1, border: OutlineInputBorder(borderSide: BorderSide(color: Colors.yellow))),
-            child: child));
-  }
 
   List<Widget> make_title(titile) {
     return [
@@ -158,6 +183,10 @@ class _LightPageState extends State<LightPage> {
         color: Theme.of(context).canvasColor,
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           ...make_title("Light levels"),
+          SizedBox(
+            height: 16,
+          ),
+          row_actual_light_level(),
           SizedBox(
             height: 16,
           ),

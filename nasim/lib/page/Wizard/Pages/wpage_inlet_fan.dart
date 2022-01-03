@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:bubble_tab_indicator/bubble_tab_indicator.dart';
 import 'package:day_night_switcher/day_night_switcher.dart';
 import 'package:flutter/cupertino.dart';
@@ -54,6 +55,30 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
 
   static bool is_inlet_fan_available = false;
 
+  String Old_Min_Valid_Input_Fan_Speed_Night = "";
+  String Old_Max_Valid_Input_Fan_Speed_Night = "";
+  String Old_Min_Valid_Input_Fan_Speed_Day = "";
+  String Old_Max_Valid_Input_Fan_Speed_Day = "";
+  bool MODIFIED = false;
+
+  bool check_modification() {
+    if (_tabController!.index == 0) {
+      if (Old_Min_Valid_Input_Fan_Speed_Night == minimum_inlet_fan_speed_night.toInt().toString() &&
+          Old_Min_Valid_Input_Fan_Speed_Day == minimum_inlet_fan_speed_day.toInt().toString()) {
+        MODIFIED = false;
+      } else
+        MODIFIED = true;
+    } else {
+      if (Old_Max_Valid_Input_Fan_Speed_Day == maximum_inlet_fan_speed_day.toInt().toString() &&
+          Old_Max_Valid_Input_Fan_Speed_Night == maximum_inlet_fan_speed_night.toInt().toString()) {
+        MODIFIED = false;
+      } else
+        MODIFIED = true;
+    }
+
+    return MODIFIED;
+  }
+
   toggle_min_day() {
     setState(() {
       key_min_day = new UniqueKey();
@@ -102,6 +127,11 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
           ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest(34, context)) ?? "0").toString();
           ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest(35, context)) ?? "0").toString();
 
+          Old_Min_Valid_Input_Fan_Speed_Night = ConnectionManager.Min_Valid_Input_Fan_Speed_Night;
+          Old_Max_Valid_Input_Fan_Speed_Night = ConnectionManager.Max_Valid_Input_Fan_Speed_Night;
+          Old_Min_Valid_Input_Fan_Speed_Day = ConnectionManager.Min_Valid_Input_Fan_Speed_Day;
+          Old_Max_Valid_Input_Fan_Speed_Day = ConnectionManager.Max_Valid_Input_Fan_Speed_Day;
+
           if (mounted) {
             setState(() {
               minimum_inlet_fan_speed_night = double.tryParse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) ?? minimum_inlet_fan_speed_night;
@@ -133,36 +163,47 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
         return true;
       };
       widget.Next = () {
-        // return true;
-        if (_tabController!.index == 0) {
-          if (!is_minimum_day_set) {
-            Utils.alert(context, "", "Please set minimum fan speed for day time.");
-            return false;
-          }
-          if (!is_minimum_night_set) {
-            Utils.alert(context, "", "Please set minimum fan speed for night time.");
-            return false;
-          }
-          _tabController!.animateTo(1);
-        } else if (_tabController!.index == 1) {
-          if (!is_minimum_night_set || !is_minimum_day_set) {
-            Utils.alert(context, "", "Please set minimum fan settings before changing the maximum.");
-
-            return false;
-          }
-
-          if (!is_maximum_day_set) {
-            Utils.alert(context, "", "Please set maxiumum fan speed for day time.");
-            return false;
-          }
-          if (!is_maximum_night_set) {
-            Utils.alert(context, "", "Please set maximum fan speed for night time.");
-            return false;
-          }
-
-          return true;
+        if (MODIFIED) {
+          Utils.alert(context, "", "Please apply.");
+          return false;
         }
-        return false;
+        if (_tabController!.index == 0) {
+          _tabController!.animateTo(1);
+          return false;
+        }
+        return true;
+
+        // if (!MODIFIED) return true;
+
+        // if (_tabController!.index == 0) {
+        //   if (!is_minimum_day_set) {
+        //     Utils.alert(context, "", "Please set minimum fan speed for day time.");
+        //     return false;
+        //   }
+        //   if (!is_minimum_night_set) {
+        //     Utils.alert(context, "", "Please set minimum fan speed for night time.");
+        //     return false;
+        //   }
+        //   _tabController!.animateTo(1);
+        // } else if (_tabController!.index == 1) {
+        //   if (!is_minimum_night_set || !is_minimum_day_set) {
+        //     Utils.alert(context, "", "Please set minimum fan settings before changing the maximum.");
+
+        //     return false;
+        //   }
+
+        //   if (!is_maximum_day_set) {
+        //     Utils.alert(context, "", "Please set maxiumum fan speed for day time.");
+        //     return false;
+        //   }
+        //   if (!is_maximum_night_set) {
+        //     Utils.alert(context, "", "Please set maximum fan speed for night time.");
+        //     return false;
+        //   }
+
+        //   return true;
+        // }
+        // return false;
       };
       Utils.setTimeOut(0, refresh);
     }
@@ -281,7 +322,7 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
           await refresh();
           _tabController!.animateTo(1);
         }
-
+        MODIFIED = false;
         return;
       }
       if (expanded_min_night) {
@@ -302,6 +343,7 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
           await refresh();
           _tabController!.animateTo(1);
         }
+        MODIFIED = false;
 
         return;
       }
@@ -339,6 +381,7 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
           Utils.showSnackBar(context, "Done.");
           IntroductionScreenState.force_next();
         }
+        MODIFIED = false;
 
         return;
       }
@@ -370,6 +413,7 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
           Utils.showSnackBar(context, "Done.");
           IntroductionScreenState.force_next();
         }
+        MODIFIED = false;
 
         return;
       }
@@ -393,6 +437,8 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
         minimum_inlet_fan_speed_day = value;
       });
     }
+    check_modification();
+
     return true;
   }
 
@@ -412,6 +458,8 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
         maximum_inlet_fan_speed_day = value;
       });
     }
+    check_modification();
+
     return true;
   }
 
@@ -431,6 +479,8 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
         minimum_inlet_fan_speed_day = value;
       });
     }
+    check_modification();
+
     return true;
   }
 
@@ -450,6 +500,8 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
         maximum_inlet_fan_speed_day = value;
       });
     }
+    check_modification();
+
     return true;
   }
 
@@ -534,10 +586,10 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
           height: 50,
           padding: EdgeInsets.symmetric(horizontal: 8),
           child: OutlinedButton(
-            onPressed: click,
+            onPressed: MODIFIED ? click : null,
             style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
-                side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
+                padding: EdgeInsets.only(top: 16, bottom: 10, left: 28, right: 28),
+                side: BorderSide(width: 2, color: MODIFIED ? Theme.of(context).primaryColor : Colors.grey),
                 shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
             child: Text("Apply", style: Theme.of(context).textTheme.bodyText1),
           ),
@@ -552,18 +604,24 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
           padding: EdgeInsets.symmetric(horizontal: 8),
           child: OutlinedButton(
             onPressed: () async {
-              cmg.setRequest(42, "000", context);
-              cmg.setRequest(44, "000", context);
-              cmg.setRequest(41, "000", context);
-              cmg.setRequest(43, "000", context);
-
-              refresh();
+              AwesomeDialog(
+                context: context,
+                useRootNavigator: true,
+                dialogType: DialogType.WARNING,
+                animType: AnimType.BOTTOMSLIDE,
+                title: "Confirm",
+                desc: "Current Page Settings will be restored to factory defaults",
+                btnOkOnPress: () async {
+                  refresh();
+                },
+                btnCancelOnPress: () {},
+              )..show();
             },
             style: OutlinedButton.styleFrom(
                 padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
                 side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
                 shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
-            child: Text("Restore Defaults", style: Theme.of(context).textTheme.bodyText1),
+            child: Text("Restore To Factory Defaults", style: Theme.of(context).textTheme.bodyText1),
           ),
         ),
       );
@@ -605,30 +663,24 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
               Container(
                 color: Colors.black12,
                 padding: EdgeInsets.symmetric(horizontal: 8),
-                child: Row(
+                child: Column(
                   children: [
-                    Text("Inlet Fan Speed", style: Theme.of(context).textTheme.bodyText1),
-                    Expanded(
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: TabBar(
-                          isScrollable: false,
-                          unselectedLabelColor: Colors.grey,
-                          labelColor: Colors.white,
-                          indicatorSize: TabBarIndicatorSize.tab,
-                          indicator: new BubbleTabIndicator(
-                            indicatorHeight: 25.0,
-                            indicatorColor: Colors.blueAccent,
-                            tabBarIndicatorSize: TabBarIndicatorSize.tab,
-                            // Other flags
-                            // indicatorRadius: 1,
-                            // insets: EdgeInsets.all(1),
-                            // padding: EdgeInsets.all(10)
-                          ),
-                          labelStyle: Theme.of(context).textTheme.bodyText1,
-                          tabs: tabs,
-                          controller: _tabController,
+                    Text("Inletfan Speed", style: Theme.of(context).textTheme.bodyText1!.copyWith(fontSize: 24)),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TabBar(
+                        isScrollable: false,
+                        unselectedLabelColor: Colors.grey,
+                        labelColor: Colors.white,
+                        indicatorSize: TabBarIndicatorSize.tab,
+                        indicator: new BubbleTabIndicator(
+                          indicatorHeight: 25.0,
+                          indicatorColor: Colors.blueAccent,
+                          tabBarIndicatorSize: TabBarIndicatorSize.tab,
                         ),
+                        labelStyle: Theme.of(context).textTheme.bodyText1,
+                        tabs: tabs,
+                        controller: _tabController,
                       ),
                     ),
                   ],
@@ -694,95 +746,76 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
                       ],
                     ),
                   ),
-                  if (!is_minimum_day_set || !is_minimum_night_set)
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Align(
-                        alignment: Alignment.topCenter,
-                        child: Container(
-                            width: double.infinity,
-                            padding: EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                                color: Colors.pink[600]!,
-                                border: Border.all(
-                                  color: Colors.pink[600]!,
-                                ),
-                                borderRadius: BorderRadius.all(Radius.circular(8))),
-                            child: Container(
-                                child: Text("Please set minimum fan speed before changing maximum fan speed.", style: Theme.of(context).textTheme.headline6))),
-                      ),
-                    )
-                  else
-                    SingleChildScrollView(
-                      child: Column(
-                        children: [
-                          ExpansionTile(
-                              key: key_max_day,
-                              initiallyExpanded: expanded_max_day,
-                              tilePadding: EdgeInsets.only(right: 16),
-                              title: ListTile(
-                                onTap: toggle_max_day,
-                                title: Text("Day Time", style: Theme.of(context).textTheme.bodyText1!),
-                                leading: DayNightSwitcherIcon(
-                                  isDarkModeEnabled: false,
-                                  onStateChanged: (isDarkModeEnabled) {
-                                    setState(() {});
-                                  },
-                                ),
+                  SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        ExpansionTile(
+                            key: key_max_day,
+                            initiallyExpanded: expanded_max_day,
+                            tilePadding: EdgeInsets.only(right: 16),
+                            title: ListTile(
+                              onTap: toggle_max_day,
+                              title: Text("Day Time", style: Theme.of(context).textTheme.bodyText1!),
+                              leading: DayNightSwitcherIcon(
+                                isDarkModeEnabled: false,
+                                onStateChanged: (isDarkModeEnabled) {
+                                  setState(() {});
+                                },
                               ),
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: build_fan_speed_row("Maximum", maximum_inlet_fan_speed_day, () {
-                                    inc_max_inlet_fan(false);
-                                  }, () {
-                                    dec_max_inlet_fan(false);
-                                  }),
-                                ),
-                              ]),
-                          Divider(
-                            height: 0,
-                          ),
-                          ExpansionTile(
-                              key: key_max_night,
-                              initiallyExpanded: expanded_max_night,
-                              tilePadding: EdgeInsets.only(right: 16),
-                              title: ListTile(
-                                onTap: toggle_max_night,
-                                title: Text("Night Time", style: Theme.of(context).textTheme.bodyText1!),
-                                leading: DayNightSwitcherIcon(
-                                  isDarkModeEnabled: true,
-                                  onStateChanged: (isDarkModeEnabled) {
-                                    setState(() {});
-                                  },
-                                ),
+                            ),
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: build_fan_speed_row("Maximum", maximum_inlet_fan_speed_day, () {
+                                  inc_max_inlet_fan(false);
+                                }, () {
+                                  dec_max_inlet_fan(false);
+                                }),
                               ),
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: build_fan_speed_row("Maximum", maximum_inlet_fan_speed_night, () {
-                                    inc_max_inlet_fan(true);
-                                  }, () {
-                                    dec_max_inlet_fan(true);
-                                  }),
-                                ),
-                              ]),
-                        ],
-                      ),
-                    )
+                            ]),
+                        Divider(
+                          height: 0,
+                        ),
+                        ExpansionTile(
+                            key: key_max_night,
+                            initiallyExpanded: expanded_max_night,
+                            tilePadding: EdgeInsets.only(right: 16),
+                            title: ListTile(
+                              onTap: toggle_max_night,
+                              title: Text("Night Time", style: Theme.of(context).textTheme.bodyText1!),
+                              leading: DayNightSwitcherIcon(
+                                isDarkModeEnabled: true,
+                                onStateChanged: (isDarkModeEnabled) {
+                                  setState(() {});
+                                },
+                              ),
+                            ),
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: build_fan_speed_row("Maximum", maximum_inlet_fan_speed_night, () {
+                                  inc_max_inlet_fan(true);
+                                }, () {
+                                  dec_max_inlet_fan(true);
+                                }),
+                              ),
+                            ]),
+                      ],
+                    ),
+                  )
                 ]),
               ),
               build_apply_button(() async {
                 if (_tabController!.index == 0) {
                   await set_all_to_board_min();
-                  return;
+                  // return;
                 } else {
                   await set_all_to_board_max();
                   // await refresh();
-                  return;
+                  // return;
                 }
 
-                // await refresh();
+                await refresh();
 
                 // IntroductionScreenState.force_next();
               }),

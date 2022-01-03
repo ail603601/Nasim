@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:bubble_tab_indicator/bubble_tab_indicator.dart';
 import 'package:day_night_switcher/day_night_switcher.dart';
 import 'package:flutter/cupertino.dart';
@@ -34,33 +35,65 @@ class wpage_air_qualityState extends State<wpage_air_quality> with SingleTickerP
   final TextEditingController max_co2_controller = TextEditingController();
   final TextEditingController min_co2_controller = TextEditingController();
 
+  String Old_Max_Day_IAQ = "";
+  String Old_Min_Day_IAQ = "";
+  String Old_Max_Night_IAQ = "";
+  String Old_Min_Night_IAQ = "";
+  String Old_Max_Day_CO2 = "";
+  String Old_Min_Day_CO2 = "";
+  String Old_Max_Night_CO2 = "";
+  String Old_Min_Night_CO2 = "";
+  String Old_IAQ_Flag = "";
+  String Old_CO2_Flag = "";
+  bool MODIFIED = false;
+  bool check_modification() {
+    if (is_night) {
+      if (Old_Max_Night_IAQ == max_iaq_controller.text &&
+          Old_Min_Night_IAQ == min_iaq_controller.text &&
+          Old_Max_Night_CO2 == max_co2_controller.text &&
+          Old_Min_Night_CO2 == min_co2_controller.text) {
+        MODIFIED = false;
+      } else
+        MODIFIED = true;
+    } else {
+      if (Old_Max_Day_IAQ == max_iaq_controller.text &&
+          Old_Min_Day_IAQ == min_iaq_controller.text &&
+          Old_Max_Day_CO2 == max_co2_controller.text &&
+          Old_Min_Day_CO2 == min_co2_controller.text) {
+        MODIFIED = false;
+      } else
+        MODIFIED = true;
+    }
+
+    return MODIFIED;
+  }
+
   refresh() async {
     await Utils.show_loading_timed(
         context: context,
         done: () async {
-          ConnectionManager.Max_Day_IAQ = await cmg.getRequest(65, context);
-          ConnectionManager.Min_Day_IAQ = await cmg.getRequest(66, context);
-          ConnectionManager.Max_Night_IAQ = await cmg.getRequest(67, context);
-          ConnectionManager.Min_Night_IAQ = await cmg.getRequest(68, context);
-          ConnectionManager.Max_Day_CO2 = await cmg.getRequest(70, context);
-          ConnectionManager.Min_Day_CO2 = await cmg.getRequest(71, context);
-          ConnectionManager.Max_Night_CO2 = await cmg.getRequest(72, context);
-          ConnectionManager.Min_Night_CO2 = await cmg.getRequest(73, context);
-          ConnectionManager.IAQ_Flag = await cmg.getRequest(64, context);
-          ConnectionManager.CO2_Flag = await cmg.getRequest(69, context);
-
-          ConnectionManager.Max_Day_IAQ = (int.tryParse(ConnectionManager.Max_Day_IAQ) ?? 0).toString();
-          ConnectionManager.Min_Day_IAQ = (int.tryParse(ConnectionManager.Min_Day_IAQ) ?? 0).toString();
-          ConnectionManager.Max_Night_IAQ = (int.tryParse(ConnectionManager.Max_Night_IAQ) ?? 0).toString();
-          ConnectionManager.Min_Night_IAQ = (int.tryParse(ConnectionManager.Min_Night_IAQ) ?? 0).toString();
-          ConnectionManager.Max_Day_CO2 = (int.tryParse(ConnectionManager.Max_Day_CO2) ?? 0).toString();
-          ConnectionManager.Min_Day_CO2 = (int.tryParse(ConnectionManager.Min_Day_CO2) ?? 0).toString();
-          ConnectionManager.Max_Night_CO2 = (int.tryParse(ConnectionManager.Max_Night_CO2) ?? 0).toString();
-          ConnectionManager.Min_Night_CO2 = (int.tryParse(ConnectionManager.Min_Night_CO2) ?? 0).toString();
-          ConnectionManager.IAQ_Flag = (int.tryParse(ConnectionManager.IAQ_Flag) ?? 0).toString();
-          ConnectionManager.CO2_Flag = (int.tryParse(ConnectionManager.CO2_Flag) ?? 0).toString();
+          ConnectionManager.Max_Day_IAQ = (int.tryParse(await cmg.getRequest(65, context)) ?? 0).toString();
+          ConnectionManager.Min_Day_IAQ = (int.tryParse(await cmg.getRequest(66, context)) ?? 0).toString();
+          ConnectionManager.Max_Night_IAQ = (int.tryParse(await cmg.getRequest(67, context)) ?? 0).toString();
+          ConnectionManager.Min_Night_IAQ = (int.tryParse(await cmg.getRequest(68, context)) ?? 0).toString();
+          ConnectionManager.Max_Day_CO2 = (int.tryParse(await cmg.getRequest(70, context)) ?? 0).toString();
+          ConnectionManager.Min_Day_CO2 = (int.tryParse(await cmg.getRequest(71, context)) ?? 0).toString();
+          ConnectionManager.Max_Night_CO2 = (int.tryParse(await cmg.getRequest(72, context)) ?? 0).toString();
+          ConnectionManager.Min_Night_CO2 = (int.tryParse(await cmg.getRequest(73, context)) ?? 0).toString();
+          ConnectionManager.IAQ_Flag = (int.tryParse(await cmg.getRequest(64, context)) ?? 0).toString();
+          ConnectionManager.CO2_Flag = (int.tryParse(await cmg.getRequest(69, context)) ?? 0).toString();
           radio_gid = ConnectionManager.IAQ_Flag == "1" ? 0 : 1;
           radio_gid = ConnectionManager.CO2_Flag == "1" ? 1 : 0;
+
+          Old_Max_Day_IAQ = ConnectionManager.Max_Day_IAQ;
+          Old_Min_Day_IAQ = ConnectionManager.Min_Day_IAQ;
+          Old_Max_Night_IAQ = ConnectionManager.Max_Night_IAQ;
+          Old_Min_Night_IAQ = ConnectionManager.Min_Night_IAQ;
+          Old_Max_Day_CO2 = ConnectionManager.Max_Day_CO2;
+          Old_Min_Day_CO2 = ConnectionManager.Min_Day_CO2;
+          Old_Max_Night_CO2 = ConnectionManager.Max_Night_CO2;
+          Old_Min_Night_CO2 = ConnectionManager.Min_Night_CO2;
+
           if (mounted)
             setState(() {
               if (is_night) {
@@ -114,7 +147,7 @@ class wpage_air_qualityState extends State<wpage_air_quality> with SingleTickerP
           }
         }
       }
-
+      MODIFIED = false;
       if (_tabController!.index == 0) {
         await cmg.setRequest(65, Utils.lim_0_9999(ConnectionManager.Max_Day_IAQ), context);
         await cmg.setRequest(66, Utils.lim_0_9999(ConnectionManager.Min_Day_IAQ), context);
@@ -136,8 +169,6 @@ class wpage_air_qualityState extends State<wpage_air_quality> with SingleTickerP
 
       await cmg.setRequest(64, radio_gid == 0 ? "1" : "0", context);
       await cmg.setRequest(69, radio_gid == 0 ? "0" : "1", context);
-
-      // Utils.showSnackBar(context, "Done.");
 
       if (_tabController!.index == 0) {
         is_day_set = true;
@@ -162,24 +193,34 @@ class wpage_air_qualityState extends State<wpage_air_quality> with SingleTickerP
       return true;
     };
     widget.Next = () {
-      if (_tabController!.index == 0) {
-        if (!is_day_set) {
-          Utils.alert(context, "", "Please set Day time Air Quality.");
-          return false;
-        }
-        _tabController!.animateTo(1);
-      } else if (_tabController!.index == 1) {
-        if (!is_day_set) {
-          Utils.alert(context, "", "Please set Day time Air Quality.");
-          return false;
-        }
-        if (!is_night_set) {
-          Utils.alert(context, "", "Please set Night time Air Quality.");
-          return false;
-        }
-        return true;
+      if (MODIFIED) {
+        Utils.alert(context, "", "Please apply.");
+        return false;
       }
-      return false;
+
+      if (_tabController!.index == 0) {
+        _tabController!.animateTo(1);
+        return false;
+      }
+      return true;
+      // if (_tabController!.index == 0) {
+      //   if (!is_day_set) {
+      //     Utils.alert(context, "", "Please set Day time Air Quality.");
+      //     return false;
+      //   }
+      //   _tabController!.animateTo(1);
+      // } else if (_tabController!.index == 1) {
+      //   if (!is_day_set) {
+      //     Utils.alert(context, "", "Please set Day time Air Quality.");
+      //     return false;
+      //   }
+      //   if (!is_night_set) {
+      //     Utils.alert(context, "", "Please set Night time Air Quality.");
+      //     return false;
+      //   }
+      //   return true;
+      // }
+      // return false;
     };
     super.initState();
     _tabController = new TabController(vsync: this, length: tabs.length);
@@ -193,6 +234,19 @@ class wpage_air_qualityState extends State<wpage_air_quality> with SingleTickerP
     soft_reftresh_timer = Timer.periodic(new Duration(seconds: 1), (timer) async {
       soft_refresh();
     });
+    max_iaq_controller.addListener(() {
+      check_modification();
+    });
+    min_iaq_controller.addListener(() {
+      check_modification();
+    });
+    max_co2_controller.addListener(() {
+      check_modification();
+    });
+    min_co2_controller.addListener(() {
+      check_modification();
+    });
+
     Utils.setTimeOut(0, refresh);
   }
 
@@ -305,6 +359,8 @@ class wpage_air_qualityState extends State<wpage_air_quality> with SingleTickerP
                       if (radio_gid != value) radio_gid = value!;
                       if (!is_night) is_night_set = false;
                       if (is_night) is_day_set = false;
+
+                      check_modification();
                     });
                   },
                 ),
@@ -361,13 +417,10 @@ class wpage_air_qualityState extends State<wpage_air_quality> with SingleTickerP
           height: 50,
           padding: EdgeInsets.symmetric(horizontal: 8),
           child: OutlinedButton(
-            onPressed: () {
-              apply();
-              // IntroductionScreenState.force_next();
-            },
+            onPressed: MODIFIED ? apply : null,
             style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
-                side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
+                padding: EdgeInsets.only(top: 16, bottom: 10, left: 28, right: 28),
+                side: BorderSide(width: 2, color: MODIFIED ? Theme.of(context).primaryColor : Colors.grey),
                 shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
             child: Text("Apply", style: Theme.of(context).textTheme.bodyText1),
           ),
@@ -381,12 +434,25 @@ class wpage_air_qualityState extends State<wpage_air_quality> with SingleTickerP
           height: 50,
           padding: EdgeInsets.symmetric(horizontal: 8),
           child: OutlinedButton(
-            onPressed: () {},
+            onPressed: () {
+              AwesomeDialog(
+                context: context,
+                useRootNavigator: true,
+                dialogType: DialogType.WARNING,
+                animType: AnimType.BOTTOMSLIDE,
+                title: "Confirm",
+                desc: "Current Page Settings will be restored to factory defaults",
+                btnOkOnPress: () async {
+                  refresh();
+                },
+                btnCancelOnPress: () {},
+              )..show();
+            },
             style: OutlinedButton.styleFrom(
                 padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
                 side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
                 shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
-            child: Text("Restore Defaults", style: Theme.of(context).textTheme.bodyText1),
+            child: Text("Restore To Factory Defaults", style: Theme.of(context).textTheme.bodyText1),
           ),
         ),
       );
@@ -419,26 +485,24 @@ class wpage_air_qualityState extends State<wpage_air_quality> with SingleTickerP
           Container(
             color: Colors.black12,
             padding: EdgeInsets.symmetric(horizontal: 8),
-            child: Row(
+            child: Column(
               children: [
-                Text("Air Quality", style: Theme.of(context).textTheme.bodyText1),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: TabBar(
-                      isScrollable: false,
-                      unselectedLabelColor: Colors.grey,
-                      labelColor: Colors.white,
-                      indicatorSize: TabBarIndicatorSize.tab,
-                      indicator: new BubbleTabIndicator(
-                        indicatorHeight: 25.0,
-                        indicatorColor: Colors.blueAccent,
-                        tabBarIndicatorSize: TabBarIndicatorSize.tab,
-                      ),
-                      labelStyle: Theme.of(context).textTheme.bodyText1,
-                      tabs: tabs,
-                      controller: _tabController,
+                Text("Air Quality", style: Theme.of(context).textTheme.bodyText1!.copyWith(fontSize: 24)),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TabBar(
+                    isScrollable: false,
+                    unselectedLabelColor: Colors.grey,
+                    labelColor: Colors.white,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    indicator: new BubbleTabIndicator(
+                      indicatorHeight: 25.0,
+                      indicatorColor: Colors.blueAccent,
+                      tabBarIndicatorSize: TabBarIndicatorSize.tab,
                     ),
+                    labelStyle: Theme.of(context).textTheme.bodyText1,
+                    tabs: tabs,
+                    controller: _tabController,
                   ),
                 ),
               ],

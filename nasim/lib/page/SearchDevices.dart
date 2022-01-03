@@ -86,7 +86,12 @@ class _SearchDevicesState extends State<SearchDevices> {
       Provider.of<SavedDevicesChangeNotifier>(context, listen: false).setSelectedDevice(d);
       String deviceName = await Provider.of<ConnectionManager>(context, listen: false).getRequest(0);
       if (deviceName == "") {
-        if (await _displayDeviceNameDialog(context, d)) serial_validated();
+        if (await _displayDeviceNameDialog(context, d)) {
+          Navigator.pop(context);
+
+          await Utils.alert(context, "", "a new wifi named $deviceNameDialogInputValue is created.\n please connect to it and continue.");
+        }
+        //  serial_validated();
       } else {
         Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelectedDeviceName(deviceName).then((v) {
           serial_validated();
@@ -174,6 +179,7 @@ class _SearchDevicesState extends State<SearchDevices> {
                 child: Text('OK', style: Theme.of(context).textTheme.bodyText1),
                 onPressed: () async {
                   await Provider.of<ConnectionManager>(context, listen: false).setRequest(0, deviceNameDialogInputValue, context);
+                  Provider.of<ConnectionManager>(context, listen: false).setRequest(126, "reset", context);
                   Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelectedDeviceName(deviceNameDialogInputValue).then((value) {
                     dialog_beify_answer.complete(true);
                     Navigator.pop(context);

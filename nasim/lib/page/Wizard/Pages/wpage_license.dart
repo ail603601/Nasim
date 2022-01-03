@@ -61,7 +61,7 @@ class _wpage_licenseState extends State<wpage_license> {
             return;
           }
           var data = await Utils.ask_serial("You have to provdie license's serial number", context);
-          if (data == "" && data != "null") {
+          if (data == "" || data == "null") {
             return;
           }
           bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(5, data, context);
@@ -97,7 +97,7 @@ class _wpage_licenseState extends State<wpage_license> {
             return;
           }
           var data = await Utils.ask_serial("You have to provdie license's serial number", context);
-          if (data == "" && data != "null") {
+          if (data == "" || data == "null") {
             return;
           }
           bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(15, data, context);
@@ -135,7 +135,7 @@ class _wpage_licenseState extends State<wpage_license> {
             return;
           }
           var data = await Utils.ask_serial("You have to provdie license's serial number", context);
-          if (data == "" && data != "null") {
+          if (data == "" || data == "null") {
             return;
           }
           bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(4, data, context);
@@ -222,7 +222,7 @@ class _wpage_licenseState extends State<wpage_license> {
             return;
           }
           var data = await Utils.ask_serial("You have to provdie license's serial number", context);
-          if (data == "" && data != "null") {
+          if (data == "" || data == "null") {
             return;
           }
           bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(6, data, context);
@@ -261,7 +261,7 @@ class _wpage_licenseState extends State<wpage_license> {
             return;
           }
           var data = await Utils.ask_serial("You have to provdie license's serial number", context);
-          if (data == "" && data != "null") {
+          if (data == "" || data == "null") {
             return;
           }
           bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest((num + 6), data, context);

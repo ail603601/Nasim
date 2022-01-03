@@ -21,8 +21,9 @@ class HumidityPage extends StatefulWidget {
 class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderStateMixin {
   late ConnectionManager cmg;
   TabController? _tabController;
-  static bool is_night_set = false;
-  static bool is_day_set = false;
+  late Timer soft_reftresh_timer;
+  final TextEditingController humidity_min_controller = TextEditingController();
+  final TextEditingController humidity_max_controller = TextEditingController();
   @override
   void initState() {
     super.initState();
@@ -34,48 +35,69 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
       refresh();
     });
     cmg = Provider.of<ConnectionManager>(context, listen: false);
+    soft_reftresh_timer = Timer.periodic(new Duration(seconds: 1), (timer) async {
+      soft_refresh();
+    });
+    humidity_min_controller.addListener(() {
+      String value = humidity_min_controller.text;
+      if ((int.tryParse(value) ?? 0) > 100) {
+        setState(() {
+          humidity_min_controller.text = "100";
+        });
+      }
+    });
+
+    humidity_max_controller.addListener(() {
+      String value = humidity_max_controller.text;
+      if ((int.tryParse(value) ?? 0) > 100) {
+        setState(() {
+          humidity_min_controller.text = "100";
+        });
+      }
+    });
 
     Utils.setTimeOut(0, refresh);
   }
 
   @override
   void dispose() {
+    soft_reftresh_timer.cancel();
+
     super.dispose();
+  }
+
+  void soft_refresh() async {
+    ConnectionManager.Real_Humidity = await cmg.getRequest(91, context);
+    ConnectionManager.Real_Humidity = (int.tryParse(ConnectionManager.Real_Humidity) ?? 0).toString();
+    if (mounted) setState(() {});
   }
 
   refresh() async {
     await Utils.show_loading_timed(
         context: context,
         done: () async {
-          ConnectionManager.Humidity_Controller = await cmg.getRequest(59, context);
-          ConnectionManager.Min_Day_Humidity = await cmg.getRequest(61, context);
-          ConnectionManager.Min_Night_Humidity = await cmg.getRequest(63, context);
-          ConnectionManager.Max_Day_Humidity = await cmg.getRequest(60, context);
-          ConnectionManager.Max_Night_Humidity = await cmg.getRequest(62, context);
-
-          ConnectionManager.Humidity_Controller = (int.tryParse(ConnectionManager.Humidity_Controller) ?? 0).toString();
-          ConnectionManager.Min_Day_Humidity = (int.tryParse(ConnectionManager.Min_Day_Humidity) ?? 0).toString();
-          ConnectionManager.Min_Night_Humidity = (int.tryParse(ConnectionManager.Min_Night_Humidity) ?? 0).toString();
-          ConnectionManager.Max_Day_Humidity = (int.tryParse(ConnectionManager.Max_Day_Humidity) ?? 0).toString();
-          ConnectionManager.Max_Night_Humidity = (int.tryParse(ConnectionManager.Max_Night_Humidity) ?? 0).toString();
+          ConnectionManager.Humidity_Controller = (int.tryParse(await cmg.getRequest(59, context)) ?? 0).toString();
+          ConnectionManager.Min_Day_Humidity = (int.tryParse(await cmg.getRequest(61, context)) ?? 0).toString();
+          ConnectionManager.Min_Night_Humidity = (int.tryParse(await cmg.getRequest(63, context)) ?? 0).toString();
+          ConnectionManager.Max_Day_Humidity = (int.tryParse(await cmg.getRequest(60, context)) ?? 0).toString();
+          ConnectionManager.Max_Night_Humidity = (int.tryParse(await cmg.getRequest(62, context)) ?? 0).toString();
 
           if (mounted)
             setState(() {
               humidity_controller_radio_gvalue = (int.tryParse(ConnectionManager.Humidity_Controller) ?? 0);
 
               if (is_night) {
-                humidity_min = (int.tryParse(ConnectionManager.Min_Night_Humidity) ?? 0).toString();
-                humidity_max = (int.tryParse(ConnectionManager.Max_Night_Humidity) ?? 0).toString();
+                humidity_min_controller.text = (int.tryParse(ConnectionManager.Min_Night_Humidity) ?? 0).toString();
+                humidity_max_controller.text = (int.tryParse(ConnectionManager.Max_Night_Humidity) ?? 0).toString();
               } else {
-                humidity_min = (int.tryParse(ConnectionManager.Min_Day_Humidity) ?? 0).toString();
-                humidity_max = (int.tryParse(ConnectionManager.Max_Day_Humidity) ?? 0).toString();
+                humidity_min_controller.text = (int.tryParse(ConnectionManager.Min_Day_Humidity) ?? 0).toString();
+                humidity_max_controller.text = (int.tryParse(ConnectionManager.Max_Day_Humidity) ?? 0).toString();
               }
             });
         });
   }
 
   Widget build_boxed_titlebox({required title, required child}) {
-    // debugger();
     return Container(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: new InputDecorator(
@@ -86,8 +108,11 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
 
   int humidity_controller_radio_gvalue = 0;
 
-  String humidity_min = "";
-  Widget row_humidity_min(value) => Padding(
+  Widget row_actual_humidity() => build_boxed_titlebox(
+      title: "Actual Humidity: ",
+      child: Center(child: Text((int.tryParse(ConnectionManager.Real_Humidity) ?? 0).toString() + " %", style: Theme.of(context).textTheme.bodyText1)));
+
+  Widget row_humidity_min() => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
@@ -97,24 +122,25 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   maxLength: 3,
                   style: Theme.of(context).textTheme.bodyText1,
-                  controller: TextEditingController()..text = (int.tryParse(value) ?? 0).toString(),
-                  onChanged: (value) {
-                    humidity_min = Utils.lim_0_100(value);
-                    if (is_night) {
-                      ConnectionManager.Min_Night_Humidity = int.parse(humidity_min).toString().padLeft(3, '0');
-                    } else {
-                      ConnectionManager.Min_Day_Humidity = int.parse(humidity_min).toString().padLeft(3, '0');
-                    }
-                    if (int.parse(humidity_min) == 100) setState(() {});
-                  },
+                  controller: humidity_min_controller,
+                  onTap: () => humidity_min_controller.selection = TextSelection(baseOffset: 0, extentOffset: humidity_min_controller.value.text.length),
+
+                  // onChanged: (value) {
+                  //   humidity_min = Utils.lim_0_100(value);
+                  //   if (is_night) {
+                  //     ConnectionManager.Min_Night_Humidity = int.parse(humidity_min).toString().padLeft(3, '0');
+                  //   } else {
+                  //     ConnectionManager.Min_Day_Humidity = int.parse(humidity_min).toString().padLeft(3, '0');
+                  //   }
+                  //   if (int.parse(humidity_min) == 100) setState(() {});
+                  // },
                   keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                   decoration: InputDecoration(suffix: Text(' %'), counterText: "")),
             ),
           ],
         ),
       );
-  String humidity_max = "";
-  Widget row_humidity_max(value) => Padding(
+  Widget row_humidity_max() => Padding(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
@@ -124,16 +150,8 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 maxLength: 3,
                 style: Theme.of(context).textTheme.bodyText1,
-                controller: TextEditingController()..text = (int.tryParse(value) ?? 0).toString(),
-                onChanged: (value) {
-                  humidity_max = Utils.lim_0_100(value);
-                  if (is_night) {
-                    ConnectionManager.Max_Night_Humidity = int.parse(humidity_max).toString().padLeft(3, '0');
-                  } else {
-                    ConnectionManager.Max_Day_Humidity = int.parse(humidity_max).toString().padLeft(3, '0');
-                  }
-                  if (int.parse(humidity_max) == 100) setState(() {});
-                },
+                controller: humidity_max_controller,
+                onTap: () => humidity_max_controller.selection = TextSelection(baseOffset: 0, extentOffset: humidity_max_controller.value.text.length),
                 keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 decoration: InputDecoration(suffix: Text(' %'), counterText: ""),
               ),
@@ -154,17 +172,10 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
     ];
   }
 
-  Widget humidity_fragment_night() => Column(
+  Widget humidity_fragment() => Column(
         children: [
-          row_humidity_min((int.tryParse(ConnectionManager.Min_Night_Humidity) ?? 0).toString()),
-          row_humidity_max((int.tryParse(ConnectionManager.Max_Night_Humidity) ?? 0).toString()),
-        ],
-      );
-
-  Widget humidity_fragment_day() => Column(
-        children: [
-          row_humidity_min((int.tryParse(ConnectionManager.Min_Day_Humidity) ?? 0).toString()),
-          row_humidity_max((int.tryParse(ConnectionManager.Max_Day_Humidity) ?? 0).toString()),
+          row_humidity_min(),
+          row_humidity_max(),
         ],
       );
 
@@ -198,27 +209,35 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
                 padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
                 side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
                 shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
-            child: Text("Restore Defaults", style: Theme.of(context).textTheme.bodyText1),
+            child: Text("Restore To Factory Defaults", style: Theme.of(context).textTheme.bodyText1),
           ),
         ),
       );
   bool is_night = false;
 
   apply_humidity() async {
-    if (int.parse(humidity_min) + 5 > int.parse(humidity_max)) {
+    int humidity_min = (int.tryParse(humidity_min_controller.text) ?? 0);
+    int humidity_max = (int.tryParse(humidity_max_controller.text) ?? 0);
+
+    if ((humidity_min) + 5 > (humidity_max)) {
       Utils.alert(context, "Error", "Humidity max must be 5 percent more than min.");
       return;
     }
+
     await cmg.setRequest(59, (ConnectionManager.Humidity_Controller).padLeft(1), context);
 
     if (_tabController!.index == 0) {
+      ConnectionManager.Min_Day_Humidity = (int.tryParse(humidity_min_controller.text) ?? 0).toString();
+      ConnectionManager.Max_Day_Humidity = (int.tryParse(humidity_max_controller.text) ?? 0).toString();
+
       await cmg.setRequest(61, Utils.lim_0_100(ConnectionManager.Min_Day_Humidity), context);
       await cmg.setRequest(60, Utils.lim_0_100(ConnectionManager.Max_Day_Humidity), context);
     } else {
+      ConnectionManager.Min_Night_Humidity = (int.tryParse(humidity_min_controller.text) ?? 0).toString();
+      ConnectionManager.Max_Night_Humidity = (int.tryParse(humidity_max_controller.text) ?? 0).toString();
       await cmg.setRequest(63, Utils.lim_0_100(ConnectionManager.Min_Night_Humidity), context);
       await cmg.setRequest(62, Utils.lim_0_100(ConnectionManager.Max_Night_Humidity), context);
     }
-
     Utils.showSnackBar(context, "Done.");
   }
 
@@ -285,7 +304,7 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
             padding: EdgeInsets.symmetric(horizontal: 8),
             child: Row(
               children: [
-                 Text("Humidity", style: Theme.of(context).textTheme.bodyText1),
+                Text("Humidity", style: Theme.of(context).textTheme.bodyText1),
                 Expanded(
                   child: Align(
                     alignment: Alignment.centerRight,
@@ -315,14 +334,18 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
           SizedBox(
             height: 16,
           ),
+          row_actual_humidity(),
+          SizedBox(
+            height: 16,
+          ),
           controller_selector(),
           Expanded(
               child: new TabBarView(
             controller: _tabController,
             physics: NeverScrollableScrollPhysics(),
             children: [
-              humidity_fragment_day(),
-              humidity_fragment_night(),
+              humidity_fragment(),
+              humidity_fragment(),
             ],
           )),
           build_apply_button(() {

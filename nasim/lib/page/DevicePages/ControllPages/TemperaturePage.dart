@@ -136,15 +136,15 @@ class _TemperaturePageState extends State<TemperaturePage> with SingleTickerProv
       await cmg.setRequest(50, Utils.sign_int_100(ConnectionManager.Cooler_Stop_Temp_Day), context);
       await cmg.setRequest(51, Utils.sign_int_100(ConnectionManager.Heater_Start_Temp_Day), context);
       await cmg.setRequest(52, Utils.sign_int_100(ConnectionManager.Heater_Stop_Temp_Day), context);
-
-      //night same as day
-      await cmg.setRequest(53, Utils.sign_int_100(ConnectionManager.Favourite_Room_Temp_Day_), context);
-      await cmg.setRequest(54, (ConnectionManager.Room_Temp_Sensitivity_Day), context);
-      await cmg.setRequest(55, Utils.sign_int_100(ConnectionManager.Cooler_Start_Temp_Day), context);
-      await cmg.setRequest(56, Utils.sign_int_100(ConnectionManager.Cooler_Stop_Temp_Day), context);
-      await cmg.setRequest(57, Utils.sign_int_100(ConnectionManager.Heater_Start_Temp_Day), context);
-      await cmg.setRequest(58, Utils.sign_int_100(ConnectionManager.Heater_Stop_Temp_Day), context);
     } else {
+      ConnectionManager.Favourite_Room_Temp_Night = (int.tryParse(room_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+      double val_f = (double.tryParse(room_temp_sensivity_controller.text) ?? 0.0);
+      ConnectionManager.Room_Temp_Sensitivity_Night = max(0, min((val_f), 2)).toString().padLeft(3, '0');
+      ConnectionManager.Cooler_Start_Temp_Night = (int.tryParse(cooler_start_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+      ConnectionManager.Cooler_Stop_Temp_Night = (int.tryParse(cooler_stop_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+      ConnectionManager.Heater_Start_Temp_Night = (int.tryParse(heater_start_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+      ConnectionManager.Heater_Stop_Temp_Night = (int.tryParse(heater_stop_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+
       //Night Time
       await cmg.setRequest(53, Utils.sign_int_100(ConnectionManager.Favourite_Room_Temp_Night), context);
       await cmg.setRequest(54, (ConnectionManager.Room_Temp_Sensitivity_Night), context);
@@ -161,6 +161,35 @@ class _TemperaturePageState extends State<TemperaturePage> with SingleTickerProv
 
   bool is_night = false;
 
+  Widget build_boxed_titlebox({required title, required child}) {
+    return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: new InputDecorator(
+            decoration: InputDecoration(
+                labelText: title, labelStyle: Theme.of(context).textTheme.bodyText1, border: OutlineInputBorder(borderSide: BorderSide(color: Colors.yellow))),
+            child: child));
+  }
+
+  Widget build_temperature_inf() => Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          children: [
+            Expanded(
+              child: build_boxed_titlebox(
+                title: "Actual Room Temperature",
+                child: Center(
+                    child: Text((int.tryParse(ConnectionManager.Real_Room_Temp_0) ?? 0).toString() + " °C", style: Theme.of(context).textTheme.bodyText1)),
+              ),
+            ),
+            Expanded(
+                child: build_boxed_titlebox(
+                    title: "Actual Outdoor Temperature",
+                    child: Center(
+                        child:
+                            Text((int.tryParse(ConnectionManager.Real_Outdoor_Temp) ?? 0).toString() + " °C", style: Theme.of(context).textTheme.bodyText1))))
+          ],
+        ),
+      );
   Widget row_room_temp() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
@@ -329,7 +358,7 @@ class _TemperaturePageState extends State<TemperaturePage> with SingleTickerProv
                 padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
                 side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
                 shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
-            child: Text("Restore Defaults", style: Theme.of(context).textTheme.bodyText1),
+            child: Text("Restore To Factory Defaults", style: Theme.of(context).textTheme.bodyText1),
           ),
         ),
       );
@@ -392,6 +421,10 @@ class _TemperaturePageState extends State<TemperaturePage> with SingleTickerProv
               ],
             ),
           ),
+          SizedBox(
+            height: 10,
+          ),
+          build_temperature_inf(),
           Expanded(
               child: new TabBarView(
             controller: _tabController,

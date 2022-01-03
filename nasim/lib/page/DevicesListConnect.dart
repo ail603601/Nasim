@@ -39,6 +39,7 @@ class DevicesListConnectState extends State<DevicesListConnect> {
   }
 
   void reestablish_connections() {
+    Provider.of<MenuInfo>(context, listen: false).menuType = MenuType.Overview;
     Provider.of<SavedDevicesChangeNotifier>(context, listen: false).saved_devices.forEach((element) {
       element.accessibility = DeviceAccessibility.InAccessible;
     });
@@ -221,7 +222,8 @@ class DevicesListConnectState extends State<DevicesListConnect> {
         floatingActionButton: FloatingActionButton(
             child: Icon(Icons.add),
             onPressed: () async {
-              if (await Navigator.pushNamed(context, '/search_devices') == 1) {
+              bool start_wizard = await Navigator.pushNamed(context, '/search_devices') == 1;
+              if (start_wizard) {
                 connect_to_device(SavedDevicesChangeNotifier.getSelectedDevice()!);
               }
             }),

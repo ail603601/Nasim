@@ -60,7 +60,7 @@ class _DeviceInfoPageState extends State<DeviceInfoPage> {
     bg_dark = !bg_dark;
     return Column(children: [
       Container(
-        color: bg_dark ? Colors.white : Colors.black12,
+        color: bg_dark ? Colors.transparent : Colors.black12,
         padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6),
         child: Row(
           children: [
@@ -85,7 +85,7 @@ class _DeviceInfoPageState extends State<DeviceInfoPage> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        color: Theme.of(context).canvasColor,
+        color: Colors.transparent,
         child: SafeArea(
             child: SingleChildScrollView(
           child: Column(mainAxisSize: MainAxisSize.max, children: [

@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
 import 'package:nasim/provider/SavedevicesChangeNofiter.dart';
@@ -118,13 +118,6 @@ class _InternetPageState extends State<InternetPage> {
                     controller: _wifinameController,
                     style: Theme.of(context).textTheme.bodyText1,
                     decoration: InputDecoration(hintText: 'Wifi Name'),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter Wifi name';
-                      }
-                      if (value.length > 30) return "Maximum 30 characters are allowed";
-                      return null;
-                    },
                   ),
                 ),
                 Padding(
@@ -133,33 +126,29 @@ class _InternetPageState extends State<InternetPage> {
                     controller: _wifipassController,
                     style: Theme.of(context).textTheme.bodyText1,
                     decoration: InputDecoration(hintText: 'Wifi Password'),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter Wifi name';
-                      } else if (value.length > 30) return "Maximum 30 characters are allowed";
-                      return null;
-                    },
                   ),
                 ),
                 SizedBox(
                   height: 28,
                 ),
-                ListTile(
-                    leading: Icon(Icons.qr_code),
-                    title: Text("Scan Wifi BarCode", style: Theme.of(context).textTheme.bodyText1!),
-                    onTap: () async {
-                      String return_value = (await Navigator.pushNamed(context, "/scan_barcode")).toString();
-                      if (return_value == "null") {
-                        return_value = "";
-                      }
-                      String _name = return_value.substring(return_value.indexOf("S:"));
-                      _name = _name.substring(0, _name.indexOf(";"));
-
-                      String _pass = return_value.substring(return_value.indexOf("P:"));
-                      _pass = _pass.substring(0, _pass.indexOf(";"));
-
-                      Navigator.pop(context);
-                    }),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: ListTile(
+                      leading: Icon(Icons.qr_code),
+                      title: Text("Scan Wifi BarCode", style: Theme.of(context).textTheme.bodyText1!),
+                      onTap: () async {
+                        String return_value = (await Navigator.of(context, rootNavigator: true).pushNamed("/scan_barcode")).toString();
+                        if (return_value == "null" || return_value == "") {
+                          return;
+                        }
+                        String _name = return_value.substring(return_value.indexOf("S:") + 2);
+                        _name = _name.substring(0, _name.indexOf(";"));
+                        _wifinameController.text = _name;
+                        String _pass = return_value.substring(return_value.indexOf("P:") + 2);
+                        _pass = _pass.substring(0, _pass.indexOf(";"));
+                        _wifipassController.text = _pass;
+                      }),
+                ),
                 Divider(
                   color: Theme.of(context).accentColor,
                 ),
@@ -193,15 +182,41 @@ class _InternetPageState extends State<InternetPage> {
         padding: EdgeInsets.symmetric(horizontal: 10),
         child: OutlinedButton(
           onPressed: () async {
-            if (is_locall_conntection(context)) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Internet Connection Enabled.')),
-              );
+            try {
+              if (is_locall_conntection(context)) {
+                if (_wifinameController.text.isEmpty) {
+                  Utils.show_error_dialog(context, "", 'Please enter Wifi name', null);
+                  return;
+                }
+                if (_wifinameController.text.length > 20) {
+                  Utils.show_error_dialog(context, "", 'Wifi name Maximum 20 characters are allowed', null);
+                  return;
+                }
 
-              await cmg.setRequest(123, _wifinameController.text);
-              await cmg.setRequest(124, _wifipassController.text);
-              await cmg.setRequest(125, "1");
-            }
+                if (_wifipassController.text.length > 20) {
+                  Utils.show_error_dialog(context, "", 'Password Maximum 20 characters are allowed', null);
+                  return;
+                }
+
+                AwesomeDialog(
+                  context: context,
+                  useRootNavigator: true,
+                  dialogType: DialogType.WARNING,
+                  animType: AnimType.BOTTOMSLIDE,
+                  title: "Confirm",
+                  desc:
+                      "The Air conditioner will restart and tries to connect to Wifi '${_wifinameController.text}' you must connect to it in order to controll your device, or you can connect to the device over internet if '${_wifinameController.text}' has interner access.\n if connection fails the air conditioner will create it's own Wifi like before. \n",
+                  btnOkOnPress: () async {
+                    await cmg.setRequest(123, _wifinameController.text);
+                    await cmg.setRequest(124, _wifipassController.text);
+                    await cmg.setRequest(125, "1");
+                    cmg.setRequest(127, "1");
+                    Navigator.of(context, rootNavigator: true).popUntil((route) => route.isFirst);
+                  },
+                  btnCancelOnPress: () {},
+                )..show();
+              }
+            } catch (e) {}
           },
           style: OutlinedButton.styleFrom(
               padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
@@ -224,6 +239,8 @@ class _InternetPageState extends State<InternetPage> {
               await cmg.setRequest(123, "");
               await cmg.setRequest(124, "");
               await cmg.setRequest(125, "0");
+              cmg.setRequest(127, "1");
+              Navigator.of(context, rootNavigator: true).popUntil((route) => route.isFirst);
             }
           },
           style: OutlinedButton.styleFrom(

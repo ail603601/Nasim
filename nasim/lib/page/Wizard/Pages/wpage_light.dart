@@ -24,22 +24,36 @@ class wpage_light extends StatefulWidget {
 
 class _wpage_lightState extends State<wpage_light> {
   late ConnectionManager cmg;
-  static bool is_both_set = false;
+  static bool is_applied = false;
 
   late Timer soft_reftresh_timer;
 
   final TextEditingController max_lux_controller = TextEditingController();
   final TextEditingController min_lux_controller = TextEditingController();
+
+  String Old_Min_Day_Lux = "";
+  String Old_Max_Night_Lux = "";
+
+  bool MODIFIED = false;
+  bool check_modification() {
+    if (Old_Min_Day_Lux == max_lux_controller.text.toString() && Old_Max_Night_Lux == min_lux_controller.text.toString()) {
+      MODIFIED = false;
+    } else
+      MODIFIED = true;
+    return MODIFIED;
+  }
+
   refresh() async {
     await Utils.show_loading_timed(
         context: context,
         done: () async {
-          ConnectionManager.Min_Day_Lux = (await cmg.getRequest(74, context));
-          ConnectionManager.Max_Night_Lux = (await cmg.getRequest(75, context));
+          ConnectionManager.Min_Day_Lux = (int.tryParse(await cmg.getRequest(74, context)) ?? 0).toString();
+          ConnectionManager.Max_Night_Lux = (int.tryParse(await cmg.getRequest(75, context)) ?? 0).toString();
 
-          ConnectionManager.Min_Day_Lux = (int.tryParse(ConnectionManager.Min_Day_Lux) ?? 0).toString();
-          ConnectionManager.Max_Night_Lux = (int.tryParse(ConnectionManager.Max_Night_Lux) ?? 0).toString();
-
+          if (Old_Min_Day_Lux == "") {
+            Old_Min_Day_Lux = ConnectionManager.Min_Day_Lux;
+            Old_Max_Night_Lux = ConnectionManager.Max_Night_Lux;
+          }
           max_lux_controller.text = ConnectionManager.Min_Day_Lux;
           min_lux_controller.text = ConnectionManager.Max_Night_Lux;
 
@@ -57,14 +71,24 @@ class _wpage_lightState extends State<wpage_light> {
   void initState() {
     super.initState();
     widget.Next = () {
-      if (!is_both_set) {
-        Utils.alert(context, " ", "Please apply values.");
+      if (MODIFIED) {
+        Utils.alert(context, "", "Please apply.");
+        return false;
       }
-      return is_both_set;
+      WizardPageState.wizardEnded(context);
+
+      return true;
     };
     cmg = Provider.of<ConnectionManager>(context, listen: false);
     soft_reftresh_timer = Timer.periodic(new Duration(seconds: 1), (timer) async {
       soft_refresh();
+    });
+
+    max_lux_controller.addListener(() {
+      check_modification();
+    });
+    min_lux_controller.addListener(() {
+      check_modification();
     });
     Utils.setTimeOut(0, refresh);
   }
@@ -77,8 +101,8 @@ class _wpage_lightState extends State<wpage_light> {
 
   apply() async {
     try {
-      ConnectionManager.Min_Day_Lux = (int.tryParse(max_lux_controller.text) ?? 0).toString();
-      ConnectionManager.Max_Night_Lux = (int.tryParse(min_lux_controller.text) ?? 0).toString();
+      ConnectionManager.Min_Day_Lux = (int.tryParse(min_lux_controller.text) ?? 0).toString();
+      ConnectionManager.Max_Night_Lux = (int.tryParse(max_lux_controller.text) ?? 0).toString();
 
       if (int.parse(ConnectionManager.Min_Day_Lux) + 50 > int.parse(ConnectionManager.Max_Night_Lux)) {
         Utils.alert(context, "", "Maximum must be 50Lux higher than maximum.");
@@ -88,7 +112,7 @@ class _wpage_lightState extends State<wpage_light> {
       await cmg.setRequest(74, Utils.lim_0_9999(ConnectionManager.Min_Day_Lux), context);
 
       await cmg.setRequest(75, Utils.lim_0_9999(ConnectionManager.Max_Night_Lux), context);
-      is_both_set = true;
+      is_applied = true;
       Utils.show_done_dialog(context, "Settings finsihed successfuly.", "Your device is initialized completely and ready to use.", () {
         WizardPageState.wizardEnded(context);
       });
@@ -119,12 +143,10 @@ class _wpage_lightState extends State<wpage_light> {
           height: 50,
           padding: EdgeInsets.symmetric(horizontal: 8),
           child: OutlinedButton(
-            onPressed: () {
-              apply();
-            },
+            onPressed: MODIFIED ? apply : null,
             style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
-                side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
+                padding: EdgeInsets.only(top: 16, bottom: 10, left: 28, right: 28),
+                side: BorderSide(width: 2, color: MODIFIED ? Theme.of(context).primaryColor : Colors.grey),
                 shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
             child: Text("Apply", style: Theme.of(context).textTheme.bodyText1),
           ),
@@ -152,12 +174,25 @@ class _wpage_lightState extends State<wpage_light> {
           holdTimeout: Duration(milliseconds: 10000),
           // enableHapticFeedback: true,
           child: OutlinedButton(
-            onPressed: () {},
+            onPressed: () {
+              AwesomeDialog(
+                context: context,
+                useRootNavigator: true,
+                dialogType: DialogType.WARNING,
+                animType: AnimType.BOTTOMSLIDE,
+                title: "Confirm",
+                desc: "Current Page Settings will be restored to factory defaults",
+                btnOkOnPress: () async {
+                  refresh();
+                },
+                btnCancelOnPress: () {},
+              )..show();
+            },
             style: OutlinedButton.styleFrom(
                 padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
                 side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
                 shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
-            child: Text("Restore Defaults", style: Theme.of(context).textTheme.bodyText1),
+            child: Text("Restore To Factory Defaults", style: Theme.of(context).textTheme.bodyText1),
           ),
         ),
       ));
@@ -224,7 +259,20 @@ class _wpage_lightState extends State<wpage_light> {
           padding: EdgeInsets.only(top: 0),
           color: Theme.of(context).canvasColor,
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            ...make_title("Light levels"),
+            Container(
+              color: Colors.black12,
+              padding: EdgeInsets.symmetric(horizontal: 8),
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Center(
+                      child: Text("Light", style: Theme.of(context).textTheme.bodyText1!.copyWith(fontSize: 24)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
             SizedBox(
               height: 16,
             ),

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:bubble_tab_indicator/bubble_tab_indicator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -37,6 +38,19 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
 
   late String current_license_selected;
 
+  String Old_Min_Valid_Output_Fan_Speed = "";
+  String Old_Max_Valid_Output_Fan_Speed = "";
+  bool MODIFIED = false;
+
+  bool check_modification() {
+    if (Old_Min_Valid_Output_Fan_Speed == minimum_negative_presure_fan_speed.toInt().toString() &&
+        Old_Max_Valid_Output_Fan_Speed == maximum_negative_presure_fan_speed.toInt().toString()) {
+      MODIFIED = false;
+    } else
+      MODIFIED = true;
+    return MODIFIED;
+  }
+
   void soft_refresh() async {
     ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest(34, context)) ?? "0").toString();
     ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest(35, context)) ?? "0").toString();
@@ -64,30 +78,35 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
       return true;
     };
     widget.Next = () {
+      if (MODIFIED) return false;
       if (_tabController!.index == 0) {
-        if (!is_minimum_set) {
-          Utils.alert(context, " ", "please set minimum fan speed");
-          return false;
-        } else {
-          setState(() {});
-          _tabController!.animateTo(1);
-
-          return false;
-        }
-      } else if (_tabController!.index == 1) {
-        if (!is_minimum_set) {
-          Utils.alert(context, " ", "please set minimum fan speed");
-          return false;
-        }
-        if (!is_maximum_set) {
-          Utils.alert(context, " ", "please set maximum fan speed");
-          return false;
-        } else {
-          return true;
-        }
+        _tabController!.animateTo(1);
+        return false;
       }
+      return true;
 
-      return false;
+      // if (_tabController!.index == 0) {
+      //   if (!is_minimum_set) {
+      //     Utils.alert(context, " ", "please set minimum fan speed");
+      //     return false;
+      //   } else {
+      //     setState(() {});
+      //     _tabController!.animateTo(1);
+
+      //     return false;
+      //   }
+      // } else if (_tabController!.index == 1) {
+      //   if (!is_minimum_set) {
+      //     Utils.alert(context, " ", "please set minimum fan speed");
+      //     return false;
+      //   }
+      //   if (!is_maximum_set) {
+      //     Utils.alert(context, " ", "please set maximum fan speed");
+      //     return false;
+      //   } else {
+      //     return true;
+      //   }
+      // }
     };
 
     cmg = Provider.of<ConnectionManager>(context, listen: false);
@@ -120,6 +139,9 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
                   (int.tryParse(ConnectionManager.Min_Valid_Output_Fan_Speed) ?? minimum_negative_presure_fan_speed).toDouble();
               maximum_negative_presure_fan_speed =
                   (int.tryParse(ConnectionManager.Max_Valid_Output_Fan_Speed) ?? maximum_negative_presure_fan_speed).toDouble();
+
+              Old_Min_Valid_Output_Fan_Speed = minimum_negative_presure_fan_speed.toInt().toString();
+              Old_Max_Valid_Output_Fan_Speed = maximum_negative_presure_fan_speed.toInt().toString();
             });
         });
   }
@@ -219,30 +241,29 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
       );
 
   Future<void> set_air_speed_min_negative_pressure(double value) async {
-    try {
-      ConnectionManager.Min_Valid_Output_Fan_Speed = value.toInt().toString().padLeft(3, '0');
-      await cmg.setRequest(37, ConnectionManager.Min_Valid_Output_Fan_Speed, context);
-      if (maximum_negative_presure_fan_speed < value + 5) {
-        await set_air_speed_max_negative_pressure(value + 5);
-      }
-
-      is_minimum_set = true;
-    } catch (e) {}
+    ConnectionManager.Min_Valid_Output_Fan_Speed = value.toInt().toString().padLeft(3, '0');
+    await cmg.setRequest(37, ConnectionManager.Min_Valid_Output_Fan_Speed, context);
+    if (maximum_negative_presure_fan_speed < value + 5) {
+      await set_air_speed_max_negative_pressure(value + 5);
+    }
+    MODIFIED = false;
+    is_minimum_set = true;
   }
 
   Future<void> set_air_speed_max_negative_pressure(double value) async {
-    try {
-      if (minimum_negative_presure_fan_speed + 5 > value) {
-        await Utils.alert(context, "Error", "Maximum negative fan pressure must be at least 5 percent more than minimum.");
-        return;
-      }
-      ConnectionManager.Max_Valid_Output_Fan_Speed = value.toInt().toString().padLeft(3, '0');
-      cmg.setRequest(38, ConnectionManager.Max_Valid_Output_Fan_Speed, context);
+    // if (!is_minimum_set) {
+    //   await Utils.alert(context, "", "please set minimum fan speed before setting maximum.");
+    //   return;
+    // }
 
-      if (value >= minimum_negative_presure_fan_speed + 5) {
-        is_maximum_set = true;
-      }
-    } catch (e) {}
+    if (minimum_negative_presure_fan_speed + 5 > value) {
+      await Utils.alert(context, "Error", "Maximum negative fan pressure must be at least 5 percent more than minimum.");
+      return;
+    }
+    ConnectionManager.Max_Valid_Output_Fan_Speed = value.toInt().toString().padLeft(3, '0');
+    cmg.setRequest(38, ConnectionManager.Max_Valid_Output_Fan_Speed, context);
+    is_maximum_set = true;
+    MODIFIED = false;
   }
 
   build_icon_btn(bool up, Function() clicked) {}
@@ -296,6 +317,7 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
                   onHold: () async {
                     setState(() {
                       minimum_negative_presure_fan_speed = min(minimum_negative_presure_fan_speed.roundToDouble() + 2.0, 95);
+                      check_modification();
                     });
                   },
                   holdTimeout: Duration(milliseconds: 1000),
@@ -307,6 +329,7 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
                     onPressed: () async {
                       setState(() {
                         minimum_negative_presure_fan_speed = min(minimum_negative_presure_fan_speed.roundToDouble() + 1.0, 95);
+                        check_modification();
                       });
                     },
                   ),
@@ -330,6 +353,7 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
                   onHold: () async {
                     setState(() {
                       minimum_negative_presure_fan_speed = max(minimum_negative_presure_fan_speed.roundToDouble() - 2.0, 0);
+                      check_modification();
                     });
                   },
                   holdTimeout: Duration(milliseconds: 1000),
@@ -341,6 +365,7 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
                     onPressed: () async {
                       setState(() {
                         minimum_negative_presure_fan_speed = max(minimum_negative_presure_fan_speed.roundToDouble() - 1.0, 0);
+                        check_modification();
                       });
                     },
                   ),
@@ -355,125 +380,114 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
   }
 
   Widget build_air_speed_max_negative_pressure() {
-    if (!is_minimum_set)
-      return Align(
-        alignment: Alignment.topCenter,
-        child: Container(
-            width: double.infinity,
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-                color: Colors.pink[600]!,
-                border: Border.all(
-                  color: Colors.pink[600]!,
-                ),
-                borderRadius: BorderRadius.all(Radius.circular(8))),
-            child: Container(child: Text("Please set minimum fan speed before changing maximum fan speed.", style: Theme.of(context).textTheme.headline6))),
-      );
-    else
-      return build_boxed_titlebox(
-        title: "Maximum Negative Pressure",
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Row(
-            children: [
-              Text("Outlet Fan Speed: ", style: Theme.of(context).textTheme.bodyText1),
-              Text(maximum_negative_presure_fan_speed.toString() + " %", style: Theme.of(context).textTheme.bodyText1),
-            ],
-          ),
-          CupertinoSlider(
-            value: maximum_negative_presure_fan_speed,
-            min: 0.0,
-            max: 100.0,
-            divisions: 100,
-            onChanged: (double newValue) {},
-            onChangeEnd: (double newValue) async {},
-          ),
-          SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(child: Text("Outlet Fan Power: ", style: Theme.of(context).textTheme.bodyText1)),
-              Expanded(child: Center(child: Text((real_output_fan_power).toString() + " W", style: Theme.of(context).textTheme.bodyText1)))
-            ],
-          ),
-          SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(child: Text("Pressure Change: ", style: Theme.of(context).textTheme.bodyText1)),
-              Expanded(
-                  child: Center(
-                      child: Text((int.tryParse(ConnectionManager.Pressure_change) ?? 0).toString() + "hpa", style: Theme.of(context).textTheme.bodyText1)))
-            ],
-          ),
-          SizedBox(height: 16),
-          Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+    return build_boxed_titlebox(
+      title: "Maximum Negative Pressure",
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Row(
+          children: [
+            Text("Outlet Fan Speed: ", style: Theme.of(context).textTheme.bodyText1),
+            Text(maximum_negative_presure_fan_speed.toString() + " %", style: Theme.of(context).textTheme.bodyText1),
+          ],
+        ),
+        CupertinoSlider(
+          value: maximum_negative_presure_fan_speed,
+          min: 0.0,
+          max: 100.0,
+          divisions: 100,
+          onChanged: (double newValue) {},
+          onChangeEnd: (double newValue) async {},
+        ),
+        SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(child: Text("Outlet Fan Power: ", style: Theme.of(context).textTheme.bodyText1)),
+            Expanded(child: Center(child: Text((real_output_fan_power).toString() + " W", style: Theme.of(context).textTheme.bodyText1)))
+          ],
+        ),
+        SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(child: Text("Pressure Change: ", style: Theme.of(context).textTheme.bodyText1)),
             Expanded(
-              child: Material(
-                clipBehavior: Clip.hardEdge,
-                borderRadius: BorderRadius.circular(5.0),
-                child: Ink(
-                  decoration: const ShapeDecoration(
-                    color: Colors.blue,
-                    shape: Border(),
-                  ),
-                  child: HoldDetector(
-                    onHold: () async {
+                child: Center(
+                    child: Text((int.tryParse(ConnectionManager.Pressure_change) ?? 0).toString() + "hpa", style: Theme.of(context).textTheme.bodyText1)))
+          ],
+        ),
+        SizedBox(height: 16),
+        Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
+          Expanded(
+            child: Material(
+              clipBehavior: Clip.hardEdge,
+              borderRadius: BorderRadius.circular(5.0),
+              child: Ink(
+                decoration: const ShapeDecoration(
+                  color: Colors.blue,
+                  shape: Border(),
+                ),
+                child: HoldDetector(
+                  onHold: () async {
+                    setState(() {
+                      maximum_negative_presure_fan_speed = min(maximum_negative_presure_fan_speed.roundToDouble() + 2.0, 100);
+                      check_modification();
+                    });
+                  },
+                  holdTimeout: Duration(milliseconds: 1000),
+                  enableHapticFeedback: true,
+                  child: IconButton(
+                    icon: Icon(Icons.keyboard_arrow_up),
+                    iconSize: 50,
+                    color: Colors.white,
+                    onPressed: () async {
                       setState(() {
-                        maximum_negative_presure_fan_speed = min(maximum_negative_presure_fan_speed.roundToDouble() + 2.0, 100);
+                        maximum_negative_presure_fan_speed = min(maximum_negative_presure_fan_speed.roundToDouble() + 1.0, 100);
+                        check_modification();
                       });
                     },
-                    holdTimeout: Duration(milliseconds: 1000),
-                    enableHapticFeedback: true,
-                    child: IconButton(
-                      icon: Icon(Icons.keyboard_arrow_up),
-                      iconSize: 50,
-                      color: Colors.white,
-                      onPressed: () async {
-                        setState(() {
-                          maximum_negative_presure_fan_speed = min(maximum_negative_presure_fan_speed.roundToDouble() + 1.0, 100);
-                        });
-                      },
-                    ),
                   ),
                 ),
               ),
             ),
-            SizedBox(
-              width: 40,
-            ),
-            Expanded(
-              child: Material(
-                clipBehavior: Clip.hardEdge,
-                borderRadius: BorderRadius.circular(5.0),
-                child: Ink(
-                  decoration: const ShapeDecoration(
-                    color: Colors.blue,
-                    shape: Border(),
-                  ),
-                  child: HoldDetector(
-                    onHold: () async {
+          ),
+          SizedBox(
+            width: 40,
+          ),
+          Expanded(
+            child: Material(
+              clipBehavior: Clip.hardEdge,
+              borderRadius: BorderRadius.circular(5.0),
+              child: Ink(
+                decoration: const ShapeDecoration(
+                  color: Colors.blue,
+                  shape: Border(),
+                ),
+                child: HoldDetector(
+                  onHold: () async {
+                    setState(() {
+                      maximum_negative_presure_fan_speed = max(maximum_negative_presure_fan_speed.roundToDouble() - 2.0, 0);
+                      check_modification();
+                    });
+                  },
+                  holdTimeout: Duration(milliseconds: 1000),
+                  enableHapticFeedback: true,
+                  child: IconButton(
+                    icon: Icon(Icons.keyboard_arrow_down),
+                    iconSize: 50,
+                    color: Colors.white,
+                    onPressed: () async {
                       setState(() {
-                        maximum_negative_presure_fan_speed = max(maximum_negative_presure_fan_speed.roundToDouble() - 2.0, 0);
+                        maximum_negative_presure_fan_speed = max(maximum_negative_presure_fan_speed.roundToDouble() - 1.0, 0);
+                        check_modification();
                       });
                     },
-                    holdTimeout: Duration(milliseconds: 1000),
-                    enableHapticFeedback: true,
-                    child: IconButton(
-                      icon: Icon(Icons.keyboard_arrow_down),
-                      iconSize: 50,
-                      color: Colors.white,
-                      onPressed: () async {
-                        setState(() {
-                          maximum_negative_presure_fan_speed = max(maximum_negative_presure_fan_speed.roundToDouble() - 1.0, 0);
-                        });
-                      },
-                    ),
                   ),
                 ),
               ),
             ),
-            // RaisedButton.icon(onPressed: null, icon: null, label: null),
-          ])
-        ]),
-      );
+          ),
+          // RaisedButton.icon(onPressed: null, icon: null, label: null),
+        ])
+      ]),
+    );
   }
 
   build_apply_button(click) => Align(
@@ -484,10 +498,10 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
           height: 50,
           padding: EdgeInsets.symmetric(horizontal: 8),
           child: OutlinedButton(
-            onPressed: click,
+            onPressed: MODIFIED ? click : null,
             style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
-                side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
+                padding: EdgeInsets.only(top: 10, bottom: 10, left: 28, right: 28),
+                side: BorderSide(width: 2, color: MODIFIED ? Theme.of(context).primaryColor : Colors.grey),
                 shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
             child: Text("Apply", style: Theme.of(context).textTheme.bodyText1),
           ),
@@ -502,19 +516,24 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
           padding: EdgeInsets.symmetric(horizontal: 8),
           child: OutlinedButton(
             onPressed: () async {
-              if (_tabController!.index == 0) {
-                cmg.setRequest(37, "000", context);
-              } else {
-                cmg.setRequest(38, "000", context);
-              }
-
-              refresh();
+              AwesomeDialog(
+                context: context,
+                useRootNavigator: true,
+                dialogType: DialogType.WARNING,
+                animType: AnimType.BOTTOMSLIDE,
+                title: "Confirm",
+                desc: "Current Page Settings will be restored to factory defaults",
+                btnOkOnPress: () async {
+                  refresh();
+                },
+                btnCancelOnPress: () {},
+              )..show();
             },
             style: OutlinedButton.styleFrom(
                 padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
                 side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
                 shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
-            child: Text("Restore Defaults", style: Theme.of(context).textTheme.bodyText1),
+            child: Text("Restore To Factory Defaults", style: Theme.of(context).textTheme.bodyText1),
           ),
         ),
       );
@@ -547,30 +566,24 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
         Container(
           color: Colors.black12,
           padding: EdgeInsets.symmetric(horizontal: 8),
-          child: Row(
+          child: Column(
             children: [
-              Text("Outlet Fan Speed", style: Theme.of(context).textTheme.bodyText1),
-              Expanded(
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: TabBar(
-                    isScrollable: false,
-                    unselectedLabelColor: Colors.grey,
-                    labelColor: Colors.white,
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    indicator: new BubbleTabIndicator(
-                      indicatorHeight: 25.0,
-                      indicatorColor: Colors.blueAccent,
-                      tabBarIndicatorSize: TabBarIndicatorSize.tab,
-                      // Other flags
-                      // indicatorRadius: 1,
-                      // insets: EdgeInsets.all(1),
-                      // padding: EdgeInsets.all(10)
-                    ),
-                    labelStyle: Theme.of(context).textTheme.bodyText1,
-                    tabs: tabs,
-                    controller: _tabController,
+              Text("Outletfan Speed", style: Theme.of(context).textTheme.bodyText1!.copyWith(fontSize: 24)),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TabBar(
+                  isScrollable: false,
+                  unselectedLabelColor: Colors.grey,
+                  labelColor: Colors.white,
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  indicator: new BubbleTabIndicator(
+                    indicatorHeight: 25.0,
+                    indicatorColor: Colors.blueAccent,
+                    tabBarIndicatorSize: TabBarIndicatorSize.tab,
                   ),
+                  labelStyle: Theme.of(context).textTheme.bodyText1,
+                  tabs: tabs,
+                  controller: _tabController,
                 ),
               ),
             ],

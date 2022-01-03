@@ -154,7 +154,7 @@ class Utils {
 
     AwesomeDialog(
       context: Navigator.of(context, rootNavigator: true).context,
-      dialogType: DialogType.INFO,
+      dialogType: DialogType.WARNING,
       animType: AnimType.BOTTOMSLIDE,
       title: title,
       dismissOnBackKeyPress: true,
@@ -199,13 +199,14 @@ class Utils {
 
   static Future<String> ask_serial(String title, context) async {
     String return_value = "";
+    String container = "";
     Widget buildTextField(BuildContext context) => TextField(
           style: Theme.of(context).textTheme.bodyText1!,
           // controller: controller,
           maxLength: 10,
           keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
           onChanged: (value) {
-            return_value = value;
+            container = value;
           },
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
 
@@ -243,6 +244,7 @@ class Utils {
                     FloatingActionButton(
                       backgroundColor: Theme.of(context).primaryColor,
                       onPressed: () async {
+                        return_value = container;
                         Navigator.pop(context);
                       },
                       child: Icon(Icons.done, size: 30),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nasim/IntroductionScreen/model/page_decoration.dart';
 import 'package:nasim/IntroductionScreen/introduction_screen.dart';
-import 'package:nasim/page/DevicePages/SettingsPages/UsersPage.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
 import 'package:nasim/provider/LicenseChangeNotifier.dart';
 import 'package:nasim/provider/SavedevicesChangeNofiter.dart';

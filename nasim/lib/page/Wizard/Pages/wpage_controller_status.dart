@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:bubble_tab_indicator/bubble_tab_indicator.dart';
 import 'package:day_night_switcher/day_night_switcher.dart';
 import 'package:flutter/cupertino.dart';
@@ -27,6 +28,36 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
   late ConnectionManager cmg;
   TabController? _tabController;
   bool is_night = false;
+  bool MODIFIED = false;
+  String Old_Cooler_Controller_Day_Mode = "";
+  String Old_Cooler_Controller_Night_Mod = "";
+  String Old_Heater_Controller_Day_Mode = "";
+  String Old_Heater_Controller_Night_Mode = "";
+  String Old_Humidity_Controller_Day_Mode = "";
+  String Old_Humidity_Controller_Night_Mode = "";
+  String Old_Air_Purifier_Controller_Day_Mode = "";
+  String Old_Air_Purifier_Controller_Night_Mode = "";
+  // bool check_modification() {
+  //   if (is_night) {
+  //     if (Old_Max_Night_IAQ == max_iaq_controller.text &&
+  //         Old_Min_Night_IAQ == min_iaq_controller.text &&
+  //         Old_Max_Night_CO2 == max_co2_controller.text &&
+  //         Old_Min_Night_CO2 == min_co2_controller.text) {
+  //       MODIFIED = false;
+  //     } else
+  //       MODIFIED = true;
+  //   } else {
+  //     if (Old_Max_Day_IAQ == max_iaq_controller.text &&
+  //         Old_Min_Day_IAQ == min_iaq_controller.text &&
+  //         Old_Max_Day_CO2 == max_co2_controller.text &&
+  //         Old_Min_Day_CO2 == min_co2_controller.text) {
+  //       MODIFIED = false;
+  //     } else
+  //       MODIFIED = true;
+  //   }
+
+  //   return MODIFIED;
+  // }
 
   @override
   void initState() {
@@ -100,6 +131,12 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
     await cmg.setRequest(117, (ConnectionManager.Humidity_Controller_Night_Mode), context);
     await cmg.setRequest(118, (ConnectionManager.Air_Purifier_Controller_Day_Mode), context);
     await cmg.setRequest(119, (ConnectionManager.Air_Purifier_Controller_Night_Mode), context);
+    if (_tabController!.index == 0) {
+      _tabController!.animateTo(1);
+    } else if (_tabController!.index == 1) {
+      IntroductionScreenState.force_next();
+      return;
+    }
   }
 
   bool cooler_mod_val = false;
@@ -127,7 +164,6 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
                 setState(() {
                   cooler_mod_val = index == 1;
                 });
-                apply();
               },
             ),
           ],
@@ -165,7 +201,6 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
                 setState(() {
                   heater_mod_val = index == 1;
                 });
-                apply();
               },
             ),
           ],
@@ -203,7 +238,6 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
                 setState(() {
                   humidity_mod_val = index == 1;
                 });
-                apply();
               },
             ),
           ],
@@ -241,7 +275,6 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
                 setState(() {
                   ap_mod_val = index == 1;
                 });
-                apply();
               },
             ),
           ],
@@ -253,6 +286,54 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
       )
     ];
   }
+
+  build_apply_button() => Align(
+        alignment: Alignment.bottomCenter,
+        child: Container(
+          width: double.infinity,
+          margin: EdgeInsets.only(bottom: 15),
+          height: 50,
+          padding: EdgeInsets.symmetric(horizontal: 8),
+          child: OutlinedButton(
+            onPressed: MODIFIED ? apply : null,
+            style: OutlinedButton.styleFrom(
+                padding: EdgeInsets.only(top: 16, bottom: 10, left: 28, right: 28),
+                side: BorderSide(width: 2, color: MODIFIED ? Theme.of(context).primaryColor : Colors.grey),
+                shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
+            child: Text("Apply", style: Theme.of(context).textTheme.bodyText1),
+          ),
+        ),
+      );
+  build_reset_button() => Align(
+        alignment: Alignment.bottomCenter,
+        child: Container(
+          width: double.infinity,
+          margin: EdgeInsets.only(bottom: 15),
+          height: 50,
+          padding: EdgeInsets.symmetric(horizontal: 8),
+          child: OutlinedButton(
+            onPressed: () {
+              AwesomeDialog(
+                context: context,
+                useRootNavigator: true,
+                dialogType: DialogType.WARNING,
+                animType: AnimType.BOTTOMSLIDE,
+                title: "Confirm",
+                desc: "Current Page Settings will be restored to factory defaults",
+                btnOkOnPress: () async {
+                  refresh();
+                },
+                btnCancelOnPress: () {},
+              )..show();
+            },
+            style: OutlinedButton.styleFrom(
+                padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
+                side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
+                shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
+            child: Text("Restore To Factory Defaults", style: Theme.of(context).textTheme.bodyText1),
+          ),
+        ),
+      );
 
   final List<Tab> tabs = <Tab>[
     new Tab(
@@ -270,30 +351,24 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
           Container(
             color: Colors.black12,
             padding: EdgeInsets.symmetric(horizontal: 8),
-            child: Row(
+            child: Column(
               children: [
-                Text("Controler status", style: Theme.of(context).textTheme.bodyText1),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: TabBar(
-                      isScrollable: false,
-                      unselectedLabelColor: Colors.grey,
-                      labelColor: Colors.white,
-                      indicatorSize: TabBarIndicatorSize.tab,
-                      indicator: new BubbleTabIndicator(
-                        indicatorHeight: 25.0,
-                        indicatorColor: Colors.blueAccent,
-                        tabBarIndicatorSize: TabBarIndicatorSize.tab,
-                        // Other flags
-                        // indicatorRadius: 1,
-                        // insets: EdgeInsets.all(1),
-                        // padding: EdgeInsets.all(10)
-                      ),
-                      labelStyle: Theme.of(context).textTheme.bodyText1,
-                      tabs: tabs,
-                      controller: _tabController,
+                Text("Controler status", style: Theme.of(context).textTheme.bodyText1!.copyWith(fontSize: 24)),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TabBar(
+                    isScrollable: false,
+                    unselectedLabelColor: Colors.grey,
+                    labelColor: Colors.white,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    indicator: new BubbleTabIndicator(
+                      indicatorHeight: 25.0,
+                      indicatorColor: Colors.blueAccent,
+                      tabBarIndicatorSize: TabBarIndicatorSize.tab,
                     ),
+                    labelStyle: Theme.of(context).textTheme.bodyText1,
+                    tabs: tabs,
+                    controller: _tabController,
                   ),
                 ),
               ],
@@ -302,10 +377,17 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
           SizedBox(
             height: 16,
           ),
-          ...cooler_mod(),
-          ...heater_mod(),
-          ...humidity_mod(),
-          ...ap_mod(),
+          Expanded(
+              child: Column(
+            children: [
+              ...cooler_mod(),
+              ...heater_mod(),
+              ...humidity_mod(),
+              ...ap_mod(),
+            ],
+          )),
+          build_apply_button(),
+          build_reset_button(),
           SizedBox(
             height: 64,
           )

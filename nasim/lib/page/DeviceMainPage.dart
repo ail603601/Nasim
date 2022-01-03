@@ -4,24 +4,44 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:nasim/Model/Device.dart';
 import 'package:nasim/Model/menu_info.dart';
+import 'package:nasim/page/DevicePages/DeviceinfoPage.dart';
 import 'package:nasim/provider/ConnectionAvailableChangeNotifier.dart';
+import 'package:nasim/provider/ConnectionManager.dart';
 import 'package:nasim/provider/LicenseChangeNotifier.dart';
+import 'package:nasim/utils.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../enums.dart';
-import 'DevicePages/SettingsPage.dart';
-import 'DevicePages/SettingsPages/UsersPage.dart';
 import 'DevicePages/ControllPage.dart';
 import 'DevicePages/LicensesPage.dart';
 import 'DevicePages/OverviewPage.dart';
 
-class DeivceMainPage extends StatelessWidget {
+class DeivceMainPage extends StatefulWidget {
+  const DeivceMainPage({Key? key}) : super(key: key);
+
   @override
+  _DeivceMainPageState createState() => _DeivceMainPageState();
+}
+
+class _DeivceMainPageState extends State<DeivceMainPage> {
+  @override
+  void initState() {
+    super.initState();
+    var cmg = Provider.of<ConnectionManager>(context, listen: false);
+    cmg.getRequest(126, context).then((value) async {
+      bool connection_failed = (int.tryParse(value) ?? 0) == 1;
+      if (connection_failed) {
+        ConnectionManager.DEVICE_WIFI_TO_CONNECT_NAME = await cmg.getRequest(123, context);
+        Utils.alert(context, "", "Connection to Wifi '${ConnectionManager.DEVICE_WIFI_TO_CONNECT_NAME}' failed.\nPlease check your Wifi name and password.");
+      }
+    });
+  }
+
   Widget build(BuildContext context) {
     final menuItems = [
       MenuInfo(MenuType.Overview, title: "Overview", imageSource: Icons.grid_view),
       MenuInfo(MenuType.Controll, title: AppLocalizations.of(context)!.controll, imageSource: Icons.fact_check),
-      MenuInfo(MenuType.Settings, title: AppLocalizations.of(context)!.settings, imageSource: Icons.settings),
+      MenuInfo(MenuType.DeviceInformation, title: "Information", imageSource: Icons.info),
       MenuInfo(MenuType.Licenses, title: AppLocalizations.of(context)!.licenses, imageSource: Icons.assignment)
     ];
     return Stack(children: [
@@ -71,8 +91,8 @@ class DeivceMainPage extends StatelessWidget {
                                             return new OverviePage();
                                           else if (value.menuType == MenuType.Controll)
                                             return new ControllPage();
-                                          else if (value.menuType == MenuType.Settings)
-                                            return new SettingsPage();
+                                          else if (value.menuType == MenuType.DeviceInformation)
+                                            return new DeviceInfoPage();
                                           else if (value.menuType == MenuType.Licenses)
                                             return new LicensesPage();
                                           else
@@ -190,7 +210,7 @@ class DeivceMainPage extends StatelessWidget {
           color: currentMenuInfo.menuType == value.menuType ? Colors.black26 : Colors.transparent,
           onPressed: () async {
             var menuInfo = Provider.of<MenuInfo>(context, listen: false);
-            if (!simple_check_done && (currentMenuInfo.menuType == MenuType.Settings || currentMenuInfo.menuType == MenuType.Controll)) {
+            if (!simple_check_done && (currentMenuInfo.menuType == MenuType.Controll)) {
               if (await simplecheck(context)) {
                 simple_check_done = true;
                 menuInfo.updateMenu(currentMenuInfo);

@@ -14,7 +14,12 @@ import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'dart:math';
 
+import '../BarCodeScanPage.dart';
 import 'ControllPages/AirQualityPage.dart';
+import 'ControllPages/ControllersStatusPage.dart';
+import 'ControllPages/InternetPage.dart';
+import 'ControllPages/SmsPage.dart';
+import 'ControllPages/UsersPage.dart';
 
 class ControllPage extends StatefulWidget {
   final GlobalKey<NavigatorState> navigatorKey = new GlobalKey();
@@ -269,6 +274,117 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
         ),
       );
 
+  Widget build_sms_card(context) => Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.0),
+        ),
+        color: Colors.pinkAccent[200],
+        elevation: 10,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(15.0),
+          onTap: () {
+            Navigator.pushNamed(context, "/sms");
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                ListTile(
+                  leading: Image.asset("assets/text-message.png"),
+                  title: Text('SMS', style: Theme.of(context).textTheme.bodyText1),
+                  trailing: Icon(Icons.arrow_forward_ios),
+                  // subtitle: Text('TWICE', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+  Widget build_internet_card(context) => Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.0),
+        ),
+        color: Colors.brown[500],
+        elevation: 10,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(15.0),
+          onTap: () {
+            Navigator.pushNamed(context, "/internet");
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                ListTile(
+                  leading: Image.asset("assets/internet.png"),
+                  title: Text('Internet', style: Theme.of(context).textTheme.bodyText1),
+                  trailing: Icon(Icons.arrow_forward_ios),
+                  // subtitle: Text('TWICE', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+  Widget build_conterollers_status_card(context) => Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.0),
+        ),
+        color: Colors.blueGrey[700],
+        elevation: 10,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(15.0),
+          onTap: () {
+            Navigator.pushNamed(context, "/cstatus");
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                ListTile(
+                  leading: Image.asset("assets/controllers-status.png"),
+                  title: Text('Controllers Status', style: Theme.of(context).textTheme.bodyText1),
+                  trailing: Icon(Icons.arrow_forward_ios),
+                  // subtitle: Text('TWICE', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+  Widget build_users_status_card(context) => Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.0),
+        ),
+        color: Colors.amber[700],
+        elevation: 10,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(15.0),
+          onTap: () {
+            Navigator.pushNamed(context, "/users");
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                ListTile(
+                  leading: Image.asset("assets/user_icon.png"),
+                  title: Text('Users', style: Theme.of(context).textTheme.bodyText1),
+                  trailing: Icon(Icons.arrow_forward_ios),
+                  // subtitle: Text('TWICE', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -281,11 +397,6 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
           HeroController(),
         ],
         key: widget.navigatorKey,
-        onPopPage: (route, result) {
-          debugger();
-          print(route);
-          return false;
-        },
         initialRoute: "/",
         onGenerateRoute: (settings) {
           if (settings.name == "/") {
@@ -297,7 +408,11 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
                         build_temperatutre_card(context),
                         build_humidity_card(context),
                         build_air_quality_card(context),
-                        build_light_level_card(context)
+                        build_light_level_card(context),
+                        build_sms_card(context),
+                        build_internet_card(context),
+                        build_conterollers_status_card(context),
+                        build_users_status_card(context),
                       ],
                     ));
           }
@@ -319,6 +434,20 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
           }
           if (settings.name == "/light") {
             return CupertinoPageRoute(builder: (context) => BackdropFilter(filter: new ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), child: LightPage()));
+          }
+
+          if (settings.name == "/sms") {
+            return CupertinoPageRoute(builder: (context) => BackdropFilter(filter: new ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), child: SmsPage()));
+          }
+          if (settings.name == "/cstatus") {
+            return CupertinoPageRoute(
+                builder: (context) => BackdropFilter(filter: new ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), child: ControllersStatusPage()));
+          }
+          if (settings.name == "/users") {
+            return CupertinoPageRoute(builder: (context) => BackdropFilter(filter: new ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), child: UsersPage()));
+          }
+          if (settings.name == "/internet") {
+            return CupertinoPageRoute(builder: (context) => BackdropFilter(filter: new ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0), child: InternetPage()));
           }
 
           return CupertinoPageRoute(builder: (context) => build_inlet_fan_speed_animated_card(context));

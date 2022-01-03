@@ -16,6 +16,12 @@ class AirQualityPage extends StatefulWidget {
 class _AirQualityPageState extends State<AirQualityPage> with SingleTickerProviderStateMixin {
   late ConnectionManager cmg;
   TabController? _tabController;
+  late Timer soft_reftresh_timer;
+
+  final TextEditingController max_iaq_controller = TextEditingController();
+  final TextEditingController min_iaq_controller = TextEditingController();
+  final TextEditingController max_co2_controller = TextEditingController();
+  final TextEditingController min_co2_controller = TextEditingController();
 
   refresh() async {
     await Utils.show_loading_timed(
@@ -42,69 +48,81 @@ class _AirQualityPageState extends State<AirQualityPage> with SingleTickerProvid
           ConnectionManager.Min_Night_CO2 = (int.tryParse(ConnectionManager.Min_Night_CO2) ?? 0).toString();
           ConnectionManager.IAQ_Flag = (int.tryParse(ConnectionManager.IAQ_Flag) ?? 0).toString();
           ConnectionManager.CO2_Flag = (int.tryParse(ConnectionManager.CO2_Flag) ?? 0).toString();
-
           radio_gid = ConnectionManager.IAQ_Flag == "1" ? 0 : 1;
           radio_gid = ConnectionManager.CO2_Flag == "1" ? 1 : 0;
-          if (mounted) setState(() {});
+          if (mounted)
+            setState(() {
+              if (is_night) {
+                max_iaq_controller.text = ConnectionManager.Max_Night_IAQ;
+                min_iaq_controller.text = ConnectionManager.Min_Night_IAQ;
+                max_co2_controller.text = ConnectionManager.Max_Night_CO2;
+                min_co2_controller.text = ConnectionManager.Min_Night_CO2;
+              } else {
+                max_iaq_controller.text = ConnectionManager.Max_Day_IAQ;
+                min_iaq_controller.text = ConnectionManager.Min_Day_IAQ;
+                max_co2_controller.text = ConnectionManager.Max_Day_CO2;
+                min_co2_controller.text = ConnectionManager.Min_Day_CO2;
+              }
+            });
         });
   }
 
   apply() async {
-    if (is_night) {
-      if (radio_gid == 0) {
-        if (int.parse(ConnectionManager.Min_Night_IAQ) + 20 > int.parse(ConnectionManager.Max_Night_IAQ)) {
-          Utils.alert(context, "Error", "IAQ maximum must be 20ppm higher than minimum");
-          return;
+    try {
+      if (is_night) {
+        ConnectionManager.Max_Night_IAQ = (int.tryParse(max_iaq_controller.text) ?? 0).toString();
+        ConnectionManager.Min_Night_IAQ = (int.tryParse(min_iaq_controller.text) ?? 0).toString();
+        ConnectionManager.Max_Night_CO2 = (int.tryParse(max_co2_controller.text) ?? 0).toString();
+        ConnectionManager.Min_Night_CO2 = (int.tryParse(min_co2_controller.text) ?? 0).toString();
+
+        if (radio_gid == 0) {
+          if (int.parse(ConnectionManager.Min_Night_IAQ) + 20 > int.parse(ConnectionManager.Max_Night_IAQ)) {
+            Utils.alert(context, "Error", "IAQ maximum must be 20ppm higher than minimum");
+            return;
+          }
+        } else {
+          if (int.parse(ConnectionManager.Min_Night_CO2) + 100 > int.parse(ConnectionManager.Max_Night_CO2)) {
+            Utils.alert(context, "Error", "CO2 maximum must be 100ppm higher than minimum");
+            return;
+          }
         }
       } else {
-        if (int.parse(ConnectionManager.Min_Night_CO2) + 100 > int.parse(ConnectionManager.Max_Night_CO2)) {
-          Utils.alert(context, "Error", "CO2 maximum must be 100ppm higher than minimum");
-          return;
+        ConnectionManager.Max_Day_IAQ = (int.tryParse(max_iaq_controller.text) ?? 0).toString();
+        ConnectionManager.Min_Day_IAQ = (int.tryParse(min_iaq_controller.text) ?? 0).toString();
+        ConnectionManager.Max_Day_CO2 = (int.tryParse(max_co2_controller.text) ?? 0).toString();
+        ConnectionManager.Min_Day_CO2 = (int.tryParse(min_co2_controller.text) ?? 0).toString();
+        if (radio_gid == 0) {
+          if (int.parse(ConnectionManager.Min_Day_IAQ) + 20 > int.parse(ConnectionManager.Max_Day_IAQ)) {
+            Utils.alert(context, "Error", "IAQ maximum must be 20ppm higher than minimum");
+            return;
+          }
+        } else {
+          if (int.parse(ConnectionManager.Min_Day_CO2) + 100 > int.parse(ConnectionManager.Max_Day_CO2)) {
+            Utils.alert(context, "Error", "CO2 maximum must be 100ppm higher than minimum");
+            return;
+          }
         }
       }
-    } else {
-      if (radio_gid == 0) {
-        if (int.parse(ConnectionManager.Min_Day_IAQ) + 20 > int.parse(ConnectionManager.Max_Day_IAQ)) {
-          Utils.alert(context, "Error", "IAQ maximum must be 20ppm higher than minimum");
-          return;
-        }
+
+      if (_tabController!.index == 0) {
+        await cmg.setRequest(65, Utils.lim_0_9999(ConnectionManager.Max_Day_IAQ), context);
+        await cmg.setRequest(66, Utils.lim_0_9999(ConnectionManager.Min_Day_IAQ), context);
+        await cmg.setRequest(70, Utils.lim_0_9999(ConnectionManager.Max_Day_CO2), context);
+        await cmg.setRequest(71, Utils.lim_0_9999(ConnectionManager.Min_Day_CO2), context);
       } else {
-        if (int.parse(ConnectionManager.Min_Day_CO2) + 100 > int.parse(ConnectionManager.Max_Day_CO2)) {
-          Utils.alert(context, "Error", "CO2 maximum must be 100ppm higher than minimum");
-          return;
-        }
+        await cmg.setRequest(67, Utils.lim_0_9999(ConnectionManager.Max_Night_IAQ), context);
+        await cmg.setRequest(68, Utils.lim_0_9999(ConnectionManager.Min_Night_IAQ), context);
+        await cmg.setRequest(72, Utils.lim_0_9999(ConnectionManager.Max_Night_CO2), context);
+        await cmg.setRequest(73, Utils.lim_0_9999(ConnectionManager.Min_Night_CO2), context);
       }
+
+      await cmg.setRequest(64, radio_gid == 0 ? "1" : "0", context);
+      await cmg.setRequest(69, radio_gid == 0 ? "0" : "1", context);
+
+      Utils.showSnackBar(context, "Done.");
+    } catch (e) {
+      // if (!(e is FormatException)) Utils.alert(context, "Error", "please check your input and try again.");
     }
-
-    if (radio_gid == 0) {
-      if ((int.tryParse(ConnectionManager.Max_Day_IAQ) ?? 0) == 0) ConnectionManager.Max_Day_IAQ = ConnectionManager.Max_Night_IAQ;
-      if ((int.tryParse(ConnectionManager.Min_Day_IAQ) ?? 0) == 0) ConnectionManager.Min_Day_IAQ = ConnectionManager.Min_Night_IAQ;
-      if ((int.tryParse(ConnectionManager.Max_Night_IAQ) ?? 0) == 0) ConnectionManager.Max_Night_IAQ = ConnectionManager.Max_Day_IAQ;
-      if ((int.tryParse(ConnectionManager.Min_Night_IAQ) ?? 0) == 0) ConnectionManager.Min_Night_IAQ = ConnectionManager.Min_Day_IAQ;
-
-      await cmg.setRequest(65, Utils.lim_0_9999(ConnectionManager.Max_Day_IAQ), context);
-      await cmg.setRequest(66, Utils.lim_0_9999(ConnectionManager.Min_Day_IAQ), context);
-      await cmg.setRequest(67, Utils.lim_0_9999(ConnectionManager.Max_Night_IAQ), context);
-      await cmg.setRequest(68, Utils.lim_0_9999(ConnectionManager.Min_Night_IAQ), context);
-    } else {
-      if ((int.tryParse(ConnectionManager.Max_Day_CO2) ?? 0) == 0) ConnectionManager.Max_Day_CO2 = ConnectionManager.Max_Night_CO2;
-      if ((int.tryParse(ConnectionManager.Min_Day_CO2) ?? 0) == 0) ConnectionManager.Min_Day_CO2 = ConnectionManager.Min_Night_CO2;
-      if ((int.tryParse(ConnectionManager.Max_Night_CO2) ?? 0) == 0) ConnectionManager.Max_Night_CO2 = ConnectionManager.Max_Day_CO2;
-      if ((int.tryParse(ConnectionManager.Min_Night_CO2) ?? 0) == 0) ConnectionManager.Min_Night_CO2 = ConnectionManager.Min_Day_CO2;
-
-      await cmg.setRequest(70, Utils.lim_0_9999(ConnectionManager.Max_Day_CO2), context);
-      await cmg.setRequest(71, Utils.lim_0_9999(ConnectionManager.Min_Day_CO2), context);
-      await cmg.setRequest(72, Utils.lim_0_9999(ConnectionManager.Max_Night_CO2), context);
-      await cmg.setRequest(73, Utils.lim_0_9999(ConnectionManager.Min_Night_CO2), context);
-    }
-
-    if (_tabController!.index == 0) {
-    } else {}
-
-    await cmg.setRequest(64, radio_gid == 0 ? "1" : "0", context);
-    await cmg.setRequest(69, radio_gid == 0 ? "0" : "1", context);
-
-    Utils.showSnackBar(context, "Done.");
   }
 
   @override
@@ -118,8 +136,23 @@ class _AirQualityPageState extends State<AirQualityPage> with SingleTickerProvid
     });
 
     cmg = Provider.of<ConnectionManager>(context, listen: false);
-
+    soft_reftresh_timer = Timer.periodic(new Duration(seconds: 1), (timer) async {
+      soft_refresh();
+    });
     Utils.setTimeOut(0, refresh);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _tabController!.dispose();
+    soft_reftresh_timer.cancel();
+  }
+
+  void soft_refresh() async {
+    ConnectionManager.Real_IAQ = (int.tryParse(await cmg.getRequest(92, context)) ?? 0).toString();
+    ConnectionManager.Real_CO2 = (int.tryParse(await cmg.getRequest(93, context)) ?? 0).toString();
+    if (mounted) setState(() {});
   }
 
   Widget max_iaq_row() => Padding(
@@ -132,17 +165,8 @@ class _AirQualityPageState extends State<AirQualityPage> with SingleTickerProvid
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
-                controller: TextEditingController()
-                  ..text = !is_night
-                      ? (int.tryParse(ConnectionManager.Max_Day_IAQ) ?? 0).toString()
-                      : (int.tryParse(ConnectionManager.Max_Night_IAQ) ?? 0).toString(),
-                onChanged: (newvalue) {
-                  if (is_night) {
-                    ConnectionManager.Max_Night_IAQ = newvalue;
-                  } else {
-                    ConnectionManager.Max_Day_IAQ = newvalue;
-                  }
-                },
+                controller: max_iaq_controller,
+                onTap: () => max_iaq_controller.selection = TextSelection(baseOffset: 0, extentOffset: max_iaq_controller.value.text.length),
                 keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 decoration: InputDecoration(suffix: Text("ppm", style: Theme.of(context).textTheme.bodyText1), counterText: ""),
               ),
@@ -161,17 +185,8 @@ class _AirQualityPageState extends State<AirQualityPage> with SingleTickerProvid
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
-                controller: TextEditingController()
-                  ..text = !is_night
-                      ? (int.tryParse(ConnectionManager.Min_Day_IAQ) ?? 0).toString()
-                      : (int.tryParse(ConnectionManager.Min_Night_IAQ) ?? 0).toString(),
-                onChanged: (newvalue) {
-                  if (is_night) {
-                    ConnectionManager.Min_Night_IAQ = newvalue;
-                  } else {
-                    ConnectionManager.Min_Day_IAQ = newvalue;
-                  }
-                },
+                controller: min_iaq_controller,
+                onTap: () => min_iaq_controller.selection = TextSelection(baseOffset: 0, extentOffset: min_iaq_controller.value.text.length),
                 keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 decoration: InputDecoration(suffix: Text("ppm", style: Theme.of(context).textTheme.bodyText1), counterText: ""),
               ),
@@ -191,17 +206,8 @@ class _AirQualityPageState extends State<AirQualityPage> with SingleTickerProvid
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
-                controller: TextEditingController()
-                  ..text = !is_night
-                      ? (int.tryParse(ConnectionManager.Max_Day_CO2) ?? 0).toString()
-                      : (int.tryParse(ConnectionManager.Max_Night_CO2) ?? 0).toString(),
-                onChanged: (newvalue) {
-                  if (is_night) {
-                    ConnectionManager.Max_Night_CO2 = newvalue;
-                  } else {
-                    ConnectionManager.Max_Day_CO2 = newvalue;
-                  }
-                },
+                controller: max_co2_controller,
+                onTap: () => max_co2_controller.selection = TextSelection(baseOffset: 0, extentOffset: max_co2_controller.value.text.length),
                 keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 decoration: InputDecoration(suffix: Text("ppm", style: Theme.of(context).textTheme.bodyText1), counterText: ""),
               ),
@@ -220,17 +226,8 @@ class _AirQualityPageState extends State<AirQualityPage> with SingleTickerProvid
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 maxLength: 4,
                 style: Theme.of(context).textTheme.bodyText1,
-                controller: TextEditingController()
-                  ..text = !is_night
-                      ? (int.tryParse(ConnectionManager.Min_Day_CO2) ?? 0).toString()
-                      : (int.tryParse(ConnectionManager.Min_Night_CO2) ?? 0).toString(),
-                onChanged: (newvalue) {
-                  if (is_night) {
-                    ConnectionManager.Min_Night_CO2 = newvalue;
-                  } else {
-                    ConnectionManager.Min_Day_CO2 = newvalue;
-                  }
-                },
+                controller: min_co2_controller,
+                onTap: () => min_co2_controller.selection = TextSelection(baseOffset: 0, extentOffset: min_co2_controller.value.text.length),
                 keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 decoration: InputDecoration(suffix: Text("ppm", style: Theme.of(context).textTheme.bodyText1), counterText: ""),
               ),
@@ -261,25 +258,36 @@ class _AirQualityPageState extends State<AirQualityPage> with SingleTickerProvid
             child: value_id == radio_gid ? child : Center(child: Text("Disabled", style: Theme.of(context).textTheme.bodyText1))));
   }
 
+  Widget build_boxed_infobox({required title, required child}) {
+    return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        child: new InputDecorator(
+            decoration: InputDecoration(
+                labelText: title, labelStyle: Theme.of(context).textTheme.bodyText1, border: OutlineInputBorder(borderSide: BorderSide(color: Colors.yellow))),
+            child: child));
+  }
+
+  Widget build_airquality_inf() => Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          children: [
+            Expanded(
+              child: build_boxed_infobox(
+                title: "Actual IAQ",
+                child: Center(child: Text((int.tryParse(ConnectionManager.Real_IAQ) ?? 0).toString() + " ppm", style: Theme.of(context).textTheme.bodyText1)),
+              ),
+            ),
+            Expanded(
+                child: build_boxed_infobox(
+                    title: "Actual CO2",
+                    child:
+                        Center(child: Text((int.tryParse(ConnectionManager.Real_CO2) ?? 0).toString() + " ppm", style: Theme.of(context).textTheme.bodyText1))))
+          ],
+        ),
+      );
+
   bool is_night = false;
-  // build_day_night_switch() => Container(
-  //       color: Color(0xff181818),
-  //       child: Padding(
-  //         padding: const EdgeInsets.symmetric(horizontal: 8.0),
-  //         child: Row(children: [
-  //           Expanded(child: Text("Settings for ${is_night ? "Night" : "Day"} Time ", style: Theme.of(context).textTheme.headline6)),
-  //           DayNightSwitcher(
-  //             isDarkModeEnabled: is_night,
-  //             onStateChanged: (is_night) {
-  //               setState(() {
-  //                 this.is_night = is_night;
-  //                 refresh();
-  //               });
-  //             },
-  //           )
-  //         ]),
-  //       ),
-  //     );
+
   Widget iaq_settings() => Column(children: [
         min_iaq_row(),
         max_iaq_row(),
@@ -322,7 +330,7 @@ class _AirQualityPageState extends State<AirQualityPage> with SingleTickerProvid
                 padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
                 side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
                 shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
-            child: Text("Restore Defaults", style: Theme.of(context).textTheme.bodyText1),
+            child: Text("Restore To Factory Defaults", style: Theme.of(context).textTheme.bodyText1),
           ),
         ),
       );
@@ -341,10 +349,10 @@ class _AirQualityPageState extends State<AirQualityPage> with SingleTickerProvid
 
   final List<Tab> tabs = <Tab>[
     new Tab(
-      text: "Day Time",
+      text: "Day",
     ),
     new Tab(
-      text: "Night Time",
+      text: "Night",
     ),
   ];
   @override
@@ -384,6 +392,7 @@ class _AirQualityPageState extends State<AirQualityPage> with SingleTickerProvid
               ],
             ),
           ),
+          build_airquality_inf(),
           SizedBox(
             height: 16,
           ),

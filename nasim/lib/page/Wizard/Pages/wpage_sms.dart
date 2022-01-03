@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:math';
 
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:nasim/IntroductionScreen/introduction_screen.dart';
@@ -17,7 +19,7 @@ class wpage_sms extends StatefulWidget {
   bool Function()? Back = null;
 }
 
-class wpage_smsState extends State<wpage_sms> {
+class wpage_smsState extends State<wpage_sms> with SingleTickerProviderStateMixin {
   String initialCountry = 'IR';
   PhoneNumber number = PhoneNumber(isoCode: 'IR');
   late ConnectionManager cmg;
@@ -33,10 +35,42 @@ class wpage_smsState extends State<wpage_sms> {
   ];
 
   bool is_allowed = true;
+
+  bool MODIFIED = false;
+
+  String Old_Mobile_Number_0 = "";
+  String Old_Mobile_Number_1 = "";
+  String Old_Mobile_Number_2 = "";
+  String Old_Mobile_Number_3 = "";
+  String Old_Mobile_Number_4 = "";
+  String Old_Mobile_Number_5 = "";
+
+  bool check_modification() {
+    if (ConnectionManager.Mobile_Number_0 == Old_Mobile_Number_0 &&
+        ConnectionManager.Mobile_Number_1 == Old_Mobile_Number_1 &&
+        ConnectionManager.Mobile_Number_2 == Old_Mobile_Number_2 &&
+        ConnectionManager.Mobile_Number_3 == Old_Mobile_Number_3 &&
+        ConnectionManager.Mobile_Number_4 == Old_Mobile_Number_4 &&
+        ConnectionManager.Mobile_Number_5 == Old_Mobile_Number_5) {
+      MODIFIED = true;
+    } else
+      MODIFIED = false;
+
+    return MODIFIED;
+  }
+
   @override
   void initState() {
     super.initState();
+    widget.Back = () {
+      return true;
+    };
     widget.Next = () {
+      if (MODIFIED) {
+        Utils.alert(context, "", "Please apply.");
+        return false;
+      }
+
       return true;
     };
     ConnectionManager.SMS_Priorities_State = ConnectionManager.SMS_Priorities_State == "" ? "0000000" : ConnectionManager.SMS_Priorities_State;
@@ -45,15 +79,10 @@ class wpage_smsState extends State<wpage_sms> {
     lcn = Provider.of<LicenseChangeNotifier>(context, listen: false);
     is_allowed = lcn.gsm_modem;
     if (is_allowed) refresh();
-    // else
-    //   Utils.setTimeOut(0, () {
-    //     IntroductionScreenState.force_next();
-    //   });
   }
 
   @override
   void dispose() {
-    // refresher.cancel();
     super.dispose();
   }
 
@@ -64,6 +93,13 @@ class wpage_smsState extends State<wpage_sms> {
     ConnectionManager.Mobile_Number_3 = await cmg.getRequest(104, context);
     ConnectionManager.Mobile_Number_4 = await cmg.getRequest(105, context);
     ConnectionManager.Mobile_Number_5 = await cmg.getRequest(106, context);
+
+    Old_Mobile_Number_0 = ConnectionManager.Mobile_Number_0;
+    Old_Mobile_Number_1 = ConnectionManager.Mobile_Number_1;
+    Old_Mobile_Number_2 = ConnectionManager.Mobile_Number_2;
+    Old_Mobile_Number_3 = ConnectionManager.Mobile_Number_3;
+    Old_Mobile_Number_4 = ConnectionManager.Mobile_Number_4;
+    Old_Mobile_Number_5 = ConnectionManager.Mobile_Number_5;
 
     if (ConnectionManager.Mobile_Number_0 != "") {
       numbers_to_show[0] = await PhoneNumber.getRegionInfoFromPhoneNumber(ConnectionManager.Mobile_Number_0);
@@ -104,7 +140,30 @@ class wpage_smsState extends State<wpage_sms> {
     if (mounted) setState(() {});
   }
 
-  void validate_inputs() {
+  bool validate_inputs() {
+    for (var i = 0; i < current_mobile_sms_count; i++) {
+      switch (i) {
+        case 0:
+          if (!is_validated[i]) return false;
+          break;
+        case 1:
+          if (!is_validated[i]) return false;
+          break;
+        case 2:
+          if (!is_validated[i]) return false;
+          break;
+        case 3:
+          if (!is_validated[i]) return false;
+          break;
+        case 4:
+          if (!is_validated[i]) return false;
+          break;
+        case 5:
+          if (!is_validated[i]) return false;
+          break;
+      }
+    }
+
     for (var i = 0; i < 6; i++) {
       switch (i) {
         case 0:
@@ -150,23 +209,26 @@ class wpage_smsState extends State<wpage_sms> {
       ConnectionManager.Mobile_Number_4 = "";
       ConnectionManager.Mobile_Number_5 = "";
     }
+    return true;
   }
 
   apply_phones() async {
-    validate_inputs();
-
+    if (!validate_inputs()) {
+      Utils.show_error_dialog(context, "", "Invalid phone number.", null);
+      return;
+    }
+    // MODIFIED = false;
     await cmg.setRequest(101, ConnectionManager.Mobile_Number_0, context);
     await cmg.setRequest(102, ConnectionManager.Mobile_Number_1, context);
     await cmg.setRequest(103, ConnectionManager.Mobile_Number_2, context);
     await cmg.setRequest(104, ConnectionManager.Mobile_Number_3, context);
     await cmg.setRequest(105, ConnectionManager.Mobile_Number_4, context);
     await cmg.setRequest(106, ConnectionManager.Mobile_Number_5, context);
-    await refresh();
-    Utils.showSnackBar(context, "Done.");
-  }
-
-  apply_reasons() async {
     await cmg.setRequest(110, ConnectionManager.SMS_Priorities_State, context);
+
+    await refresh();
+
+    Utils.showSnackBar(context, "Done.");
   }
 
   Widget build_boxed_titlebox({required title, required child}) {
@@ -210,7 +272,10 @@ class wpage_smsState extends State<wpage_sms> {
 
     return InternationalPhoneNumberInput(
       onInputChanged: (PhoneNumber number) {
-        print(number.phoneNumber);
+        setState(() {
+          MODIFIED = true;
+        });
+
         if (number.phoneNumber != null)
           switch (i) {
             case 0:
@@ -232,6 +297,7 @@ class wpage_smsState extends State<wpage_sms> {
               ConnectionManager.Mobile_Number_5 = number.phoneNumber!;
               break;
           }
+        check_modification();
       },
       onInputValidated: (bool value) {
         is_validated[i] = value;
@@ -272,7 +338,6 @@ class wpage_smsState extends State<wpage_sms> {
       color: Theme.of(context).canvasColor,
       child: SingleChildScrollView(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          // build_boxed_titlebox(title: "Send sms to", child: phone_number_input()),
           build_boxed_titlebox(
               title: "Send sms to",
               child: Column(
@@ -281,23 +346,30 @@ class wpage_smsState extends State<wpage_sms> {
                   Row(
                     children: [
                       Expanded(child: Text("Count:")),
-                      NumericStepButton(
-                        key: UniqueKey(),
-                        minValue: 1,
-                        current: current_mobile_sms_count,
-                        maxValue: 5,
-                        onChanged: (value) {
-                          setState(() {
-                            current_mobile_sms_count = value;
-                          });
-                        },
-                      )
+                      TextButton(
+                          onPressed: () {
+                            current_mobile_sms_count++;
+                            current_mobile_sms_count = min(current_mobile_sms_count, 5);
+                            setState(() {});
+                          },
+                          child: Text("Add", style: Theme.of(context).textTheme.bodyText1!.copyWith(color: Colors.blue)))
+                      // NumericStepButton(
+                      //   key: UniqueKey(),
+                      //   minValue: 1,
+                      //   current: current_mobile_sms_count,
+                      //   maxValue: 5,
+                      //   onChanged: (value) {
+                      //     MODIFIED = true;
+                      //     setState(() {
+                      //       current_mobile_sms_count = value;
+                      //     });
+                      //   },
+                      // )
                     ],
                   ),
                   ...gen_phone_row(current_mobile_sms_count)
                 ],
               )),
-
           SizedBox(
             height: 16,
           ),
@@ -327,12 +399,6 @@ class wpage_smsState extends State<wpage_sms> {
           SizedBox(
             height: 16,
           ),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              build_apply_button(),
-            ],
-          ),
         ]),
       ));
   build_apply_button() => Align(
@@ -343,12 +409,10 @@ class wpage_smsState extends State<wpage_sms> {
           height: 50,
           padding: EdgeInsets.symmetric(horizontal: 8),
           child: OutlinedButton(
-            onPressed: () {
-              apply_phones();
-            },
+            onPressed: MODIFIED ? apply_phones : null,
             style: OutlinedButton.styleFrom(
                 padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
-                side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
+                side: BorderSide(width: 2, color: MODIFIED ? Theme.of(context).primaryColor : Colors.grey),
                 shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
             child: Text("Apply", style: Theme.of(context).textTheme.bodyText1),
           ),
@@ -362,26 +426,59 @@ class wpage_smsState extends State<wpage_sms> {
           height: 50,
           padding: EdgeInsets.symmetric(horizontal: 8),
           child: OutlinedButton(
-            onPressed: () {},
+            onPressed: () {
+              AwesomeDialog(
+                context: context,
+                useRootNavigator: true,
+                dialogType: DialogType.WARNING,
+                animType: AnimType.BOTTOMSLIDE,
+                title: "Confirm",
+                desc: "Current Page Settings will be restored to factory defaults",
+                btnOkOnPress: () async {
+                  refresh();
+                },
+                btnCancelOnPress: () {},
+              )..show();
+            },
             style: OutlinedButton.styleFrom(
                 padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
                 side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
                 shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
-            child: Text("Restore Defaults", style: Theme.of(context).textTheme.bodyText1),
+            child: Text("Restore To Factory Defaults", style: Theme.of(context).textTheme.bodyText1),
           ),
         ),
       );
+
+  String get_string_meaning(String input) {
+    if (input == "0") return "Off";
+    if (input == "1") return "Low";
+    if (input == "2") return "Medium";
+    if (input == "3") return "Critical";
+
+    return "parse failed.";
+  }
+
   bool sml = false;
   List<Widget> buildonoffrow(title, icon, int index) => [
-        SwitchListTile(
-          secondary: Icon(icon),
+        ListTile(
           title: Text(title),
-          onChanged: (value) {
-            ChangeReasons(index);
-            // ConnectionManager.SMS_Priorities_State = replaceCharAt(ConnectionManager.SMS_Priorities_State, index, value ? "1" : "0");
-          },
-          value: ConnectionManager.SMS_Priorities_State.characters.elementAt(index) != "0",
+          trailing: TextButton(
+            onPressed: () async {
+              ChangeReasons(index);
+            },
+            child: Text(get_string_meaning(ConnectionManager.SMS_Priorities_State.characters.elementAt(index)),
+                style: Theme.of(context).textTheme.bodyText1!.copyWith(color: Colors.blue)),
+          ),
         ),
+
+        // SwitchListTile(
+        //   secondary: Icon(icon),
+        //   title: Text(title),
+        //   onChanged: (value) {
+        //     ChangeReasons(index);
+        //   },
+        //   value: ConnectionManager.SMS_Priorities_State.characters.elementAt(index) != "0",
+        // ),
         Divider(
           height: 2,
           thickness: 2,
@@ -424,7 +521,7 @@ class wpage_smsState extends State<wpage_sms> {
             }) ??
         0;
     ConnectionManager.SMS_Priorities_State = replaceCharAt(ConnectionManager.SMS_Priorities_State, index, value.toString());
-    apply_reasons();
+    MODIFIED = true;
     setState(() {});
   }
 
@@ -440,36 +537,106 @@ class wpage_smsState extends State<wpage_sms> {
         ],
       );
 
+  Widget not_allowed_box() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text("Gsm licence not provided, you can safely skip this page."),
+          TextButton(
+            onPressed: () async {
+              var lcn = Provider.of<LicenseChangeNotifier>(context, listen: false);
+              if (lcn.gsm_modem) {
+                return;
+              }
+              var data = await Utils.ask_serial("You have to provdie license's serial number", context);
+              if (data == "" || data == "null") {
+                return;
+              }
+              bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(5, data, context);
+              if (is_valid) {
+                lcn.license_gsm_modem(context);
+                is_allowed = true;
+                refresh();
+              } else {
+                Utils.showSnackBar(
+                  context,
+                  "Wrong serial number.",
+                );
+              }
+            },
+            child: Text('Enter Gsm modem Licence', style: Theme.of(context).textTheme.bodyText1!.copyWith(color: Colors.blue)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return is_allowed
-        ? DefaultTabController(
-            length: 2,
-            child: Scaffold(
-              resizeToAvoidBottomInset: false,
-              appBar: TabBar(
-                labelStyle: Theme.of(context).textTheme.bodyText1,
-                labelColor: Theme.of(context).textTheme.bodyText1!.color,
-                // labelStyle: Theme.of(context).textTheme.bodyText1,
-                tabs: [
-                  Tab(
-                    text: "Settings",
-                  ),
-                  Tab(
-                    text: "Reasons",
-                  ),
-                ],
+    return Scaffold(
+        body: Column(
+      children: [
+        Container(
+          color: Colors.black12,
+          padding: EdgeInsets.symmetric(horizontal: 8),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Center(
+                  child: Text("Sms Page", style: Theme.of(context).textTheme.bodyText1!.copyWith(fontSize: 24)),
+                ),
               ),
-              body: TabBarView(
-                children: [
-                  build_settings_fragment(),
-                  build_reasons_list(),
-                ],
-              ),
-            ),
-          )
-        : Center(
-            child: Text("Sms licence not provided, please skip this tab"),
-          );
+            ],
+          ),
+        ),
+        Expanded(
+            child: SingleChildScrollView(
+                child: Column(
+          children: [
+            build_settings_fragment(),
+            build_reasons_list(),
+          ],
+        ))),
+        build_apply_button(),
+        build_reset_button(),
+        SizedBox(
+          height: 56,
+        )
+      ],
+    ));
   }
 }
+//   @override
+//   Widget build(BuildContext context) {
+//     return is_allowed
+//         ? DefaultTabController(
+//             length: 2,
+//             child: Scaffold(
+//               resizeToAvoidBottomInset: false,
+//               appBar: TabBar(
+//                 controller: _tabController,
+//                 labelStyle: Theme.of(context).textTheme.bodyText1,
+//                 labelColor: Theme.of(context).textTheme.bodyText1!.color,
+//                 tabs: [
+//                   Tab(
+//                     text: "Sms Settings",
+//                   ),
+//                   Tab(
+//                     text: "Reasons",
+//                   ),
+//                 ],
+//               ),
+//               body: TabBarView(
+//                 controller: _tabController,
+//                 children: [
+//                   build_settings_fragment(),
+//                   build_reasons_list(),
+//                 ],
+//               ),
+//             ),
+//           )
+//         : not_allowed_box();
+//   }
+// }
