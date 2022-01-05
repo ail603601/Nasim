@@ -26,8 +26,7 @@ class wpage_humidity extends StatefulWidget {
 class wpage_humidityState extends State<wpage_humidity> with SingleTickerProviderStateMixin {
   late ConnectionManager cmg;
   TabController? _tabController;
-  static bool is_night_set = false;
-  static bool is_day_set = false;
+
   final TextEditingController humidity_min_controller = TextEditingController();
   final TextEditingController humidity_max_controller = TextEditingController();
   late Timer soft_reftresh_timer;
@@ -345,12 +344,10 @@ class wpage_humidityState extends State<wpage_humidity> with SingleTickerProvide
 
       MODIFIED = false;
       if (_tabController!.index == 0) {
-        is_night_set = true;
         _tabController!.animateTo(1);
 
         return;
       } else if (_tabController!.index == 1) {
-        is_day_set = true;
         IntroductionScreenState.force_next();
       }
     } catch (e) {}

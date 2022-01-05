@@ -29,10 +29,10 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
   late ConnectionManager cmg;
   bool refresh_disable = false;
 
-  static bool is_minimum_day_set = false;
-  static bool is_minimum_night_set = false;
-  static bool is_maximum_day_set = false;
-  static bool is_maximum_night_set = false;
+  bool is_minimum_day_set = false;
+  bool is_minimum_night_set = false;
+  bool is_maximum_day_set = false;
+  bool is_maximum_night_set = false;
 
   late Timer soft_reftresh_timer;
 
@@ -42,16 +42,16 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
   double maximum_inlet_fan_speed_night = 0;
 
   UniqueKey? key_min_day = new UniqueKey();
-  static bool expanded_min_day = true;
+  bool expanded_min_day = true;
 
   UniqueKey? key_min_night = new UniqueKey();
-  static bool expanded_min_night = false;
+  bool expanded_min_night = false;
 
   UniqueKey? key_max_day = new UniqueKey();
-  static bool expanded_max_day = true;
+  bool expanded_max_day = true;
 
   UniqueKey? key_max_night = new UniqueKey();
-  static bool expanded_max_night = false;
+  bool expanded_max_night = false;
 
   static bool is_inlet_fan_available = false;
 
@@ -228,8 +228,6 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
     _tabController!.dispose();
     soft_reftresh_timer.cancel();
 
-    // refresher.cancel();
-
     super.dispose();
   }
 
@@ -372,16 +370,19 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
 
           is_maximum_night_set = true;
           Utils.showSnackBar(context, "Done.");
+          MODIFIED = false;
           IntroductionScreenState.force_next();
+          return;
         } else {
           toggle_max_night();
         }
+        MODIFIED = false;
 
         if (is_maximum_night_set) {
           Utils.showSnackBar(context, "Done.");
           IntroductionScreenState.force_next();
+          return;
         }
-        MODIFIED = false;
 
         return;
       }
@@ -404,16 +405,19 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
 
           is_maximum_day_set = true;
           Utils.showSnackBar(context, "Done.");
+          MODIFIED = false;
           IntroductionScreenState.force_next();
+          return;
         } else {
           toggle_max_day();
         }
+        MODIFIED = false;
 
         if (is_maximum_day_set) {
           Utils.showSnackBar(context, "Done.");
           IntroductionScreenState.force_next();
+          return;
         }
-        MODIFIED = false;
 
         return;
       }
@@ -814,8 +818,6 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
                   // await refresh();
                   // return;
                 }
-
-                await refresh();
 
                 // IntroductionScreenState.force_next();
               }),

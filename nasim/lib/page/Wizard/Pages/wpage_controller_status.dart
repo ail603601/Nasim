@@ -37,27 +37,28 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
   String Old_Humidity_Controller_Night_Mode = "";
   String Old_Air_Purifier_Controller_Day_Mode = "";
   String Old_Air_Purifier_Controller_Night_Mode = "";
-  // bool check_modification() {
-  //   if (is_night) {
-  //     if (Old_Max_Night_IAQ == max_iaq_controller.text &&
-  //         Old_Min_Night_IAQ == min_iaq_controller.text &&
-  //         Old_Max_Night_CO2 == max_co2_controller.text &&
-  //         Old_Min_Night_CO2 == min_co2_controller.text) {
-  //       MODIFIED = false;
-  //     } else
-  //       MODIFIED = true;
-  //   } else {
-  //     if (Old_Max_Day_IAQ == max_iaq_controller.text &&
-  //         Old_Min_Day_IAQ == min_iaq_controller.text &&
-  //         Old_Max_Day_CO2 == max_co2_controller.text &&
-  //         Old_Min_Day_CO2 == min_co2_controller.text) {
-  //       MODIFIED = false;
-  //     } else
-  //       MODIFIED = true;
-  //   }
 
-  //   return MODIFIED;
-  // }
+  bool check_modification() {
+    if (is_night) {
+      if (Old_Cooler_Controller_Night_Mod == ConnectionManager.Cooler_Controller_Night_Mod &&
+          Old_Heater_Controller_Night_Mode == ConnectionManager.Heater_Controller_Night_Mode &&
+          Old_Humidity_Controller_Night_Mode == ConnectionManager.Humidity_Controller_Night_Mode &&
+          Old_Air_Purifier_Controller_Night_Mode == ConnectionManager.Air_Purifier_Controller_Night_Mode) {
+        MODIFIED = false;
+      } else
+        MODIFIED = true;
+    } else {
+      if (Old_Cooler_Controller_Day_Mode == ConnectionManager.Cooler_Controller_Day_Mode &&
+          Old_Heater_Controller_Day_Mode == ConnectionManager.Heater_Controller_Day_Mode &&
+          Old_Humidity_Controller_Day_Mode == ConnectionManager.Humidity_Controller_Day_Mode &&
+          Old_Air_Purifier_Controller_Day_Mode == ConnectionManager.Air_Purifier_Controller_Day_Mode) {
+        MODIFIED = false;
+      } else
+        MODIFIED = true;
+    }
+
+    return MODIFIED;
+  }
 
   @override
   void initState() {
@@ -70,12 +71,16 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
       return true;
     };
     widget.Next = () {
+      if (MODIFIED) {
+        Utils.alert(context, "", "Please apply.");
+        return false;
+      }
+
       if (_tabController!.index == 0) {
         _tabController!.animateTo(1);
-      } else if (_tabController!.index == 1) {
-        return true;
+        return false;
       }
-      return false;
+      return true;
     };
     _tabController = new TabController(vsync: this, length: tabs.length);
 
@@ -161,6 +166,8 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
                   ConnectionManager.Cooler_Controller_Night_Mod = index.toString();
                 else
                   ConnectionManager.Cooler_Controller_Day_Mode = index.toString();
+
+                check_modification();
                 setState(() {
                   cooler_mod_val = index == 1;
                 });
@@ -198,6 +205,9 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
                   ConnectionManager.Heater_Controller_Night_Mode = index.toString();
                 else
                   ConnectionManager.Heater_Controller_Day_Mode = index.toString();
+
+                check_modification();
+
                 setState(() {
                   heater_mod_val = index == 1;
                 });
@@ -235,6 +245,9 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
                   ConnectionManager.Humidity_Controller_Night_Mode = index.toString();
                 else
                   ConnectionManager.Humidity_Controller_Day_Mode = index.toString();
+
+                check_modification();
+
                 setState(() {
                   humidity_mod_val = index == 1;
                 });
@@ -272,6 +285,9 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
                   ConnectionManager.Air_Purifier_Controller_Night_Mode = index.toString();
                 else
                   ConnectionManager.Air_Purifier_Controller_Day_Mode = index.toString();
+
+                check_modification();
+
                 setState(() {
                   ap_mod_val = index == 1;
                 });

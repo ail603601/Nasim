@@ -31,8 +31,8 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
   int real_output_fan_power = 0;
   late Timer soft_reftresh_timer;
 
-  static bool is_minimum_set = false;
-  static bool is_maximum_set = false;
+  bool is_minimum_set = false;
+  bool is_maximum_set = false;
 
   List<String> fan_power_licenses = ["600 W", "900 W", "1200 W", "1500 W", "1800 W", "2100 W"];
 

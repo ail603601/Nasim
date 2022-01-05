@@ -36,28 +36,7 @@ class WizardPageState extends State<WizardPage> {
   static bool can_next = true;
 
   static void wizardNewSetup() {
-    wpage_outlet_fanState.is_maximum_set = false;
-    wpage_outlet_fanState.is_minimum_set = false;
-
-    wpage_inlet_fanState.is_maximum_day_set = false;
-    wpage_inlet_fanState.is_maximum_night_set = false;
-    wpage_inlet_fanState.is_minimum_day_set = false;
-    wpage_inlet_fanState.is_minimum_night_set = false;
-
-    wpage_inlet_fanState.expanded_min_day = true;
-    wpage_inlet_fanState.expanded_min_night = false;
-    wpage_inlet_fanState.expanded_max_day = true;
-    wpage_inlet_fanState.expanded_max_night = false;
     wpage_inlet_fanState.is_inlet_fan_available = false;
-
-    wpage_temperatureState.is_day_set = false;
-    wpage_temperatureState.is_night_set = false;
-
-    wpage_humidityState.is_day_set = false;
-    wpage_humidityState.is_night_set = false;
-
-    wpage_air_qualityState.is_day_set = false;
-    wpage_air_qualityState.is_night_set = false;
   }
 
   static void wizardEnded(context) async {
@@ -107,9 +86,9 @@ class WizardPageState extends State<WizardPage> {
     }
 
     if (DevicesListConnectState.flag_only_user == true) {
-      raw_pages = [
-        wpage_users(),
-      ];
+      // raw_pages = [
+      //   wpage_users(),
+      // ];
     }
 
     return Scaffold(

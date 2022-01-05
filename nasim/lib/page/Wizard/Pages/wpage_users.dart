@@ -1,3 +1,4 @@
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -81,7 +82,26 @@ class wpage_usersState extends State<wpage_users> {
               .setRequest(users_found.length + 28, SavedDevicesChangeNotifier.getSelectedDevice()!.serial + name, context);
           await refresh(context);
           can_next = true;
-          if (DevicesListConnectState.flag_only_user == false) Utils.setTimeOut(100, IntroductionScreenState.force_next);
+
+          if (DevicesListConnectState.flag_only_user == false)
+            Utils.setTimeOut(100, IntroductionScreenState.force_next);
+          else {
+            Utils.setTimeOut(50, () {
+              AwesomeDialog(
+                context: context,
+                useRootNavigator: true,
+                dialogType: DialogType.WARNING,
+                animType: AnimType.BOTTOMSLIDE,
+                title: "Confirm",
+                desc: ("this device is already set up, you wish to continue?"),
+                btnOkOnPress: () async {
+                  Navigator.pop(context, true);
+                },
+                btnCancelOnPress: () {},
+                onDissmissCallback: (type) {},
+              )..show();
+            });
+          }
         } else {
           Utils.showSnackBar(context, "communication failed.");
         }
@@ -177,7 +197,6 @@ class wpage_usersState extends State<wpage_users> {
 
                   cb(last_dialog_text);
                   Navigator.pop(context);
-                  if (DevicesListConnectState.flag_only_user == false) IntroductionScreenState.force_next();
                 },
               ),
             ],

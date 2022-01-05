@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:nasim/IntroductionScreen/introduction_screen.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
@@ -18,6 +21,21 @@ class wpage_license extends StatefulWidget {
 class _wpage_licenseState extends State<wpage_license> {
   UniqueKey? keytile;
   bool expanded_initialy = false;
+  int parse_device_fan(int i) {
+    if (i == 0) return 300;
+    if (i == 1) return 600;
+    if (i == 2) return 900;
+    if (i == 3) return 1200;
+    if (i == 4) return 1500;
+    if (i == 5) return 1800;
+    if (i == 6) return 2100;
+
+    return 0;
+  }
+
+  late ConnectionManager cmg;
+  String parsed_fan_power = "loading...";
+
   @override
   void initState() {
     widget.Next = () {
@@ -26,8 +44,36 @@ class _wpage_licenseState extends State<wpage_license> {
       }
       return can_go_next;
     };
-    checkifnexyallowed(Provider.of<LicenseChangeNotifier>(context, listen: false));
+    checkifnextallowed(Provider.of<LicenseChangeNotifier>(context, listen: false));
+    cmg = Provider.of<ConnectionManager>(context, listen: false);
+    cmg.getRequest(39, context).then((value) {
+      ConnectionManager.Real_Output_Fan_Power = (int.tryParse(value) ?? "0").toString();
+      parsed_fan_power = parse_device_fan(int.parse(ConnectionManager.Real_Output_Fan_Power)).toString();
+    });
+
     super.initState();
+  }
+
+  Future<bool> ask_re_enter_serial({bool is_for_powerbox = false}) {
+    Completer<bool> comp = new Completer();
+    AwesomeDialog(
+      context: context,
+      useRootNavigator: true,
+      dialogType: DialogType.WARNING,
+      animType: AnimType.BOTTOMSLIDE,
+      title: "Confirm",
+      desc: (is_for_powerbox ? "Device Fan Power: ${parsed_fan_power}\n" : "") + "Are you sure you want to change the serial number? ",
+      btnOkOnPress: () async {
+        comp.complete(true);
+      },
+      btnCancelOnPress: () {
+        comp.complete(false);
+      },
+      onDissmissCallback: (type) {
+        comp.complete(false);
+      },
+    )..show();
+    return comp.future;
   }
 
   hintbox() => Container(
@@ -38,17 +84,20 @@ class _wpage_licenseState extends State<wpage_license> {
             style: Theme.of(context).textTheme.bodyText1!.copyWith(color: Colors.white)),
       );
   license_gsm_modem_row(LicenseChangeNotifier lcn) => ListTile(
-        title: Text("GSM Modem License", style: Theme.of(context).textTheme.bodyText1!),
+        title: Text("GSM Modem", style: Theme.of(context).textTheme.bodyText1!),
         subtitle: Row(
           children: [
-            Icon(
-              Icons.info_outline,
-              size: 18,
-            ),
+            if (!lcn.gsm_modem)
+              Icon(
+                Icons.info_outline,
+                size: 18,
+              ),
             SizedBox(
               width: 8,
             ),
-            Text("Optional", style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 10))
+            lcn.gsm_modem
+                ? Text("Registered", style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 10, color: Colors.green))
+                : Text("Optional", style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 10))
           ],
         ),
         leading: Icon(Icons.sim_card),
@@ -57,7 +106,7 @@ class _wpage_licenseState extends State<wpage_license> {
           color: Theme.of(context).accentColor,
         ),
         onTap: () async {
-          if (lcn.gsm_modem) {
+          if (lcn.gsm_modem && !await ask_re_enter_serial()) {
             return;
           }
           var data = await Utils.ask_serial("You have to provdie license's serial number", context);
@@ -69,23 +118,26 @@ class _wpage_licenseState extends State<wpage_license> {
             lcn.license_gsm_modem(context);
 
             setState(() {});
-            checkifnexyallowed(lcn);
+            checkifnextallowed(lcn);
           } else {
             Utils.showSnackBar(context, "Wrong serial number.");
           }
         },
       );
   license_outdoor_temp_sesnsor_row(LicenseChangeNotifier lcn) => ListTile(
-        title: Text("Outdoor Temperature License", style: Theme.of(context).textTheme.bodyText1!),
+        title: Text("Outdoor Temperature Sensor", style: Theme.of(context).textTheme.bodyText1!),
         subtitle: Row(children: [
-          Icon(
-            Icons.info_outline,
-            size: 18,
-          ),
+          if (!lcn.outdoor_temp)
+            Icon(
+              Icons.info_outline,
+              size: 18,
+            ),
           SizedBox(
             width: 8,
           ),
-          Text("Optional", style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 10))
+          lcn.outdoor_temp
+              ? Text("Registered", style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 10, color: Colors.green))
+              : Text("Optional", style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 10))
         ]),
         leading: Icon(Icons.thermostat_rounded),
         trailing: Icon(
@@ -93,7 +145,7 @@ class _wpage_licenseState extends State<wpage_license> {
           color: Theme.of(context).accentColor,
         ),
         onTap: () async {
-          if (lcn.outdoor_temp) {
+          if (lcn.outdoor_temp && !await ask_re_enter_serial()) {
             return;
           }
           var data = await Utils.ask_serial("You have to provdie license's serial number", context);
@@ -104,25 +156,28 @@ class _wpage_licenseState extends State<wpage_license> {
           if (is_valid) {
             lcn.license_outdoor_temp(context);
             setState(() {});
-            checkifnexyallowed(lcn);
+            checkifnextallowed(lcn);
           } else {
             Utils.showSnackBar(context, "Wrong serial number.");
           }
         },
       );
   license_power_box_row(LicenseChangeNotifier lcn) => ListTile(
-        title: Text("Power Box License", style: Theme.of(context).textTheme.bodyText1!),
+        title: Text("Power Box", style: Theme.of(context).textTheme.bodyText1!),
         subtitle: Row(
           children: [
-            Icon(
-              Icons.info_outline,
-              size: 18,
-              color: Colors.red,
-            ),
+            if (!lcn.power_box)
+              Icon(
+                Icons.info_outline,
+                size: 18,
+                color: Colors.red,
+              ),
             SizedBox(
               width: 8,
             ),
-            Text("Required", style: Theme.of(context).textTheme.bodyText2!.copyWith(color: Colors.red, fontSize: 10))
+            lcn.power_box
+                ? Text("Registered", style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 10, color: Colors.green))
+                : Text("Required", style: Theme.of(context).textTheme.bodyText2!.copyWith(color: Colors.red, fontSize: 10))
           ],
         ),
         leading: Icon(Icons.power),
@@ -131,7 +186,7 @@ class _wpage_licenseState extends State<wpage_license> {
           color: Theme.of(context).accentColor,
         ),
         onTap: () async {
-          if (lcn.power_box) {
+          if (lcn.power_box && !await ask_re_enter_serial(is_for_powerbox: true)) {
             return;
           }
           var data = await Utils.ask_serial("You have to provdie license's serial number", context);
@@ -143,7 +198,7 @@ class _wpage_licenseState extends State<wpage_license> {
             lcn.license_power_box(context);
 
             setState(() {});
-            checkifnexyallowed(lcn);
+            checkifnextallowed(lcn);
           } else {
             Utils.showSnackBar(context, "Wrong serial number.");
           }
@@ -162,7 +217,7 @@ class _wpage_licenseState extends State<wpage_license> {
         key: keytile,
         tilePadding: EdgeInsets.only(right: 16),
         title: ListTile(
-          title: Text("Room Temperature Licenses", style: Theme.of(context).textTheme.bodyText1!),
+          title: Text("Room Temperature Sensor", style: Theme.of(context).textTheme.bodyText1!),
           leading: Icon(Icons.thermostat_rounded),
           onTap: () {
             togletile();
@@ -202,15 +257,18 @@ class _wpage_licenseState extends State<wpage_license> {
         title: Text("Sensor 0", style: Theme.of(context).textTheme.bodyText1!),
         subtitle: Row(
           children: [
-            Icon(
-              Icons.info_outline,
-              size: 18,
-              color: Colors.red,
-            ),
+            if (!lcn.room_temp_0)
+              Icon(
+                Icons.info_outline,
+                size: 18,
+                color: Colors.red,
+              ),
             SizedBox(
               width: 8,
             ),
-            Text("Required", style: Theme.of(context).textTheme.bodyText2!.copyWith(color: Colors.red, fontSize: 10))
+            lcn.room_temp_0
+                ? Text("Registered", style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 10, color: Colors.green))
+                : Text("Required", style: Theme.of(context).textTheme.bodyText2!.copyWith(color: Colors.red, fontSize: 10))
           ],
         ),
         trailing: Icon(
@@ -218,7 +276,7 @@ class _wpage_licenseState extends State<wpage_license> {
           color: Theme.of(context).accentColor,
         ),
         onTap: () async {
-          if (lcn.room_temp_0) {
+          if (lcn.room_temp_0 && !await ask_re_enter_serial()) {
             return;
           }
           var data = await Utils.ask_serial("You have to provdie license's serial number", context);
@@ -229,7 +287,7 @@ class _wpage_licenseState extends State<wpage_license> {
           if (is_valid) {
             await lcn.license_room_temp(0, context);
 
-            checkifnexyallowed(lcn);
+            checkifnextallowed(lcn);
             setState(() {});
           } else {
             Utils.showSnackBar(context, "Wrong serial number.");
@@ -242,14 +300,17 @@ class _wpage_licenseState extends State<wpage_license> {
         title: Text("Sensor $num", style: Theme.of(context).textTheme.bodyText1!),
         subtitle: Row(
           children: [
-            Icon(
-              Icons.info_outline,
-              size: 18,
-            ),
+            if (!checked)
+              Icon(
+                Icons.info_outline,
+                size: 18,
+              ),
             SizedBox(
               width: 8,
             ),
-            Text("Optional", style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 10))
+            checked
+                ? Text("Registered", style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 10, color: Colors.green))
+                : Text("Optional", style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 10))
           ],
         ),
         trailing: Icon(
@@ -257,7 +318,7 @@ class _wpage_licenseState extends State<wpage_license> {
           color: Theme.of(context).accentColor,
         ),
         onTap: () async {
-          if (checked) {
+          if (checked && !await ask_re_enter_serial()) {
             return;
           }
           var data = await Utils.ask_serial("You have to provdie license's serial number", context);
@@ -277,7 +338,7 @@ class _wpage_licenseState extends State<wpage_license> {
 
   bool can_go_next = false;
 
-  checkifnexyallowed(LicenseChangeNotifier lcn) {
+  checkifnextallowed(LicenseChangeNotifier lcn) {
     if (lcn.power_box && lcn.room_temp_0) {
       can_go_next = true;
     }
@@ -291,7 +352,7 @@ class _wpage_licenseState extends State<wpage_license> {
         padding: const EdgeInsets.only(bottom: 64),
         child: SingleChildScrollView(
           child: Consumer<LicenseChangeNotifier>(builder: (context, lcn, child) {
-            checkifnexyallowed(lcn);
+            checkifnextallowed(lcn);
             return Column(
               children: [
                 hintbox(),

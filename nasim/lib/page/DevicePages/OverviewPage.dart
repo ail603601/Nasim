@@ -12,21 +12,26 @@ import 'package:nasim/provider/SavedevicesChangeNofiter.dart';
 import 'package:provider/provider.dart';
 
 import '../../utils.dart';
+import 'dart:math';
 
 class OverviePage extends StatefulWidget {
   @override
   _OverviePageState createState() => _OverviePageState();
 }
 
-class _OverviePageState extends State<OverviePage> {
+class _OverviePageState extends State<OverviePage> with SingleTickerProviderStateMixin {
   late ConnectionManager cmg;
   late LicenseChangeNotifier lcn;
   late Timer refresher;
   static bool iaq_or_co = false;
+  AnimationController? _controller;
 
   @override
   void initState() {
     super.initState();
+    last_updated_time = "loading...";
+    _controller = AnimationController(vsync: this, duration: Duration(seconds: 2))..repeat();
+
     // runs every 1 second
     refresher = Timer.periodic(new Duration(milliseconds: 2000), (timer) {
       refresh();
@@ -40,7 +45,8 @@ class _OverviePageState extends State<OverviePage> {
 
   refresh() async {
     bg_dark = true;
-    await cmg.getRequest(121, context);
+
+    // await cmg.getRequest(121, context);
     ConnectionManager.Real_Room_Temp_0 = (int.tryParse(await cmg.getRequest(79, context)) ?? 0).toString();
     ConnectionManager.Real_Room_Temp_1 = (int.tryParse(await cmg.getRequest(80, context)) ?? 0).toString();
     ConnectionManager.Real_Room_Temp_2 = (int.tryParse(await cmg.getRequest(81, context)) ?? 0).toString();
@@ -116,18 +122,35 @@ class _OverviePageState extends State<OverviePage> {
 
   @override
   void dispose() {
-    super.dispose();
-
     refresher.cancel();
+
+    _controller!.dispose();
+    super.dispose();
   }
 
   bool bg_dark = true;
+
+  Widget make_animated_icon(tag, path, Color? color) => Hero(
+      tag: tag,
+      child: AnimatedBuilder(
+        animation: _controller!,
+        builder: (_, child) {
+          return Transform.rotate(
+            angle: _controller!.value * 2 * pi,
+            child: child,
+          );
+        },
+        child: Image.asset(
+          path,
+          color: color,
+        ),
+      ));
 
   List<Widget> build_text_row({title, required String value, String suffix = "°C"}) {
     bg_dark = !bg_dark;
     return [
       Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 20),
         color: bg_dark ? Color(0x33ffffff) : Colors.black12,
         child: Row(
           children: [
@@ -142,15 +165,228 @@ class _OverviePageState extends State<OverviePage> {
           ],
         ),
       ),
-      Divider(
-        height: 1,
-        color: Theme.of(context).accentColor,
-      ),
     ];
   }
 
   static String last_updated_time = "";
 
+  UniqueKey? keytile_temperature;
+  bool tile_temperature_expanded = false;
+
+  togle_tile_temperature() {
+    setState(() {
+      keytile_temperature = new UniqueKey();
+      tile_temperature_expanded = !tile_temperature_expanded;
+    });
+  }
+
+  Widget build_temperature_card(context) => Theme(
+        data: ThemeData().copyWith(dividerColor: Colors.transparent),
+        child: Card(
+          color: Colors.orange[200],
+          elevation: 10,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          clipBehavior: Clip.antiAliasWithSaveLayer,
+          child: ExpansionTile(
+            initiallyExpanded: tile_temperature_expanded,
+            key: keytile_temperature,
+            tilePadding: EdgeInsets.only(right: 16),
+            title: ListTile(
+              leading: Image.asset("assets/thermometer.png"),
+              title: Text("Temperature Sensor", style: Theme.of(context).textTheme.bodyText1!),
+              onTap: () {
+                togle_tile_temperature();
+              },
+            ),
+            children: [
+              if (lcn.room_temp_0) ...build_text_row(title: "Room Temperature 0", value: ConnectionManager.Real_Room_Temp_0),
+              if (lcn.room_temp_1) ...build_text_row(title: "Room Temperature 1", value: ConnectionManager.Real_Room_Temp_1),
+              if (lcn.room_temp_2) ...build_text_row(title: "Room Temperature 2", value: ConnectionManager.Real_Room_Temp_2),
+              if (lcn.room_temp_3) ...build_text_row(title: "Room Temperature 3", value: ConnectionManager.Real_Room_Temp_3),
+              if (lcn.room_temp_4) ...build_text_row(title: "Room Temperature 4", value: ConnectionManager.Real_Room_Temp_4),
+              if (lcn.room_temp_5) ...build_text_row(title: "Room Temperature 5", value: ConnectionManager.Real_Room_Temp_5),
+              if (lcn.room_temp_6) ...build_text_row(title: "Room Temperature 6", value: ConnectionManager.Real_Room_Temp_6),
+              if (lcn.room_temp_7) ...build_text_row(title: "Room Temperature 7", value: ConnectionManager.Real_Room_Temp_7),
+              if (lcn.room_temp_8) ...build_text_row(title: "Room Temperature 8", value: ConnectionManager.Real_Room_Temp_8),
+              if (lcn.outdoor_temp) ...build_text_row(title: "Outdoor Temperature", value: ConnectionManager.Real_Outdoor_Temp),
+            ],
+          ),
+        ),
+      );
+
+  UniqueKey? keytile_fan;
+  bool tile_fan_expanded = false;
+
+  togle_tile_fan() {
+    setState(() {
+      keytile_fan = new UniqueKey();
+      tile_fan_expanded = !tile_fan_expanded;
+    });
+  }
+
+  Widget build_fan_card(context) => Theme(
+        data: ThemeData().copyWith(dividerColor: Colors.transparent),
+        child: Card(
+          color: Colors.blue[200],
+          elevation: 10,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          clipBehavior: Clip.antiAliasWithSaveLayer,
+          child: ExpansionTile(
+            initiallyExpanded: tile_fan_expanded,
+            key: keytile_fan,
+            tilePadding: EdgeInsets.only(right: 16),
+            title: ListTile(
+              leading: make_animated_icon("air_speed", "assets/fan_vector.png", Colors.blue[400]),
+              title: Text("Fan", style: Theme.of(context).textTheme.bodyText1!),
+              onTap: () {
+                togle_tile_fan();
+              },
+            ),
+            children: [
+              ...build_text_row(title: "Negative Pressure", value: ConnectionManager.Real_Negative_Pressure_, suffix: 'hpa'),
+              ...build_text_row(title: "Outlet Fan Speed", value: ConnectionManager.Real_Output_Fan_Speed, suffix: '%'),
+              ...build_text_row(title: "Outlet Fan Power", value: ConnectionManager.Real_Output_Fan_Power, suffix: 'W'),
+              ...build_text_row(title: "Inlet Fan Speed", value: ConnectionManager.Real_Input_Fan_Speed, suffix: '%'),
+            ],
+          ),
+        ),
+      );
+
+  Widget build_humidity_card(context) => Theme(
+        data: ThemeData().copyWith(dividerColor: Colors.transparent),
+        child: Card(
+          color: Colors.purple[200],
+          elevation: 10,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          clipBehavior: Clip.antiAliasWithSaveLayer,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 6),
+            child: ListTile(
+              leading: Image.asset("assets/humidity_icon.png"),
+              title: Text("Humidity", style: Theme.of(context).textTheme.bodyText1!),
+              trailing: Text(
+                "${ConnectionManager.Real_Humidity} %",
+                style: Theme.of(context).textTheme.bodyText1,
+                textAlign: TextAlign.right,
+              ),
+            ),
+          ),
+        ),
+      );
+
+  Widget build_air_quality_card(context) => Theme(
+        data: ThemeData().copyWith(dividerColor: Colors.transparent),
+        child: Card(
+          color: Colors.green[300],
+          elevation: 10,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          clipBehavior: Clip.antiAliasWithSaveLayer,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 6),
+            child: ListTile(
+              leading: Image.asset("assets/air_quality.png"),
+              title: Text(iaq_or_co ? "IAQ" : "Co2", style: Theme.of(context).textTheme.bodyText1!),
+              trailing: Text(
+                iaq_or_co ? "${ConnectionManager.Real_IAQ} ppm" : "${ConnectionManager.Real_CO2} ppm",
+                style: Theme.of(context).textTheme.bodyText1,
+                textAlign: TextAlign.right,
+              ),
+            ),
+          ),
+        ),
+      );
+
+  Widget build_Light_card(context) => Theme(
+        data: ThemeData().copyWith(dividerColor: Colors.transparent),
+        child: Card(
+          color: Colors.grey[200],
+          elevation: 10,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          clipBehavior: Clip.antiAliasWithSaveLayer,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 6),
+            child: ListTile(
+              leading: Image.asset("assets/light.png"),
+              title: Text("Light level", style: Theme.of(context).textTheme.bodyText1!),
+              trailing: Text(
+                "${ConnectionManager.Real_Light_Level} Lux",
+                style: Theme.of(context).textTheme.bodyText1,
+                textAlign: TextAlign.right,
+              ),
+            ),
+          ),
+        ),
+      );
+
+  UniqueKey? keytile_contreller_status;
+  bool tile_contreller_status_expanded = false;
+
+  togle_tile_contreller_status() {
+    setState(() {
+      keytile_contreller_status = new UniqueKey();
+      tile_contreller_status_expanded = !tile_contreller_status_expanded;
+    });
+  }
+
+  Widget build_contreller_status_card(context) => Theme(
+        data: ThemeData().copyWith(dividerColor: Colors.transparent),
+        child: Card(
+          color: Colors.blueGrey[700],
+          elevation: 10,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          clipBehavior: Clip.antiAliasWithSaveLayer,
+          child: ExpansionTile(
+            initiallyExpanded: tile_contreller_status_expanded,
+            key: keytile_contreller_status,
+            tilePadding: EdgeInsets.only(right: 16),
+            title: ListTile(
+              leading: Image.asset("assets/controllers-status.png"),
+              title: Text("Controllers Status", style: Theme.of(context).textTheme.bodyText1!),
+              onTap: () {
+                togle_tile_contreller_status();
+              },
+            ),
+            children: [
+              ...build_text_row(title: "Cooler", value: ConnectionManager.Cooler_Status == "1" ? "on" : "off", suffix: ''),
+              ...build_text_row(title: "Heater", value: ConnectionManager.Heater_Status == "1" ? "on" : "off", suffix: ''),
+              ...build_text_row(title: "Air Purifier", value: ConnectionManager.Air_Purifier_Status == "1" ? "on" : "off", suffix: ''),
+              ...build_text_row(title: "Humidity Controller", value: ConnectionManager.Humidity_Controller_Status == "1" ? "on" : "off", suffix: ''),
+            ],
+          ),
+        ),
+      );
+
+  Widget build_time_card(context) => Theme(
+        data: ThemeData().copyWith(dividerColor: Colors.transparent),
+        child: Card(
+          color: Colors.amberAccent[200],
+          elevation: 10,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          clipBehavior: Clip.antiAliasWithSaveLayer,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 6),
+            child: ListTile(
+              leading: Image.asset("assets/clock.png"),
+              title: Text("Last Update", style: Theme.of(context).textTheme.bodyText1!),
+              trailing: Text(last_updated_time),
+            ),
+          ),
+        ),
+      );
   @override
   Widget build(BuildContext context) {
     bg_dark = true;
@@ -158,31 +394,15 @@ class _OverviePageState extends State<OverviePage> {
         child: SafeArea(
       child: SingleChildScrollView(
         child: Column(mainAxisSize: MainAxisSize.max, children: [
-          if (lcn.room_temp_0) ...build_text_row(title: "Room Temperature 0", value: ConnectionManager.Real_Room_Temp_0),
-          if (lcn.room_temp_1) ...build_text_row(title: "Room Temperature 1", value: ConnectionManager.Real_Room_Temp_1),
-          if (lcn.room_temp_2) ...build_text_row(title: "Room Temperature 2", value: ConnectionManager.Real_Room_Temp_2),
-          if (lcn.room_temp_3) ...build_text_row(title: "Room Temperature 3", value: ConnectionManager.Real_Room_Temp_3),
-          if (lcn.room_temp_4) ...build_text_row(title: "Room Temperature 4", value: ConnectionManager.Real_Room_Temp_4),
-          if (lcn.room_temp_5) ...build_text_row(title: "Room Temperature 5", value: ConnectionManager.Real_Room_Temp_5),
-          if (lcn.room_temp_6) ...build_text_row(title: "Room Temperature 6", value: ConnectionManager.Real_Room_Temp_6),
-          if (lcn.room_temp_7) ...build_text_row(title: "Room Temperature 7", value: ConnectionManager.Real_Room_Temp_7),
-          if (lcn.room_temp_8) ...build_text_row(title: "Room Temperature 8", value: ConnectionManager.Real_Room_Temp_8),
-          if (lcn.outdoor_temp) ...build_text_row(title: "Outdoor Temperature", value: ConnectionManager.Real_Outdoor_Temp),
-          ...build_text_row(title: "Negative Pressure", value: ConnectionManager.Real_Negative_Pressure_, suffix: 'hpa'),
-          ...build_text_row(title: "Humidity", value: ConnectionManager.Real_Humidity, suffix: '%'),
-          ...iaq_or_co
-              ? (build_text_row(title: "IAQ", value: ConnectionManager.Real_IAQ, suffix: 'ppm'))
-              : (build_text_row(title: "Co2", value: ConnectionManager.Real_CO2, suffix: 'ppm')),
-          ...build_text_row(title: "Light level", value: ConnectionManager.Real_Light_Level, suffix: 'Lux'),
-          ...build_text_row(title: "Inlet Fan Speed", value: ConnectionManager.Real_Input_Fan_Speed, suffix: '%'),
+          build_temperature_card(context),
+          build_fan_card(context),
+          build_humidity_card(context),
+          build_air_quality_card(context),
+          build_Light_card(context),
+          build_contreller_status_card(context),
           // ...build_text_row(title: "Inlet Fan Power", value: ConnectionManager.Input_Fan_Power, suffix: 'W'),
-          ...build_text_row(title: "Outlet Fan Speed", value: ConnectionManager.Real_Output_Fan_Speed, suffix: '%'),
-          ...build_text_row(title: "Outlet Fan Power", value: ConnectionManager.Real_Output_Fan_Power, suffix: 'W'),
-          ...build_text_row(title: "Cooler", value: ConnectionManager.Cooler_Status == "1" ? "on" : "off", suffix: ''),
-          ...build_text_row(title: "Heater", value: ConnectionManager.Heater_Status == "1" ? "on" : "off", suffix: ''),
-          ...build_text_row(title: "Air Purifier", value: ConnectionManager.Air_Purifier_Status == "1" ? "on" : "off", suffix: ''),
-          ...build_text_row(title: "Humidity Controller", value: ConnectionManager.Humidity_Controller_Status == "1" ? "on" : "off", suffix: ''),
-          ...build_text_row(title: "Last Update:", value: last_updated_time, suffix: ''),
+
+          build_time_card(context),
         ]),
       ),
     ));

@@ -11,7 +11,6 @@ import 'package:nasim/IntroductionScreen/introduction_screen.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../../utils.dart';
 import '../Wizardpage.dart';
 
@@ -26,8 +25,7 @@ class wpage_temperature extends StatefulWidget {
 class wpage_temperatureState extends State<wpage_temperature> with SingleTickerProviderStateMixin {
   late ConnectionManager cmg;
   TabController? _tabController;
-  static bool is_night_set = false;
-  static bool is_day_set = false;
+
   bool set_inprogress = false;
 
   late Timer soft_reftresh_timer;
@@ -280,16 +278,24 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
         await cmg.setRequest(50, Utils.sign_int_100(ConnectionManager.Cooler_Stop_Temp_Day), context);
         await cmg.setRequest(51, Utils.sign_int_100(ConnectionManager.Heater_Start_Temp_Day), context);
         await cmg.setRequest(52, Utils.sign_int_100(ConnectionManager.Heater_Stop_Temp_Day), context);
-        if (!is_night_set) {
-          //night same as day
-          await cmg.setRequest(53, Utils.sign_int_100(ConnectionManager.Favourite_Room_Temp_Day_), context);
-          await cmg.setRequest(54, (ConnectionManager.Room_Temp_Sensitivity_Day), context);
-          await cmg.setRequest(55, Utils.sign_int_100(ConnectionManager.Cooler_Start_Temp_Day), context);
-          await cmg.setRequest(56, Utils.sign_int_100(ConnectionManager.Cooler_Stop_Temp_Day), context);
-          await cmg.setRequest(57, Utils.sign_int_100(ConnectionManager.Heater_Start_Temp_Day), context);
-          await cmg.setRequest(58, Utils.sign_int_100(ConnectionManager.Heater_Stop_Temp_Day), context);
-        }
+        // if (!is_night_set) {
+        //night same as day
+        await cmg.setRequest(53, Utils.sign_int_100(ConnectionManager.Favourite_Room_Temp_Day_), context);
+        await cmg.setRequest(54, (ConnectionManager.Room_Temp_Sensitivity_Day), context);
+        await cmg.setRequest(55, Utils.sign_int_100(ConnectionManager.Cooler_Start_Temp_Day), context);
+        await cmg.setRequest(56, Utils.sign_int_100(ConnectionManager.Cooler_Stop_Temp_Day), context);
+        await cmg.setRequest(57, Utils.sign_int_100(ConnectionManager.Heater_Start_Temp_Day), context);
+        await cmg.setRequest(58, Utils.sign_int_100(ConnectionManager.Heater_Stop_Temp_Day), context);
+        // }
       } else {
+        ConnectionManager.Favourite_Room_Temp_Night = (int.tryParse(room_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+        double val_f = (double.tryParse(room_temp_sensivity_controller.text) ?? 0.0);
+        ConnectionManager.Room_Temp_Sensitivity_Night = max(0, min((val_f), 2)).toString().padLeft(3, '0');
+        ConnectionManager.Cooler_Start_Temp_Night = (int.tryParse(cooler_start_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+        ConnectionManager.Cooler_Stop_Temp_Night = (int.tryParse(cooler_stop_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+        ConnectionManager.Heater_Start_Temp_Night = (int.tryParse(heater_start_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+        ConnectionManager.Heater_Stop_Temp_Night = (int.tryParse(heater_stop_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+
         //Night Time
         await cmg.setRequest(53, Utils.sign_int_100(ConnectionManager.Favourite_Room_Temp_Night), context);
         await cmg.setRequest(54, (ConnectionManager.Room_Temp_Sensitivity_Night), context);
@@ -299,26 +305,72 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
         await cmg.setRequest(58, Utils.sign_int_100(ConnectionManager.Heater_Stop_Temp_Night), context);
       }
 
-      // Utils.showSnackBar(context, "Done.");
       MODIFIED = false;
       if (_tabController!.index == 0) {
-        is_day_set = true;
         _tabController!.animateTo(1);
-        // await refresh();
 
         return;
       } else if (_tabController!.index == 1) {
-        is_night_set = true;
         IntroductionScreenState.force_next();
         return;
       }
-    } catch (e) {
-      // if (!(e is FormatException)) Utils.alert(context, "Error", "please check your input and try again.");
-    }
+    } catch (e) {}
     await refresh();
   }
 
   bool is_night = false;
+
+  void on_keyboard_button() async {
+    await Utils.show_loading_timed(
+        context: context,
+        done: () async {
+          if (_tabController!.index == 0) {
+            ConnectionManager.Favourite_Room_Temp_Day_ = (int.tryParse(room_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+            double val_f = (double.tryParse(room_temp_sensivity_controller.text) ?? 0.0);
+            ConnectionManager.Room_Temp_Sensitivity_Day = max(0, min((val_f), 2)).toString().padLeft(3, '0');
+            ConnectionManager.Cooler_Start_Temp_Day = (int.tryParse(cooler_start_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+            ConnectionManager.Cooler_Stop_Temp_Day = (int.tryParse(cooler_stop_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+            ConnectionManager.Heater_Start_Temp_Day = (int.tryParse(heater_start_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+            ConnectionManager.Heater_Stop_Temp_Day = (int.tryParse(heater_stop_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+
+            //Day Time
+            await cmg.setRequest(47, Utils.sign_int_100(ConnectionManager.Favourite_Room_Temp_Day_), context);
+            await cmg.setRequest(48, (ConnectionManager.Room_Temp_Sensitivity_Day), context);
+            await cmg.setRequest(49, Utils.sign_int_100(ConnectionManager.Cooler_Start_Temp_Day), context);
+            await cmg.setRequest(50, Utils.sign_int_100(ConnectionManager.Cooler_Stop_Temp_Day), context);
+            await cmg.setRequest(51, Utils.sign_int_100(ConnectionManager.Heater_Start_Temp_Day), context);
+            await cmg.setRequest(52, Utils.sign_int_100(ConnectionManager.Heater_Stop_Temp_Day), context);
+            // if (!is_night_set) {
+            //night same as day
+            await cmg.setRequest(53, Utils.sign_int_100(ConnectionManager.Favourite_Room_Temp_Day_), context);
+            await cmg.setRequest(54, (ConnectionManager.Room_Temp_Sensitivity_Day), context);
+            await cmg.setRequest(55, Utils.sign_int_100(ConnectionManager.Cooler_Start_Temp_Day), context);
+            await cmg.setRequest(56, Utils.sign_int_100(ConnectionManager.Cooler_Stop_Temp_Day), context);
+            await cmg.setRequest(57, Utils.sign_int_100(ConnectionManager.Heater_Start_Temp_Day), context);
+            await cmg.setRequest(58, Utils.sign_int_100(ConnectionManager.Heater_Stop_Temp_Day), context);
+            // }
+          } else {
+            ConnectionManager.Favourite_Room_Temp_Night = (int.tryParse(room_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+            double val_f = (double.tryParse(room_temp_sensivity_controller.text) ?? 0.0);
+            ConnectionManager.Room_Temp_Sensitivity_Night = max(0, min((val_f), 2)).toString().padLeft(3, '0');
+            ConnectionManager.Cooler_Start_Temp_Night = (int.tryParse(cooler_start_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+            ConnectionManager.Cooler_Stop_Temp_Night = (int.tryParse(cooler_stop_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+            ConnectionManager.Heater_Start_Temp_Night = (int.tryParse(heater_start_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+            ConnectionManager.Heater_Stop_Temp_Night = (int.tryParse(heater_stop_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+
+            //Night Time
+            await cmg.setRequest(53, Utils.sign_int_100(ConnectionManager.Favourite_Room_Temp_Night), context);
+            await cmg.setRequest(54, (ConnectionManager.Room_Temp_Sensitivity_Night), context);
+            await cmg.setRequest(55, Utils.sign_int_100(ConnectionManager.Cooler_Start_Temp_Night), context);
+            await cmg.setRequest(56, Utils.sign_int_100(ConnectionManager.Cooler_Stop_Temp_Night), context);
+            await cmg.setRequest(57, Utils.sign_int_100(ConnectionManager.Heater_Start_Temp_Night), context);
+            await cmg.setRequest(58, Utils.sign_int_100(ConnectionManager.Heater_Stop_Temp_Night), context);
+          }
+
+          MODIFIED = false;
+        });
+    await refresh();
+  }
 
   Widget build_boxed_titlebox({required title, required child}) {
     return Container(
@@ -349,15 +401,32 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
           ],
         ),
       );
+  // Widget Tooltip({required String message, required Widget child}) {
+  //   return JustTheTooltip(
+  //     child: child,
+  //     content: Text(
+  //       message,
+  //       style: TextStyle(
+  //         color: Colors.black,
+  //         fontSize: 18,
+  //         decoration: TextDecoration.none,
+  //       ),
+  //     ),
+  //   );
+  // }
 
   Widget row_room_temp() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Row(
         children: [
-          Expanded(child: Text("Desired Temperature:")),
+          Expanded(child: Tooltip(message: "example tooltip", child: Text("Desired Temperature:"))),
           Expanded(
             child: TextField(
+              textInputAction: TextInputAction.done,
+              onSubmitted: (value) {
+                on_keyboard_button();
+              },
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
               maxLength: 4,
@@ -377,9 +446,13 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Row(
         children: [
-          Expanded(child: Text("Desired Temp Sensitivity:")),
+          Expanded(child: Tooltip(message: "example tooltip", child: Text("Desired Temp Sensitivity:"))),
           Expanded(
             child: TextField(
+              textInputAction: TextInputAction.done,
+              onSubmitted: (value) {
+                on_keyboard_button();
+              },
               inputFormatters: [WhitelistingTextInputFormatter(RegExp(r"^\d+\.?\d{0,1}"))],
               keyboardType: TextInputType.numberWithOptions(decimal: true, signed: false),
               maxLength: 4,
@@ -399,9 +472,13 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
-            Expanded(child: Text("Cooler Start Temp: ")),
+            Expanded(child: Tooltip(message: "example tooltip", child: Text("Cooler Start Temp: "))),
             Expanded(
               child: TextField(
+                textInputAction: TextInputAction.done,
+                onSubmitted: (value) {
+                  on_keyboard_button();
+                },
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 maxLength: 4,
@@ -419,9 +496,13 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
-            Expanded(child: Text("Cooler Stop Temp: ")),
+            Expanded(child: Tooltip(message: "example tooltip", child: Text("Cooler Stop Temp: "))),
             Expanded(
               child: TextField(
+                textInputAction: TextInputAction.done,
+                onSubmitted: (value) {
+                  on_keyboard_button();
+                },
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 maxLength: 4,
@@ -438,9 +519,13 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
-            Expanded(child: Text("Heater Start Temp: ")),
+            Expanded(child: Tooltip(message: "example tooltip", child: Text("Heater Start Temp: "))),
             Expanded(
               child: TextField(
+                textInputAction: TextInputAction.done,
+                onSubmitted: (value) {
+                  on_keyboard_button();
+                },
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 maxLength: 4,
@@ -458,9 +543,13 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
-            Expanded(child: Text("Heater Stop Temp: ")),
+            Expanded(child: Tooltip(message: "example tooltip", child: Text("Heater Stop Temp: "))),
             Expanded(
               child: TextField(
+                textInputAction: TextInputAction.done,
+                onSubmitted: (value) {
+                  on_keyboard_button();
+                },
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                 maxLength: 4,

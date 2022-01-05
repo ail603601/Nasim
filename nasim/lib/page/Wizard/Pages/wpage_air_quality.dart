@@ -25,8 +25,7 @@ class wpage_air_quality extends StatefulWidget {
 class wpage_air_qualityState extends State<wpage_air_quality> with SingleTickerProviderStateMixin {
   late ConnectionManager cmg;
   TabController? _tabController;
-  static bool is_night_set = false;
-  static bool is_day_set = false;
+  bool is_night_set = false;
 
   late Timer soft_reftresh_timer;
 
@@ -171,7 +170,6 @@ class wpage_air_qualityState extends State<wpage_air_quality> with SingleTickerP
       await cmg.setRequest(69, radio_gid == 0 ? "0" : "1", context);
 
       if (_tabController!.index == 0) {
-        is_day_set = true;
         _tabController!.animateTo(1);
       } else if (_tabController!.index == 1) {
         is_night_set = true;
@@ -358,7 +356,6 @@ class wpage_air_qualityState extends State<wpage_air_quality> with SingleTickerP
                     setState(() {
                       if (radio_gid != value) radio_gid = value!;
                       if (!is_night) is_night_set = false;
-                      if (is_night) is_day_set = false;
 
                       check_modification();
                     });

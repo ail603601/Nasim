@@ -14,6 +14,8 @@ class LicensesPage extends StatefulWidget {
 }
 
 class _LicensesPageState extends State<LicensesPage> {
+  late ConnectionManager cmg;
+
   @override
   void initState() {
     super.initState();

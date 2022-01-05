@@ -116,7 +116,6 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 ListTile(
-                  leading: make_animated_icon("air_speed", "assets/fan_vector.png", Colors.blue[400]),
                   title: Text('Air Speed', style: Theme.of(context).textTheme.bodyText1),
                   trailing: Icon(Icons.arrow_forward_ios),
                   // subtitle: Text('TWICE', style: TextStyle(color: Colors.white)),
@@ -148,7 +147,6 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 ListTile(
-                  leading: make_animated_icon("inlet_fan", "assets/fan_vector.png", Colors.blue[400]),
                   title: Text('Inlet Fan Speed', style: Theme.of(context).textTheme.bodyText1),
                   trailing: Icon(Icons.arrow_forward_ios),
                   // subtitle: Text('TWICE', style: TextStyle(color: Colors.white)),
@@ -180,7 +178,6 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 ListTile(
-                  leading: Image.asset("assets/thermometer.png"),
                   title: Text('Temperature', style: Theme.of(context).textTheme.bodyText1),
                   trailing: Icon(Icons.arrow_forward_ios),
                   // subtitle: Text('TWICE', style: TextStyle(color: Colors.white)),
@@ -208,7 +205,6 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 ListTile(
-                  leading: Image.asset("assets/humidity_icon.png"),
                   title: Text(' Humidity', style: Theme.of(context).textTheme.bodyText1),
                   trailing: Icon(Icons.arrow_forward_ios),
                 ),
@@ -235,7 +231,6 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 ListTile(
-                  leading: Image.asset("assets/air_quality.png"),
                   title: Text('Air Quality', style: Theme.of(context).textTheme.bodyText1),
                   trailing: Icon(Icons.arrow_forward_ios),
                   // subtitle: Text('TWICE', style: TextStyle(color: Colors.white)),
@@ -263,7 +258,6 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 ListTile(
-                  leading: Image.asset("assets/light.png"),
                   title: Text('Light', style: Theme.of(context).textTheme.bodyText1),
                   trailing: Icon(Icons.arrow_forward_ios),
                   // subtitle: Text('TWICE', style: TextStyle(color: Colors.white)),
@@ -291,7 +285,6 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 ListTile(
-                  leading: Image.asset("assets/text-message.png"),
                   title: Text('SMS', style: Theme.of(context).textTheme.bodyText1),
                   trailing: Icon(Icons.arrow_forward_ios),
                   // subtitle: Text('TWICE', style: TextStyle(color: Colors.white)),
@@ -318,7 +311,6 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 ListTile(
-                  leading: Image.asset("assets/internet.png"),
                   title: Text('Internet', style: Theme.of(context).textTheme.bodyText1),
                   trailing: Icon(Icons.arrow_forward_ios),
                   // subtitle: Text('TWICE', style: TextStyle(color: Colors.white)),
@@ -346,7 +338,6 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 ListTile(
-                  leading: Image.asset("assets/controllers-status.png"),
                   title: Text('Controllers Status', style: Theme.of(context).textTheme.bodyText1),
                   trailing: Icon(Icons.arrow_forward_ios),
                   // subtitle: Text('TWICE', style: TextStyle(color: Colors.white)),
@@ -374,7 +365,6 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
               mainAxisSize: MainAxisSize.min,
               children: <Widget>[
                 ListTile(
-                  leading: Image.asset("assets/user_icon.png"),
                   title: Text('Users', style: Theme.of(context).textTheme.bodyText1),
                   trailing: Icon(Icons.arrow_forward_ios),
                   // subtitle: Text('TWICE', style: TextStyle(color: Colors.white)),
