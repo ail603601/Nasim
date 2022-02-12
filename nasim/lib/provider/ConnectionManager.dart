@@ -598,4 +598,14 @@ class ConnectionManager extends ChangeNotifier {
   static String DEVICE_WIFI_TO_CONNECT_NAME = "";
   static String DEVICE_WIFI_TO_CONNECT_PASS = "";
   static String DEVICE_CONNECT_TO_INTERNET = "";
+
+  static String Light_Status = "";
+  static String Alarm_Status = "";
+
+  static String Min_Valid_Pressure = "";
+  static String Max_Valid_Pressure = "";
+  static String Min_Valid_Temperature = "";
+  static String Max_Valid_Temperature = "";
+  static String Min_Valid_Asphyxia = "";
+  static String Max_Valid_Asphyxia = "";
 }

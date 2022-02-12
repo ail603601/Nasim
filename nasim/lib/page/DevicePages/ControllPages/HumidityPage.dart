@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:bubble_tab_indicator/bubble_tab_indicator.dart';
 import 'package:day_night_switcher/day_night_switcher.dart';
 import 'package:flutter/cupertino.dart';
@@ -8,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:holding_gesture/holding_gesture.dart';
 import 'package:nasim/Model/Device.dart';
 import 'package:nasim/Model/menu_info.dart';
+import 'package:nasim/Widgets/MyTooltip.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
 import 'package:nasim/utils.dart';
 import 'package:provider/provider.dart';
@@ -21,12 +23,47 @@ class HumidityPage extends StatefulWidget {
 class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderStateMixin {
   late ConnectionManager cmg;
   TabController? _tabController;
-  late Timer soft_reftresh_timer;
+
   final TextEditingController humidity_min_controller = TextEditingController();
   final TextEditingController humidity_max_controller = TextEditingController();
+  late Timer soft_reftresh_timer;
+
+  String Old_Humidity_Controller = "";
+  String Old_Min_Day_Humidity = "";
+  String Old_Min_Night_Humidity = "";
+  String Old_Max_Day_Humidity = "";
+  String Old_Max_Night_Humidity = "";
+
+  bool MODIFIED = false;
+
+  bool check_modification() {
+    if (is_night) {
+      if (Old_Humidity_Controller == ConnectionManager.Humidity_Controller &&
+          Old_Min_Night_Humidity == humidity_min_controller.text.toString() &&
+          Old_Max_Night_Humidity == humidity_max_controller.text.toString()) {
+        MODIFIED = false;
+      } else
+        MODIFIED = true;
+    } else {
+      if (Old_Humidity_Controller == ConnectionManager.Humidity_Controller &&
+          Old_Min_Day_Humidity == humidity_min_controller.text.toString() &&
+          Old_Max_Day_Humidity == humidity_max_controller.text.toString()) {
+        MODIFIED = false;
+      } else
+        MODIFIED = true;
+    }
+    return MODIFIED;
+  }
+
   @override
   void initState() {
     super.initState();
+    humidity_min_controller.addListener(() {
+      check_modification();
+    });
+    humidity_max_controller.addListener(() {
+      check_modification();
+    });
 
     _tabController = new TabController(vsync: this, length: tabs.length);
 
@@ -38,6 +75,7 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
     soft_reftresh_timer = Timer.periodic(new Duration(seconds: 1), (timer) async {
       soft_refresh();
     });
+
     humidity_min_controller.addListener(() {
       String value = humidity_min_controller.text;
       if ((int.tryParse(value) ?? 0) > 100) {
@@ -56,14 +94,15 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
       }
     });
 
+    // Utils.setTimeOut(0, change_selected_humidifier_dialog);
     Utils.setTimeOut(0, refresh);
   }
 
   @override
   void dispose() {
-    soft_reftresh_timer.cancel();
-
     super.dispose();
+    soft_reftresh_timer.cancel();
+    _tabController!.dispose();
   }
 
   void soft_refresh() async {
@@ -82,9 +121,15 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
           ConnectionManager.Max_Day_Humidity = (int.tryParse(await cmg.getRequest(60, context)) ?? 0).toString();
           ConnectionManager.Max_Night_Humidity = (int.tryParse(await cmg.getRequest(62, context)) ?? 0).toString();
 
+          Old_Humidity_Controller = ConnectionManager.Humidity_Controller;
+          Old_Min_Day_Humidity = ConnectionManager.Min_Day_Humidity;
+          Old_Min_Night_Humidity = ConnectionManager.Min_Night_Humidity;
+          Old_Max_Day_Humidity = ConnectionManager.Max_Day_Humidity;
+          Old_Max_Night_Humidity = ConnectionManager.Max_Night_Humidity;
+
           if (mounted)
             setState(() {
-              humidity_controller_radio_gvalue = (int.tryParse(ConnectionManager.Humidity_Controller) ?? 0);
+              Old_Humidity_Controller = (int.tryParse(ConnectionManager.Humidity_Controller) ?? 0).toString();
 
               if (is_night) {
                 humidity_min_controller.text = (int.tryParse(ConnectionManager.Min_Night_Humidity) ?? 0).toString();
@@ -106,8 +151,6 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
             child: child));
   }
 
-  int humidity_controller_radio_gvalue = 0;
-
   Widget row_actual_humidity() => build_boxed_titlebox(
       title: "Actual Humidity: ",
       child: Center(child: Text((int.tryParse(ConnectionManager.Real_Humidity) ?? 0).toString() + " %", style: Theme.of(context).textTheme.bodyText1)));
@@ -116,7 +159,7 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
-            Expanded(child: Text("Min: ")),
+            Expanded(child: MyTooltip(message: "example tooltip", child: Text("Min: "))),
             Expanded(
               child: TextField(
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -124,16 +167,6 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
                   style: Theme.of(context).textTheme.bodyText1,
                   controller: humidity_min_controller,
                   onTap: () => humidity_min_controller.selection = TextSelection(baseOffset: 0, extentOffset: humidity_min_controller.value.text.length),
-
-                  // onChanged: (value) {
-                  //   humidity_min = Utils.lim_0_100(value);
-                  //   if (is_night) {
-                  //     ConnectionManager.Min_Night_Humidity = int.parse(humidity_min).toString().padLeft(3, '0');
-                  //   } else {
-                  //     ConnectionManager.Min_Day_Humidity = int.parse(humidity_min).toString().padLeft(3, '0');
-                  //   }
-                  //   if (int.parse(humidity_min) == 100) setState(() {});
-                  // },
                   keyboardType: TextInputType.numberWithOptions(decimal: false, signed: true),
                   decoration: InputDecoration(suffix: Text(' %'), counterText: "")),
             ),
@@ -144,7 +177,7 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
-            Expanded(child: Text("Max: ")),
+            Expanded(child: MyTooltip(message: "example tooltip", child: Text("Max: "))),
             Expanded(
               child: TextField(
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -187,10 +220,10 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
           height: 50,
           padding: EdgeInsets.symmetric(horizontal: 8),
           child: OutlinedButton(
-            onPressed: click,
+            onPressed: MODIFIED ? click : null,
             style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
-                side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
+                padding: EdgeInsets.only(top: 16, bottom: 10, left: 28, right: 28),
+                side: BorderSide(width: 2, color: MODIFIED ? Theme.of(context).primaryColor : Colors.grey),
                 shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
             child: Text("Apply", style: Theme.of(context).textTheme.bodyText1),
           ),
@@ -204,7 +237,21 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
           height: 50,
           padding: EdgeInsets.symmetric(horizontal: 8),
           child: OutlinedButton(
-            onPressed: () {},
+            onPressed: () {
+              AwesomeDialog(
+                context: context,
+                useRootNavigator: true,
+                dialogType: DialogType.WARNING,
+                animType: AnimType.BOTTOMSLIDE,
+                title: "Confirm",
+                desc: "Current Page Settings will be restored to factory defaults",
+                btnOkOnPress: () async {
+                  await cmg.setRequest(128, '4');
+                  refresh();
+                },
+                btnCancelOnPress: () {},
+              )..show();
+            },
             style: OutlinedButton.styleFrom(
                 padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
                 side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
@@ -216,75 +263,106 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
   bool is_night = false;
 
   apply_humidity() async {
-    int humidity_min = (int.tryParse(humidity_min_controller.text) ?? 0);
-    int humidity_max = (int.tryParse(humidity_max_controller.text) ?? 0);
+    try {
+      int humidity_min = (int.tryParse(humidity_min_controller.text) ?? 0);
+      int humidity_max = (int.tryParse(humidity_max_controller.text) ?? 0);
 
-    if ((humidity_min) + 5 > (humidity_max)) {
-      Utils.alert(context, "Error", "Humidity max must be 5 percent more than min.");
-      return;
-    }
+      if ((humidity_min) + 5 > (humidity_max)) {
+        Utils.alert(context, "Error", "Humidity max must be 5 percent more than min.");
+        return;
+      }
 
-    await cmg.setRequest(59, (ConnectionManager.Humidity_Controller).padLeft(1), context);
+      await cmg.setRequest(59, (ConnectionManager.Humidity_Controller).padLeft(1), context);
 
-    if (_tabController!.index == 0) {
-      ConnectionManager.Min_Day_Humidity = (int.tryParse(humidity_min_controller.text) ?? 0).toString();
-      ConnectionManager.Max_Day_Humidity = (int.tryParse(humidity_max_controller.text) ?? 0).toString();
+      if (_tabController!.index == 0) {
+        ConnectionManager.Min_Day_Humidity = (int.tryParse(humidity_min_controller.text) ?? 0).toString();
+        ConnectionManager.Max_Day_Humidity = (int.tryParse(humidity_max_controller.text) ?? 0).toString();
 
-      await cmg.setRequest(61, Utils.lim_0_100(ConnectionManager.Min_Day_Humidity), context);
-      await cmg.setRequest(60, Utils.lim_0_100(ConnectionManager.Max_Day_Humidity), context);
-    } else {
-      ConnectionManager.Min_Night_Humidity = (int.tryParse(humidity_min_controller.text) ?? 0).toString();
-      ConnectionManager.Max_Night_Humidity = (int.tryParse(humidity_max_controller.text) ?? 0).toString();
-      await cmg.setRequest(63, Utils.lim_0_100(ConnectionManager.Min_Night_Humidity), context);
-      await cmg.setRequest(62, Utils.lim_0_100(ConnectionManager.Max_Night_Humidity), context);
-    }
-    Utils.showSnackBar(context, "Done.");
+        await cmg.setRequest(61, Utils.lim_0_100(ConnectionManager.Min_Day_Humidity), context);
+        await cmg.setRequest(60, Utils.lim_0_100(ConnectionManager.Max_Day_Humidity), context);
+
+        //night same as day
+        await cmg.setRequest(63, Utils.lim_0_100(ConnectionManager.Min_Day_Humidity), context);
+        await cmg.setRequest(62, Utils.lim_0_100(ConnectionManager.Max_Day_Humidity), context);
+      } else {
+        ConnectionManager.Min_Night_Humidity = (int.tryParse(humidity_min_controller.text) ?? 0).toString();
+        ConnectionManager.Max_Night_Humidity = (int.tryParse(humidity_max_controller.text) ?? 0).toString();
+        await cmg.setRequest(63, Utils.lim_0_100(ConnectionManager.Min_Night_Humidity), context);
+        await cmg.setRequest(62, Utils.lim_0_100(ConnectionManager.Max_Night_Humidity), context);
+      }
+
+      MODIFIED = false;
+      if (_tabController!.index == 0) {
+        Utils.showSnackBar(context, "Done.");
+
+        return;
+      } else if (_tabController!.index == 1) {
+        Utils.showSnackBar(context, "Done.");
+      }
+    } catch (e) {}
   }
 
-  Widget controller_selector() => build_boxed_titlebox(
-      title: "Controller is",
-      child: Column(
-        children: [
-          ListTile(
-            title: Text('Humidifier', style: Theme.of(context).textTheme.bodyText1),
-            onTap: () {
-              setState(() {
-                ConnectionManager.Humidity_Controller = "0"; //means humidifer
-                if (humidity_controller_radio_gvalue != 0) humidity_controller_radio_gvalue = 0;
-              });
-            },
-            leading: Radio(
-              value: 0,
-              groupValue: humidity_controller_radio_gvalue,
-              onChanged: (int? value) {
-                setState(() {
-                  if (humidity_controller_radio_gvalue != value) humidity_controller_radio_gvalue = value!;
-                  ConnectionManager.Humidity_Controller = "0"; //means humidifer
-                });
-              },
-            ),
-          ),
-          ListTile(
-            title: Text('Dehumidifier', style: Theme.of(context).textTheme.bodyText1),
-            onTap: () {
-              setState(() {
-                if (humidity_controller_radio_gvalue != 1) humidity_controller_radio_gvalue = 1;
-                ConnectionManager.Humidity_Controller = "1"; //means Dehumidifer
-              });
-            },
-            leading: Radio(
-              value: 1,
-              groupValue: humidity_controller_radio_gvalue,
-              onChanged: (int? value) {
-                setState(() {
-                  if (humidity_controller_radio_gvalue != value) humidity_controller_radio_gvalue = value!;
-                  ConnectionManager.Humidity_Controller = "1"; //means Dehumidifer
-                });
-              },
-            ),
-          ),
-        ],
-      ));
+  Widget controller_selector() {
+    String controller = ConnectionManager.Humidity_Controller == "0" ? 'Humidifier' : 'DeHumidifier';
+    return build_boxed_titlebox(
+        title: "Selected Controller is",
+        child: ListTile(
+            title: Text(controller, style: Theme.of(context).textTheme.bodyText1),
+            trailing: FlatButton(
+                onPressed: () {
+                  change_selected_humidifier_dialog();
+                },
+                child: Text("Change", style: Theme.of(context).textTheme.bodyText1!.copyWith(color: Colors.red)))));
+  }
+
+  Future<void> change_selected_humidifier_dialog() async {
+    switch (await showDialog<int>(
+        context: context,
+        useRootNavigator: true,
+        builder: (BuildContext context) {
+          return SimpleDialog(
+            title: Text('Select Humidity Controller', style: Theme.of(context).textTheme.bodyText1!.copyWith(fontSize: 18)),
+            children: <Widget>[
+              SimpleDialogOption(
+                onPressed: () {
+                  Navigator.pop(context, 0); //Humidifier
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text('Humidifier', style: Theme.of(context).textTheme.bodyText1),
+                ),
+              ),
+              SimpleDialogOption(
+                onPressed: () {
+                  Navigator.pop(context, 1); //DeHumidifier
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text('DeHumidifier', style: Theme.of(context).textTheme.bodyText1),
+                ),
+              ),
+            ],
+          );
+        })) {
+      case 0:
+        // Humidifier
+        setState(() {
+          ConnectionManager.Humidity_Controller = "0"; //means humidifer
+          check_modification();
+        });
+        break;
+      case 1:
+        // DeHumidifier
+        setState(() {
+          ConnectionManager.Humidity_Controller = "1"; //means humidifer
+          check_modification();
+        });
+        break;
+      case null:
+        // dialog dismissed
+        break;
+    }
+  }
 
   final List<Tab> tabs = <Tab>[
     new Tab(
@@ -302,30 +380,24 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
           Container(
             color: Colors.black12,
             padding: EdgeInsets.symmetric(horizontal: 8),
-            child: Row(
+            child: Column(
               children: [
-                Text("Humidity", style: Theme.of(context).textTheme.bodyText1),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: TabBar(
-                      isScrollable: false,
-                      unselectedLabelColor: Colors.grey,
-                      labelColor: Colors.white,
-                      indicatorSize: TabBarIndicatorSize.tab,
-                      indicator: new BubbleTabIndicator(
-                        indicatorHeight: 25.0,
-                        indicatorColor: Colors.blueAccent,
-                        tabBarIndicatorSize: TabBarIndicatorSize.tab,
-                        // Other flags
-                        // indicatorRadius: 1,
-                        // insets: EdgeInsets.all(1),
-                        // padding: EdgeInsets.all(10)
-                      ),
-                      labelStyle: Theme.of(context).textTheme.bodyText1,
-                      tabs: tabs,
-                      controller: _tabController,
+                Text("Humidity", style: Theme.of(context).textTheme.bodyText1!.copyWith(fontSize: 24)),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TabBar(
+                    isScrollable: false,
+                    unselectedLabelColor: Colors.grey,
+                    labelColor: Colors.white,
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    indicator: new BubbleTabIndicator(
+                      indicatorHeight: 25.0,
+                      indicatorColor: Colors.blueAccent,
+                      tabBarIndicatorSize: TabBarIndicatorSize.tab,
                     ),
+                    labelStyle: Theme.of(context).textTheme.bodyText1,
+                    tabs: tabs,
+                    controller: _tabController,
                   ),
                 ),
               ],
@@ -352,6 +424,9 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
             apply_humidity();
           }),
           build_reset_button(),
+          SizedBox(
+            height: 64,
+          )
         ]));
   }
 }

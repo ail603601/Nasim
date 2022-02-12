@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:bubble_tab_indicator/bubble_tab_indicator.dart';
 import 'package:day_night_switcher/day_night_switcher.dart';
 import 'package:flutter/cupertino.dart';
@@ -30,6 +31,11 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
   late ConnectionManager cmg;
   bool refresh_disable = false;
 
+  bool is_minimum_day_set = false;
+  bool is_minimum_night_set = false;
+  bool is_maximum_day_set = false;
+  bool is_maximum_night_set = false;
+
   late Timer soft_reftresh_timer;
 
   double minimum_inlet_fan_speed_day = 0;
@@ -38,18 +44,42 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
   double maximum_inlet_fan_speed_night = 0;
 
   UniqueKey? key_min_day = new UniqueKey();
-  static bool expanded_min_day = true;
+  bool expanded_min_day = true;
 
   UniqueKey? key_min_night = new UniqueKey();
-  static bool expanded_min_night = false;
+  bool expanded_min_night = false;
 
   UniqueKey? key_max_day = new UniqueKey();
-  static bool expanded_max_day = true;
+  bool expanded_max_day = true;
 
   UniqueKey? key_max_night = new UniqueKey();
-  static bool expanded_max_night = false;
+  bool expanded_max_night = false;
 
   static bool is_inlet_fan_available = false;
+
+  String Old_Min_Valid_Input_Fan_Speed_Night = "";
+  String Old_Max_Valid_Input_Fan_Speed_Night = "";
+  String Old_Min_Valid_Input_Fan_Speed_Day = "";
+  String Old_Max_Valid_Input_Fan_Speed_Day = "";
+  bool MODIFIED = false;
+
+  bool check_modification() {
+    if (_tabController!.index == 0) {
+      if (Old_Min_Valid_Input_Fan_Speed_Night == minimum_inlet_fan_speed_night.toInt().toString() &&
+          Old_Min_Valid_Input_Fan_Speed_Day == minimum_inlet_fan_speed_day.toInt().toString()) {
+        MODIFIED = false;
+      } else
+        MODIFIED = true;
+    } else {
+      if (Old_Max_Valid_Input_Fan_Speed_Day == maximum_inlet_fan_speed_day.toInt().toString() &&
+          Old_Max_Valid_Input_Fan_Speed_Night == maximum_inlet_fan_speed_night.toInt().toString()) {
+        MODIFIED = false;
+      } else
+        MODIFIED = true;
+    }
+
+    return MODIFIED;
+  }
 
   toggle_min_day() {
     setState(() {
@@ -99,6 +129,11 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
           ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest(34, context)) ?? "0").toString();
           ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest(35, context)) ?? "0").toString();
 
+          Old_Min_Valid_Input_Fan_Speed_Night = ConnectionManager.Min_Valid_Input_Fan_Speed_Night;
+          Old_Max_Valid_Input_Fan_Speed_Night = ConnectionManager.Max_Valid_Input_Fan_Speed_Night;
+          Old_Min_Valid_Input_Fan_Speed_Day = ConnectionManager.Min_Valid_Input_Fan_Speed_Day;
+          Old_Max_Valid_Input_Fan_Speed_Day = ConnectionManager.Max_Valid_Input_Fan_Speed_Day;
+
           if (mounted) {
             setState(() {
               minimum_inlet_fan_speed_night = double.tryParse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) ?? minimum_inlet_fan_speed_night;
@@ -111,7 +146,7 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
   }
 
   Future<void> start() async {
-    is_inlet_fan_available = await Provider.of<ConnectionManager>(context, listen: false).getRequest(122) == "1";
+    is_inlet_fan_available = await Provider.of<ConnectionManager>(context, listen: false).getRequest(122, context) == "1";
 
     if (!is_inlet_fan_available) {
       await showAlertDialog(context);
@@ -143,8 +178,6 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
     _tabController!.dispose();
     soft_reftresh_timer.cancel();
 
-    // refresher.cancel();
-
     super.dispose();
   }
 
@@ -157,14 +190,14 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
     Widget cancelButton = FlatButton(
       child: Text("Yes", style: Theme.of(context).textTheme.bodyText1),
       onPressed: () {
-        Navigator.of(context, rootNavigator: true).pop(false);
+        Navigator.of(context).pop(false);
         is_inlet_fan_available = true;
       },
     );
     Widget continueButton = FlatButton(
       child: Text("No", style: Theme.of(context).textTheme.bodyText1),
       onPressed: () {
-        Navigator.of(context, rootNavigator: true).pop(false);
+        Navigator.of(context).pop(false);
       },
     );
 
@@ -181,7 +214,6 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
     // show the dialog
     await showDialog(
       barrierDismissible: false,
-      useRootNavigator: true,
       context: context,
       builder: (BuildContext context) {
         return alert;
@@ -201,51 +233,138 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
   }
 
   Future<void> set_all_to_board_min() async {
-    if (!expanded_min_day) {
-      toggle_min_day();
-      return;
-    } else {
-      await cmg.setRequest(41, ConnectionManager.Min_Valid_Input_Fan_Speed_Day, context);
+    try {
+      if (expanded_min_day) {
+        await cmg.setRequest(41, ConnectionManager.Min_Valid_Input_Fan_Speed_Day, context);
 
-      if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5)) {
-        ConnectionManager.Max_Valid_Input_Fan_Speed_Day = (int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5).toString().padLeft(3, '0');
-        await cmg.setRequest(43, ConnectionManager.Max_Valid_Input_Fan_Speed_Day, context);
-      }
-    }
-    if (!expanded_min_night) {
-      toggle_min_night();
-    } else {
-      await cmg.setRequest(42, ConnectionManager.Min_Valid_Input_Fan_Speed_Night, context);
-      if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5)) {
-        ConnectionManager.Max_Valid_Input_Fan_Speed_Night = (int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5).toString().padLeft(3, '0');
+        if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5)) {
+          ConnectionManager.Max_Valid_Input_Fan_Speed_Day = (int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5).toString().padLeft(3, '0');
+          await cmg.setRequest(43, ConnectionManager.Max_Valid_Input_Fan_Speed_Day, context);
+        }
+        is_minimum_day_set = true;
 
-        await cmg.setRequest(44, ConnectionManager.Max_Valid_Input_Fan_Speed_Night, context);
+        toggle_min_day();
+
+        if (expanded_min_night) {
+          await cmg.setRequest(42, ConnectionManager.Min_Valid_Input_Fan_Speed_Night, context);
+          if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5)) {
+            ConnectionManager.Max_Valid_Input_Fan_Speed_Night = (int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5).toString().padLeft(3, '0');
+
+            await cmg.setRequest(44, ConnectionManager.Max_Valid_Input_Fan_Speed_Night, context);
+          }
+          is_minimum_night_set = true;
+
+          Utils.showSnackBar(context, "Done.");
+          await refresh();
+
+          _tabController!.animateTo(1);
+        } else {
+          toggle_min_night();
+        }
+
+        if (is_minimum_night_set) {
+          Utils.showSnackBar(context, "Done.");
+          await refresh();
+          _tabController!.animateTo(1);
+        }
+        MODIFIED = false;
+        return;
       }
-    }
+      if (expanded_min_night) {
+        await cmg.setRequest(42, ConnectionManager.Min_Valid_Input_Fan_Speed_Night, context);
+        if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5)) {
+          ConnectionManager.Max_Valid_Input_Fan_Speed_Night = (int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5).toString().padLeft(3, '0');
+
+          await cmg.setRequest(44, ConnectionManager.Max_Valid_Input_Fan_Speed_Night, context);
+        }
+        is_minimum_night_set = true;
+
+        toggle_min_night();
+
+        toggle_min_day();
+
+        if (is_minimum_day_set) {
+          Utils.showSnackBar(context, "Done.");
+          await refresh();
+          _tabController!.animateTo(1);
+        }
+        MODIFIED = false;
+
+        return;
+      }
+    } catch (e) {}
   }
 
   Future<void> set_all_to_board_max() async {
-    if (!expanded_max_day) {
-      toggle_max_day();
-      return;
-    } else {
-      if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5)) {
-        await Utils.alert(context, "", "Day time maximum fan speed must at least be 5 more than minimum.");
-        return;
-      }
+    try {
+      if (expanded_max_day) {
+        if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5)) {
+          await Utils.alert(context, "", "Day time maximum fan speed must at least be 5 more than minimum.");
+          return;
+        }
+        await cmg.setRequest(43, ConnectionManager.Max_Valid_Input_Fan_Speed_Day, context);
 
-      await cmg.setRequest(43, ConnectionManager.Max_Valid_Input_Fan_Speed_Day, context);
-    }
-    if (!expanded_max_night) {
-      toggle_max_night();
-      return;
-    } else {
-      if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5)) {
-        await Utils.alert(context, "", "Night time maximum fan speed must at least be 5 more than minimum.");
+        is_maximum_day_set = true;
+
+        toggle_max_day();
+
+        if (expanded_max_night) {
+          if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5)) {
+            await Utils.alert(context, "", "Night time maximum fan speed must at least be 5 more than minimum.");
+            return;
+          }
+          await cmg.setRequest(44, ConnectionManager.Max_Valid_Input_Fan_Speed_Night, context);
+
+          is_maximum_night_set = true;
+          Utils.showSnackBar(context, "Done.");
+          MODIFIED = false;
+          return;
+        } else {
+          toggle_max_night();
+        }
+        MODIFIED = false;
+
+        if (is_maximum_night_set) {
+          Utils.showSnackBar(context, "Done.");
+          return;
+        }
+
         return;
       }
-      cmg.setRequest(44, ConnectionManager.Max_Valid_Input_Fan_Speed_Night, context);
-    }
+      if (expanded_max_night) {
+        if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5)) {
+          await Utils.alert(context, "", "Night time maximum fan speed must at least be 5 more than minimum.");
+          return;
+        }
+        await cmg.setRequest(44, ConnectionManager.Max_Valid_Input_Fan_Speed_Night, context);
+
+        is_maximum_night_set = true;
+        toggle_max_night();
+
+        if (expanded_max_day) {
+          if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5)) {
+            await Utils.alert(context, "", "Day time maximum fan speed must at least be 5 more than minimum.");
+            return;
+          }
+          await cmg.setRequest(43, ConnectionManager.Max_Valid_Input_Fan_Speed_Day, context);
+
+          is_maximum_day_set = true;
+          Utils.showSnackBar(context, "Done.");
+          MODIFIED = false;
+          return;
+        } else {
+          toggle_max_day();
+        }
+        MODIFIED = false;
+
+        if (is_maximum_day_set) {
+          Utils.showSnackBar(context, "Done.");
+          return;
+        }
+
+        return;
+      }
+    } catch (e) {}
   }
 
   Future<bool> inc_min_inlet_fan(bool is_night) async {
@@ -265,6 +384,8 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
         minimum_inlet_fan_speed_day = value;
       });
     }
+    check_modification();
+
     return true;
   }
 
@@ -284,6 +405,8 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
         maximum_inlet_fan_speed_day = value;
       });
     }
+    check_modification();
+
     return true;
   }
 
@@ -303,6 +426,8 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
         minimum_inlet_fan_speed_day = value;
       });
     }
+    check_modification();
+
     return true;
   }
 
@@ -322,6 +447,8 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
         maximum_inlet_fan_speed_day = value;
       });
     }
+    check_modification();
+
     return true;
   }
 
@@ -406,10 +533,10 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
           height: 50,
           padding: EdgeInsets.symmetric(horizontal: 8),
           child: OutlinedButton(
-            onPressed: click,
+            onPressed: MODIFIED ? click : null,
             style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
-                side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
+                padding: EdgeInsets.only(top: 16, bottom: 10, left: 28, right: 28),
+                side: BorderSide(width: 2, color: MODIFIED ? Theme.of(context).primaryColor : Colors.grey),
                 shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
             child: Text("Apply", style: Theme.of(context).textTheme.bodyText1),
           ),
@@ -424,12 +551,19 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
           padding: EdgeInsets.symmetric(horizontal: 8),
           child: OutlinedButton(
             onPressed: () async {
-              cmg.setRequest(42, "000", context);
-              cmg.setRequest(44, "000", context);
-              cmg.setRequest(41, "000", context);
-              cmg.setRequest(43, "000", context);
-
-              refresh();
+              AwesomeDialog(
+                context: context,
+                useRootNavigator: true,
+                dialogType: DialogType.WARNING,
+                animType: AnimType.BOTTOMSLIDE,
+                title: "Confirm",
+                desc: "Current Page Settings will be restored to factory defaults",
+                btnOkOnPress: () async {
+                  await cmg.setRequest(128, '2');
+                  refresh();
+                },
+                btnCancelOnPress: () {},
+              )..show();
             },
             style: OutlinedButton.styleFrom(
                 padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
@@ -477,30 +611,24 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
               Container(
                 color: Colors.black12,
                 padding: EdgeInsets.symmetric(horizontal: 8),
-                child: Row(
+                child: Column(
                   children: [
-                    Text("Inlet Fan Speed", style: Theme.of(context).textTheme.bodyText1),
-                    Expanded(
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: TabBar(
-                          isScrollable: false,
-                          unselectedLabelColor: Colors.grey,
-                          labelColor: Colors.white,
-                          indicatorSize: TabBarIndicatorSize.tab,
-                          indicator: new BubbleTabIndicator(
-                            indicatorHeight: 25.0,
-                            indicatorColor: Colors.blueAccent,
-                            tabBarIndicatorSize: TabBarIndicatorSize.tab,
-                            // Other flags
-                            // indicatorRadius: 1,
-                            // insets: EdgeInsets.all(1),
-                            // padding: EdgeInsets.all(10)
-                          ),
-                          labelStyle: Theme.of(context).textTheme.bodyText1,
-                          tabs: tabs,
-                          controller: _tabController,
+                    Text("Inlet Fan ", style: Theme.of(context).textTheme.bodyText1!.copyWith(fontSize: 24)),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TabBar(
+                        isScrollable: false,
+                        unselectedLabelColor: Colors.grey,
+                        labelColor: Colors.white,
+                        indicatorSize: TabBarIndicatorSize.tab,
+                        indicator: new BubbleTabIndicator(
+                          indicatorHeight: 25.0,
+                          indicatorColor: Colors.blueAccent,
+                          tabBarIndicatorSize: TabBarIndicatorSize.tab,
                         ),
+                        labelStyle: Theme.of(context).textTheme.bodyText1,
+                        tabs: tabs,
+                        controller: _tabController,
                       ),
                     ),
                   ],
@@ -626,26 +754,21 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
                 ]),
               ),
               build_apply_button(() async {
-                if (SavedDevicesChangeNotifier.getSelectedDevice()!.accessibility == DeviceAccessibility.AccessibleInternet) {
-                  Utils.show_error_dialog(context, "Permission Denied.", "Chaning inlet fan speed is not allowed over internet connection.", null);
-                  return;
-                }
-
                 if (_tabController!.index == 0) {
                   await set_all_to_board_min();
-                  Utils.showSnackBar(context, "Done.");
-                  return;
+                  // return;
                 } else {
                   await set_all_to_board_max();
-                  Utils.showSnackBar(context, "Done.");
-                  return;
+                  // await refresh();
+                  // return;
                 }
-
-                // await refresh();
 
                 // IntroductionScreenState.force_next();
               }),
               build_reset_button(),
+              SizedBox(
+                height: 64,
+              )
             ],
           ))
         : Container(

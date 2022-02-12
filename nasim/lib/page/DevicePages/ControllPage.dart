@@ -20,6 +20,7 @@ import 'ControllPages/ControllersStatusPage.dart';
 import 'ControllPages/InternetPage.dart';
 import 'ControllPages/SmsPage.dart';
 import 'ControllPages/UsersPage.dart';
+import 'package:nasim/page/Wizard/Wizardpage.dart';
 
 class ControllPage extends StatefulWidget {
   final GlobalKey<NavigatorState> navigatorKey = new GlobalKey();
@@ -30,7 +31,7 @@ class ControllPage extends StatefulWidget {
 
 class _ControllPageState extends State<ControllPage> with SingleTickerProviderStateMixin {
   AnimationController? _controller;
-
+  String initialroute = "";
   @override
   void initState() {
     super.initState();
@@ -377,6 +378,9 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
+    initialroute = WizardPage.flag_ask_to_config_internet ? '/internet' : "/";
+    WizardPage.flag_ask_to_config_internet = false;
+
     return WillPopScope(
       onWillPop: () async {
         return !await didPopRoute();
@@ -387,7 +391,7 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
           HeroController(),
         ],
         key: widget.navigatorKey,
-        initialRoute: "/",
+        initialRoute: initialroute,
         onGenerateRoute: (settings) {
           if (settings.name == "/") {
             return CupertinoPageRoute(

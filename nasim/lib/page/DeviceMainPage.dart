@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:nasim/Model/Device.dart';
 import 'package:nasim/Model/menu_info.dart';
@@ -15,6 +16,7 @@ import '../enums.dart';
 import 'DevicePages/ControllPage.dart';
 import 'DevicePages/LicensesPage.dart';
 import 'DevicePages/OverviewPage.dart';
+import 'Wizard/Wizardpage.dart';
 
 class DeivceMainPage extends StatefulWidget {
   const DeivceMainPage({Key? key}) : super(key: key);
@@ -34,13 +36,31 @@ class _DeivceMainPageState extends State<DeivceMainPage> {
         ConnectionManager.DEVICE_WIFI_TO_CONNECT_NAME = await cmg.getRequest(123, context);
         Utils.alert(context, "", "Connection to Wifi '${ConnectionManager.DEVICE_WIFI_TO_CONNECT_NAME}' failed.\nPlease check your Wifi name and password.");
       }
+      cmg.setRequest(126, "0");
     });
+
+    if (WizardPage.flag_ask_to_config_internet) {
+      AwesomeDialog(
+        context: context,
+        dialogType: DialogType.INFO_REVERSED,
+        animType: AnimType.BOTTOMSLIDE,
+        title: "Note",
+        desc: "Do you want to configure internet connection for this device?",
+        btnOkOnPress: () {
+          var menuInfo = Provider.of<MenuInfo>(context, listen: false);
+          setState(() {
+            menuInfo.updateMenu(MenuInfo(MenuType.Controll, title: AppLocalizations.of(context)!.controll, imageSource: Icons.fact_check));
+          });
+        },
+        btnCancelOnPress: () {},
+      )..show();
+    }
   }
 
   Widget build(BuildContext context) {
     final menuItems = [
       MenuInfo(MenuType.Overview, title: "Overview", imageSource: Icons.grid_view),
-      MenuInfo(MenuType.Controll, title: AppLocalizations.of(context)!.controll, imageSource: Icons.fact_check),
+      MenuInfo(MenuType.Controll, title: "Settings", imageSource: Icons.fact_check),
       MenuInfo(MenuType.DeviceInformation, title: "Information", imageSource: Icons.info),
       MenuInfo(MenuType.Licenses, title: AppLocalizations.of(context)!.licenses, imageSource: Icons.assignment)
     ];

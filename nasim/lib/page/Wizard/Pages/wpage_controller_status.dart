@@ -8,10 +8,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:nasim/IntroductionScreen/introduction_screen.dart';
+import 'package:nasim/Widgets/toggle_switch.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:toggle_switch/toggle_switch.dart';
 
 import '../../../utils.dart';
 import '../Wizardpage.dart';
@@ -37,7 +37,6 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
   String Old_Humidity_Controller_Night_Mode = "";
   String Old_Air_Purifier_Controller_Day_Mode = "";
   String Old_Air_Purifier_Controller_Night_Mode = "";
-
   bool check_modification() {
     if (is_night) {
       if (Old_Cooler_Controller_Night_Mod == ConnectionManager.Cooler_Controller_Night_Mod &&
@@ -68,6 +67,7 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
         _tabController!.animateTo(0);
         return false;
       }
+
       return true;
     };
     widget.Next = () {
@@ -82,6 +82,7 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
       }
       return true;
     };
+
     _tabController = new TabController(vsync: this, length: tabs.length);
 
     _tabController!.addListener(() {
@@ -112,18 +113,29 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
           ConnectionManager.Air_Purifier_Controller_Day_Mode = (int.tryParse(await cmg.getRequest(118, context)) ?? 0).toString();
           ConnectionManager.Air_Purifier_Controller_Night_Mode = (int.tryParse(await cmg.getRequest(119, context)) ?? 0).toString();
 
+          Old_Cooler_Controller_Day_Mode = ConnectionManager.Cooler_Controller_Day_Mode;
+          Old_Cooler_Controller_Night_Mod = ConnectionManager.Cooler_Controller_Night_Mod;
+          Old_Heater_Controller_Day_Mode = ConnectionManager.Heater_Controller_Day_Mode;
+          Old_Heater_Controller_Night_Mode = ConnectionManager.Heater_Controller_Night_Mode;
+          Old_Humidity_Controller_Day_Mode = ConnectionManager.Humidity_Controller_Day_Mode;
+          Old_Humidity_Controller_Night_Mode = ConnectionManager.Humidity_Controller_Night_Mode;
+          Old_Air_Purifier_Controller_Day_Mode = ConnectionManager.Air_Purifier_Controller_Day_Mode;
+          Old_Air_Purifier_Controller_Night_Mode = ConnectionManager.Air_Purifier_Controller_Night_Mode;
+
           if (is_night) {
-            cooler_mod_val = ConnectionManager.Cooler_Controller_Night_Mod == "1" ? true : false;
-            heater_mod_val = ConnectionManager.Heater_Controller_Night_Mode == "1" ? true : false;
-            humidity_mod_val = ConnectionManager.Humidity_Controller_Night_Mode == "1" ? true : false;
-            ap_mod_val = ConnectionManager.Air_Purifier_Controller_Night_Mode == "1" ? true : false;
+            cooler_mod_val = int.parse(ConnectionManager.Cooler_Controller_Night_Mod);
+            heater_mod_val = int.parse(ConnectionManager.Heater_Controller_Night_Mode);
+            humidity_mod_val = int.parse(ConnectionManager.Humidity_Controller_Night_Mode);
+            ap_mod_val = int.parse(ConnectionManager.Air_Purifier_Controller_Night_Mode);
           } else {
-            cooler_mod_val = ConnectionManager.Cooler_Controller_Day_Mode == "1" ? true : false;
-            heater_mod_val = ConnectionManager.Heater_Controller_Day_Mode == "1" ? true : false;
-            humidity_mod_val = ConnectionManager.Humidity_Controller_Day_Mode == "1" ? true : false;
-            ap_mod_val = ConnectionManager.Air_Purifier_Controller_Day_Mode == "1" ? true : false;
+            cooler_mod_val = int.parse(ConnectionManager.Cooler_Controller_Day_Mode);
+            heater_mod_val = int.parse(ConnectionManager.Heater_Controller_Day_Mode);
+            humidity_mod_val = int.parse(ConnectionManager.Humidity_Controller_Day_Mode);
+            ap_mod_val = int.parse(ConnectionManager.Air_Purifier_Controller_Day_Mode);
           }
-          if (mounted) setState(() {});
+          setState(() {
+            check_modification();
+          });
         });
   }
 
@@ -136,6 +148,7 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
     await cmg.setRequest(117, (ConnectionManager.Humidity_Controller_Night_Mode), context);
     await cmg.setRequest(118, (ConnectionManager.Air_Purifier_Controller_Day_Mode), context);
     await cmg.setRequest(119, (ConnectionManager.Air_Purifier_Controller_Night_Mode), context);
+    MODIFIED = false;
     if (_tabController!.index == 0) {
       _tabController!.animateTo(1);
     } else if (_tabController!.index == 1) {
@@ -144,7 +157,7 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
     }
   }
 
-  bool cooler_mod_val = false;
+  int cooler_mod_val = 0;
   List<Widget> cooler_mod() {
     return [
       Padding(
@@ -153,14 +166,19 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
           children: [
             Expanded(child: Text("Cooler Controller", style: Theme.of(context).textTheme.bodyText1)),
             ToggleSwitch(
+              totalSwitches: 3,
               minWidth: 60.0,
-              initialLabelIndex: cooler_mod_val ? 1 : 0,
-              cornerRadius: 0.0,
+              initialLabelIndex: cooler_mod_val,
+              cornerRadius: 5.0,
               activeFgColor: Colors.white,
               inactiveBgColor: Colors.grey,
               inactiveFgColor: Colors.white,
-              activeBgColors: [Colors.blue, Colors.blue],
-              labels: ['Off', 'Auto'],
+              activeBgColors: [
+                [Colors.red],
+                [Colors.green],
+                [Colors.blue]
+              ],
+              labels: ['Off', 'Auto', "On"],
               onToggle: (index) {
                 if (is_night)
                   ConnectionManager.Cooler_Controller_Night_Mod = index.toString();
@@ -169,7 +187,7 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
 
                 check_modification();
                 setState(() {
-                  cooler_mod_val = index == 1;
+                  cooler_mod_val = index!;
                 });
               },
             ),
@@ -183,7 +201,7 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
     ];
   }
 
-  bool heater_mod_val = false;
+  int heater_mod_val = 0;
   List<Widget> heater_mod() {
     return [
       Padding(
@@ -192,14 +210,19 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
           children: [
             Expanded(child: Text("Heater Controller", style: Theme.of(context).textTheme.bodyText1)),
             ToggleSwitch(
+              totalSwitches: 3,
               minWidth: 60.0,
-              initialLabelIndex: heater_mod_val ? 1 : 0,
-              cornerRadius: 0.0,
+              initialLabelIndex: heater_mod_val,
+              cornerRadius: 5.0,
               activeFgColor: Colors.white,
               inactiveBgColor: Colors.grey,
               inactiveFgColor: Colors.white,
-              activeBgColors: [Colors.blue, Colors.blue],
-              labels: ['Off', 'Auto'],
+              activeBgColors: [
+                [Colors.red],
+                [Colors.green],
+                [Colors.blue]
+              ],
+              labels: ['Off', 'Auto', "On"],
               onToggle: (index) {
                 if (is_night)
                   ConnectionManager.Heater_Controller_Night_Mode = index.toString();
@@ -209,7 +232,7 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
                 check_modification();
 
                 setState(() {
-                  heater_mod_val = index == 1;
+                  heater_mod_val = index!;
                 });
               },
             ),
@@ -223,7 +246,7 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
     ];
   }
 
-  bool humidity_mod_val = false;
+  int humidity_mod_val = 0;
   List<Widget> humidity_mod() {
     return [
       Padding(
@@ -233,13 +256,18 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
             Expanded(child: Text("Humidity Controller", style: Theme.of(context).textTheme.bodyText1)),
             ToggleSwitch(
               minWidth: 60.0,
-              initialLabelIndex: humidity_mod_val ? 1 : 0,
-              cornerRadius: 0.0,
+              initialLabelIndex: humidity_mod_val,
+              cornerRadius: 5.0,
               activeFgColor: Colors.white,
               inactiveBgColor: Colors.grey,
+              totalSwitches: 3,
               inactiveFgColor: Colors.white,
-              activeBgColors: [Colors.blue, Colors.blue],
-              labels: ['Off', 'Auto'],
+              activeBgColors: [
+                [Colors.red],
+                [Colors.green],
+                [Colors.blue]
+              ],
+              labels: ['Off', 'Auto', "On"],
               onToggle: (index) {
                 if (is_night)
                   ConnectionManager.Humidity_Controller_Night_Mode = index.toString();
@@ -249,7 +277,7 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
                 check_modification();
 
                 setState(() {
-                  humidity_mod_val = index == 1;
+                  humidity_mod_val = index!;
                 });
               },
             ),
@@ -263,7 +291,7 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
     ];
   }
 
-  bool ap_mod_val = false;
+  int ap_mod_val = 0;
   List<Widget> ap_mod() {
     return [
       Padding(
@@ -273,13 +301,18 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
             Expanded(child: Text("Air Purifier Controller", style: Theme.of(context).textTheme.bodyText1)),
             ToggleSwitch(
               minWidth: 60.0,
-              initialLabelIndex: ap_mod_val ? 1 : 0,
-              cornerRadius: 0.0,
+              initialLabelIndex: ap_mod_val,
+              cornerRadius: 5.0,
+              totalSwitches: 3,
               activeFgColor: Colors.white,
               inactiveBgColor: Colors.grey,
               inactiveFgColor: Colors.white,
-              activeBgColors: [Colors.blue, Colors.blue],
-              labels: ['Off', 'Auto'],
+              activeBgColors: [
+                [Colors.red],
+                [Colors.green],
+                [Colors.blue]
+              ],
+              labels: ['Off', 'Auto', "On"],
               onToggle: (index) {
                 if (is_night)
                   ConnectionManager.Air_Purifier_Controller_Night_Mode = index.toString();
@@ -289,7 +322,7 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
                 check_modification();
 
                 setState(() {
-                  ap_mod_val = index == 1;
+                  ap_mod_val = index!;
                 });
               },
             ),
@@ -337,6 +370,8 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
                 title: "Confirm",
                 desc: "Current Page Settings will be restored to factory defaults",
                 btnOkOnPress: () async {
+                  await cmg.setRequest(128, '6');
+
                   refresh();
                 },
                 btnCancelOnPress: () {},
@@ -359,6 +394,7 @@ class wpage_controller_statusState extends State<wpage_controller_status> with S
       text: "Night",
     ),
   ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

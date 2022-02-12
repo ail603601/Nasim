@@ -179,7 +179,7 @@ class _SearchDevicesState extends State<SearchDevices> {
                 child: Text('OK', style: Theme.of(context).textTheme.bodyText1),
                 onPressed: () async {
                   await Provider.of<ConnectionManager>(context, listen: false).setRequest(0, deviceNameDialogInputValue, context);
-                  Provider.of<ConnectionManager>(context, listen: false).setRequest(126, "reset", context);
+                  Provider.of<ConnectionManager>(context, listen: false).setRequest(127, "reset", context);
                   Provider.of<SavedDevicesChangeNotifier>(context, listen: false).updateSelectedDeviceName(deviceNameDialogInputValue).then((value) {
                     dialog_beify_answer.complete(true);
                     Navigator.pop(context);

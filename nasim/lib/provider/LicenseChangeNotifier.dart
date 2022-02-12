@@ -130,7 +130,7 @@ class LicenseChangeNotifier extends ChangeNotifier {
     String _room_temp_7 = await cmd.getRequest(13, context);
     String _room_temp_8 = await cmd.getRequest(14, context);
     String _outdoor_temp = await cmd.getRequest(15, context);
-    // String _six_mobiles = await cmd.getRequest(122, context);
+    String _six_mobiles = await cmd.getRequest(138, context);
     String _gsm_modem = await cmd.getRequest(5, context);
     power_box = _power_box != "";
     room_temp_0 = _room_temp_0 != "";
@@ -143,7 +143,7 @@ class LicenseChangeNotifier extends ChangeNotifier {
     room_temp_7 = _room_temp_7 != "";
     room_temp_8 = _room_temp_8 != "";
     outdoor_temp = _outdoor_temp != "";
-    // six_mobiles = _six_mobiles != "";
+    six_mobiles = _six_mobiles != "";
     gsm_modem = _gsm_modem != "";
     loading_finished.complete(true);
     notifyListeners();

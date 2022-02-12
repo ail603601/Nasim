@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:nasim/enums.dart';
@@ -14,53 +17,121 @@ class LicensesPage extends StatefulWidget {
 }
 
 class _LicensesPageState extends State<LicensesPage> {
+  UniqueKey? keytile;
+  bool expanded_initialy = false;
+  int parse_device_fan(int i) {
+    if (i == 0) return 300;
+    if (i == 1) return 600;
+    if (i == 2) return 900;
+    if (i == 3) return 1200;
+    if (i == 4) return 1500;
+    if (i == 5) return 1800;
+    if (i == 6) return 2100;
+
+    return 0;
+  }
+
   late ConnectionManager cmg;
+  String parsed_fan_power = "loading...";
 
   @override
   void initState() {
+    checkifnextallowed(Provider.of<LicenseChangeNotifier>(context, listen: false));
+    cmg = Provider.of<ConnectionManager>(context, listen: false);
+    cmg.getRequest(39, context).then((value) {
+      ConnectionManager.Real_Output_Fan_Power = (int.tryParse(value) ?? "0").toString();
+      parsed_fan_power = parse_device_fan(int.parse(ConnectionManager.Real_Output_Fan_Power)).toString();
+    });
+
     super.initState();
   }
 
-  UniqueKey? keytile;
-  bool expanded_initialy = false;
-
-  List<Widget> build_license_row(title) {
-    return [
-      ListTile(
-        subtitle: Text(
-          "valid untill 2023/06/25",
-          style: Theme.of(context).textTheme.bodyText2,
-        ),
-        title: Text(
-          title,
-          style: Theme.of(context).textTheme.bodyText1,
-        ),
-        trailing: Icon(Icons.verified_outlined),
-      ),
-      Divider(
-        color: Theme.of(context).accentColor,
-      ),
-    ];
+  Future<bool> ask_re_enter_serial({bool is_for_powerbox = false}) {
+    Completer<bool> comp = new Completer();
+    AwesomeDialog(
+      context: context,
+      useRootNavigator: true,
+      dialogType: DialogType.WARNING,
+      animType: AnimType.BOTTOMSLIDE,
+      title: "Confirm",
+      desc: (is_for_powerbox ? "Device Fan Power: ${parsed_fan_power} W\n" : "") + "Are you sure you want to change the serial number? ",
+      btnOkOnPress: () async {
+        comp.complete(true);
+      },
+      btnCancelOnPress: () {
+        comp.complete(false);
+      },
+      onDissmissCallback: (type) {
+        comp.complete(false);
+      },
+    )..show();
+    return comp.future;
   }
 
   hintbox() => Container(
+        width: double.infinity,
         padding: EdgeInsets.all(16),
         color: Theme.of(context).hintColor,
-        child: Text("Before we continue setting things up , you have to provide required licenses in order to turn your device On.",
-            style: Theme.of(context).textTheme.headline6!),
+        child: Text("In order to continue:\nyou have to provide required licenses.\nyou can enter other licenses later.",
+            style: Theme.of(context).textTheme.bodyText1!.copyWith(color: Colors.white)),
       );
-  license_gsm_modem_row(LicenseChangeNotifier lcn) => ListTile(
-        title: Text("GSM Modem License", style: Theme.of(context).textTheme.bodyText1!),
+
+  license_6_mobile_row(LicenseChangeNotifier lcn) => ListTile(
+        title: Text("6 Mobile Connection", style: Theme.of(context).textTheme.bodyText1!),
         subtitle: Row(
           children: [
-            Icon(
-              Icons.info_outline,
-              size: 18,
-            ),
+            if (!lcn.six_mobiles)
+              Icon(
+                Icons.info_outline,
+                size: 18,
+              ),
             SizedBox(
               width: 8,
             ),
-            Text("Optional", style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 10))
+            lcn.six_mobiles
+                ? Text("Registered", style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 10, color: Colors.green))
+                : Text("Optional", style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 10))
+          ],
+        ),
+        leading: Icon(Icons.phone_android),
+        trailing: Icon(
+          lcn.six_mobiles ? Icons.check_box : Icons.check_box_outline_blank,
+          color: Theme.of(context).accentColor,
+        ),
+        onTap: () async {
+          if (lcn.six_mobiles && !await ask_re_enter_serial()) {
+            return;
+          }
+          var data = await Utils.ask_serial("You have to provdie license's serial number", context);
+          if (data == "" || data == "null") {
+            return;
+          }
+          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(138, data, context);
+          if (is_valid) {
+            lcn.license_6_mobiles(context);
+
+            setState(() {});
+            checkifnextallowed(lcn);
+          } else {
+            Utils.showSnackBar(context, "Wrong serial number.");
+          }
+        },
+      );
+  license_gsm_modem_row(LicenseChangeNotifier lcn) => ListTile(
+        title: Text("GSM Modem", style: Theme.of(context).textTheme.bodyText1!),
+        subtitle: Row(
+          children: [
+            if (!lcn.gsm_modem)
+              Icon(
+                Icons.info_outline,
+                size: 18,
+              ),
+            SizedBox(
+              width: 8,
+            ),
+            lcn.gsm_modem
+                ? Text("Registered", style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 10, color: Colors.green))
+                : Text("Optional", style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 10))
           ],
         ),
         leading: Icon(Icons.sim_card),
@@ -69,11 +140,11 @@ class _LicensesPageState extends State<LicensesPage> {
           color: Theme.of(context).accentColor,
         ),
         onTap: () async {
-          if (lcn.gsm_modem) {
+          if (lcn.gsm_modem && !await ask_re_enter_serial()) {
             return;
           }
           var data = await Utils.ask_serial("You have to provdie license's serial number", context);
-          if (data == "" && data != "null") {
+          if (data == "" || data == "null") {
             return;
           }
           bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(5, data, context);
@@ -81,22 +152,26 @@ class _LicensesPageState extends State<LicensesPage> {
             lcn.license_gsm_modem(context);
 
             setState(() {});
+            checkifnextallowed(lcn);
           } else {
             Utils.showSnackBar(context, "Wrong serial number.");
           }
         },
       );
   license_outdoor_temp_sesnsor_row(LicenseChangeNotifier lcn) => ListTile(
-        title: Text("Outdoor Temperature License", style: Theme.of(context).textTheme.bodyText1!),
+        title: Text("Outdoor Temperature Sensor", style: Theme.of(context).textTheme.bodyText1!),
         subtitle: Row(children: [
-          Icon(
-            Icons.info_outline,
-            size: 18,
-          ),
+          if (!lcn.outdoor_temp)
+            Icon(
+              Icons.info_outline,
+              size: 18,
+            ),
           SizedBox(
             width: 8,
           ),
-          Text("Optional", style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 10))
+          lcn.outdoor_temp
+              ? Text("Registered", style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 10, color: Colors.green))
+              : Text("Optional", style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 10))
         ]),
         leading: Icon(Icons.thermostat_rounded),
         trailing: Icon(
@@ -104,35 +179,39 @@ class _LicensesPageState extends State<LicensesPage> {
           color: Theme.of(context).accentColor,
         ),
         onTap: () async {
-          if (lcn.outdoor_temp) {
+          if (lcn.outdoor_temp && !await ask_re_enter_serial()) {
             return;
           }
           var data = await Utils.ask_serial("You have to provdie license's serial number", context);
-          if (data == "" && data != "null") {
+          if (data == "" || data == "null") {
             return;
           }
           bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(15, data, context);
           if (is_valid) {
             lcn.license_outdoor_temp(context);
             setState(() {});
+            checkifnextallowed(lcn);
           } else {
             Utils.showSnackBar(context, "Wrong serial number.");
           }
         },
       );
   license_power_box_row(LicenseChangeNotifier lcn) => ListTile(
-        title: Text("Power Box License", style: Theme.of(context).textTheme.bodyText1!),
+        title: Text("Power Box", style: Theme.of(context).textTheme.bodyText1!),
         subtitle: Row(
           children: [
-            Icon(
-              Icons.info_outline,
-              size: 18,
-              color: Colors.red,
-            ),
+            if (!lcn.power_box)
+              Icon(
+                Icons.info_outline,
+                size: 18,
+                color: Colors.red,
+              ),
             SizedBox(
               width: 8,
             ),
-            Text("Required", style: Theme.of(context).textTheme.bodyText2!.copyWith(color: Colors.red, fontSize: 10))
+            lcn.power_box
+                ? Text("Registered", style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 10, color: Colors.green))
+                : Text("Required", style: Theme.of(context).textTheme.bodyText2!.copyWith(color: Colors.red, fontSize: 10))
           ],
         ),
         leading: Icon(Icons.power),
@@ -141,11 +220,11 @@ class _LicensesPageState extends State<LicensesPage> {
           color: Theme.of(context).accentColor,
         ),
         onTap: () async {
-          if (lcn.power_box) {
+          if (lcn.power_box && !await ask_re_enter_serial(is_for_powerbox: true)) {
             return;
           }
           var data = await Utils.ask_serial("You have to provdie license's serial number", context);
-          if (data == "" && data != "null") {
+          if (data == "" || data == "null") {
             return;
           }
           bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(4, data, context);
@@ -153,6 +232,7 @@ class _LicensesPageState extends State<LicensesPage> {
             lcn.license_power_box(context);
 
             setState(() {});
+            checkifnextallowed(lcn);
           } else {
             Utils.showSnackBar(context, "Wrong serial number.");
           }
@@ -171,7 +251,7 @@ class _LicensesPageState extends State<LicensesPage> {
         key: keytile,
         tilePadding: EdgeInsets.only(right: 16),
         title: ListTile(
-          title: Text("Room Temperature License", style: Theme.of(context).textTheme.bodyText1!),
+          title: Text("Room Temperature Sensor", style: Theme.of(context).textTheme.bodyText1!),
           leading: Icon(Icons.thermostat_rounded),
           onTap: () {
             togletile();
@@ -211,15 +291,18 @@ class _LicensesPageState extends State<LicensesPage> {
         title: Text("Sensor 0", style: Theme.of(context).textTheme.bodyText1!),
         subtitle: Row(
           children: [
-            Icon(
-              Icons.info_outline,
-              size: 18,
-              color: Colors.red,
-            ),
+            if (!lcn.room_temp_0)
+              Icon(
+                Icons.info_outline,
+                size: 18,
+                color: Colors.red,
+              ),
             SizedBox(
               width: 8,
             ),
-            Text("Required", style: Theme.of(context).textTheme.bodyText2!.copyWith(color: Colors.red, fontSize: 10))
+            lcn.room_temp_0
+                ? Text("Registered", style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 10, color: Colors.green))
+                : Text("Required", style: Theme.of(context).textTheme.bodyText2!.copyWith(color: Colors.red, fontSize: 10))
           ],
         ),
         trailing: Icon(
@@ -227,17 +310,18 @@ class _LicensesPageState extends State<LicensesPage> {
           color: Theme.of(context).accentColor,
         ),
         onTap: () async {
-          if (lcn.room_temp_0) {
+          if (lcn.room_temp_0 && !await ask_re_enter_serial()) {
             return;
           }
           var data = await Utils.ask_serial("You have to provdie license's serial number", context);
-          if (data == "" && data != "null") {
+          if (data == "" || data == "null") {
             return;
           }
           bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(6, data, context);
           if (is_valid) {
             await lcn.license_room_temp(0, context);
 
+            checkifnextallowed(lcn);
             setState(() {});
           } else {
             Utils.showSnackBar(context, "Wrong serial number.");
@@ -250,14 +334,17 @@ class _LicensesPageState extends State<LicensesPage> {
         title: Text("Sensor $num", style: Theme.of(context).textTheme.bodyText1!),
         subtitle: Row(
           children: [
-            Icon(
-              Icons.info_outline,
-              size: 18,
-            ),
+            if (!checked)
+              Icon(
+                Icons.info_outline,
+                size: 18,
+              ),
             SizedBox(
               width: 8,
             ),
-            Text("Optional", style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 10))
+            checked
+                ? Text("Registered", style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 10, color: Colors.green))
+                : Text("Optional", style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 10))
           ],
         ),
         trailing: Icon(
@@ -265,11 +352,11 @@ class _LicensesPageState extends State<LicensesPage> {
           color: Theme.of(context).accentColor,
         ),
         onTap: () async {
-          if (checked) {
+          if (checked && !await ask_re_enter_serial()) {
             return;
           }
           var data = await Utils.ask_serial("You have to provdie license's serial number", context);
-          if (data == "" && data != "null") {
+          if (data == "" || data == "null") {
             return;
           }
           bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest((num + 6), data, context);
@@ -283,95 +370,45 @@ class _LicensesPageState extends State<LicensesPage> {
         },
       );
 
-  List<String> _license_types = [
-    "fan power to 600 W",
-    "fan power to 900 W",
-    "fan power to 1200 W",
-    "fan power to 1500 W",
-    "fan power to 1800 W",
-    "fan power to 2100 W",
-    "6 mobiles can connect to device"
-  ];
+  bool can_go_next = false;
 
-  build_new_license_button(mcontext) => Align(
-        alignment: Alignment.bottomCenter,
-        child: Container(
-          width: double.infinity,
-          margin: EdgeInsets.only(bottom: 15),
-          height: 50,
-          padding: EdgeInsets.symmetric(horizontal: 8),
-          child: OutlinedButton(
-            onPressed: () {
-              if (SavedDevicesChangeNotifier.getSelectedDevice()!.accessibility == DeviceAccessibility.AccessibleInternet) {
-                Utils.setTimeOut(
-                    0,
-                    () => Utils.show_error_dialog(context, "Not Available", "users can't set licenses via internt.", () {}).then((value) {
-                          // Navigator.pop(context);
-                        }));
-                return;
-              }
-              Utils.ask_license_type_serial(context, "Choose your license", "license:", _license_types, _license_types[0],
-                  (String serial, String selected_option) async {
-                if (serial != "") {
-                  int index_selected = _license_types.indexOf(selected_option);
-                  await Provider.of<ConnectionManager>(context, listen: false).setRequest(76, index_selected.toString(), context);
-                  if (await Provider.of<ConnectionManager>(context, listen: false).setRequest(77, serial, context)) {
-                    Utils.showSnackBar(context, "License accepted.");
-                  } else {
-                    Utils.showSnackBar(context, "License not accepted.");
-                  }
-                }
-              });
-            },
-            style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
-                side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
-                shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
-            child: Text("New License", style: Theme.of(context).textTheme.bodyText1),
-          ),
-        ),
-      );
+  checkifnextallowed(LicenseChangeNotifier lcn) {
+    if (lcn.power_box && lcn.room_temp_0) {
+      can_go_next = true;
+    }
+  }
 
+  @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Align(
-        alignment: Alignment.topCenter,
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                child: Consumer<LicenseChangeNotifier>(builder: (context, lcn, child) {
-                  return Column(
-                    children: [
-                      Column(
-                        children: [
-                          license_power_box_row(lcn),
-                          Divider(
-                            height: 0,
-                          ),
-                          license_room_temp_row_expansion(lcn),
-                          Divider(
-                            height: 0,
-                          ),
-                          license_outdoor_temp_sesnsor_row(lcn),
-                          Divider(
-                            height: 0,
-                          ),
-                          license_gsm_modem_row(lcn),
-                        ],
-                      ),
-                    ],
-                  );
-                }),
-              ),
-            ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: build_new_license_button(context),
-            )
-          ],
-        ),
-      ),
-    );
+    // checkifnexyallowed(Provider.of<LicenseChangeNotifier>(context, listen: false));
+
+    return Container(
+        padding: const EdgeInsets.only(bottom: 64),
+        child: SingleChildScrollView(
+          child: Consumer<LicenseChangeNotifier>(builder: (context, lcn, child) {
+            return Column(
+              mainAxisSize: MainAxisSize.max,
+              children: [
+                license_power_box_row(lcn),
+                Divider(
+                  height: 0,
+                ),
+                license_room_temp_row_expansion(lcn),
+                Divider(
+                  height: 0,
+                ),
+                license_outdoor_temp_sesnsor_row(lcn),
+                Divider(
+                  height: 0,
+                ),
+                license_gsm_modem_row(lcn),
+                Divider(
+                  height: 0,
+                ),
+                license_6_mobile_row(lcn)
+              ],
+            );
+          }),
+        ));
   }
 }

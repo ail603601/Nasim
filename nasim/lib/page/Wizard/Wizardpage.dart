@@ -22,6 +22,7 @@ import 'Pages/wpage_light.dart';
 
 class WizardPage extends StatefulWidget {
   const WizardPage({Key? key}) : super(key: key);
+  static bool flag_ask_to_config_internet = false;
 
   @override
   WizardPageState createState() => WizardPageState();
@@ -41,16 +42,9 @@ class WizardPageState extends State<WizardPage> {
 
   static void wizardEnded(context) async {
     wizardNewSetup();
-
-    // if (DevicesListConnectState.flag_only_user == true) {
-    // if (wpage_usersState.can_next) {
-    //   await Provider.of<ConnectionManager>(context, listen: false).setRequest(121, "1");
-    //   Navigator.pop(context, true);
-    // }
-    // } else {
+    WizardPage.flag_ask_to_config_internet = true;
     await Provider.of<ConnectionManager>(context, listen: false).setRequest(121, "1");
     Navigator.pop(context, true);
-    // }
   }
 
   List<Widget> raw_pages = [
@@ -75,7 +69,9 @@ class WizardPageState extends State<WizardPage> {
   @override
   Widget build(BuildContext context) {
     bool can_next(int i) {
-      return (raw_pages[i] as dynamic).Next();
+      bool can_next = (raw_pages[i] as dynamic).Next();
+      // if (can_next) {}
+      return can_next;
     }
 
     bool can_back(int i) {
@@ -105,10 +101,7 @@ class WizardPageState extends State<WizardPage> {
             onBack: can_back,
             rawPages: raw_pages as List<Widget>,
             next: Icon(Icons.arrow_forward),
-            done: Text(
-              "Done",
-              style: Theme.of(context).textTheme.bodyText1,
-            ),
+            done: Icon(Icons.subdirectory_arrow_left_outlined),
             freeze: true,
             onDone: () {
               wizard_done();

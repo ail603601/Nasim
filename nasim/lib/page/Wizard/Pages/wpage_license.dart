@@ -62,7 +62,7 @@ class _wpage_licenseState extends State<wpage_license> {
       dialogType: DialogType.WARNING,
       animType: AnimType.BOTTOMSLIDE,
       title: "Confirm",
-      desc: (is_for_powerbox ? "Device Fan Power: ${parsed_fan_power}\n" : "") + "Are you sure you want to change the serial number? ",
+      desc: (is_for_powerbox ? "Device Fan Power: ${parsed_fan_power} W\n" : "") + "Are you sure you want to change the serial number? ",
       btnOkOnPress: () async {
         comp.complete(true);
       },
@@ -82,6 +82,48 @@ class _wpage_licenseState extends State<wpage_license> {
         color: Theme.of(context).hintColor,
         child: Text("In order to continue:\nyou have to provide required licenses.\nyou can enter other licenses later.",
             style: Theme.of(context).textTheme.bodyText1!.copyWith(color: Colors.white)),
+      );
+
+  license_6_mobile_row(LicenseChangeNotifier lcn) => ListTile(
+        title: Text("6 Mobile Connection", style: Theme.of(context).textTheme.bodyText1!),
+        subtitle: Row(
+          children: [
+            if (!lcn.six_mobiles)
+              Icon(
+                Icons.info_outline,
+                size: 18,
+              ),
+            SizedBox(
+              width: 8,
+            ),
+            lcn.six_mobiles
+                ? Text("Registered", style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 10, color: Colors.green))
+                : Text("Optional", style: Theme.of(context).textTheme.bodyText2!.copyWith(fontSize: 10))
+          ],
+        ),
+        leading: Icon(Icons.phone_android),
+        trailing: Icon(
+          lcn.six_mobiles ? Icons.check_box : Icons.check_box_outline_blank,
+          color: Theme.of(context).accentColor,
+        ),
+        onTap: () async {
+          if (lcn.six_mobiles && !await ask_re_enter_serial()) {
+            return;
+          }
+          var data = await Utils.ask_serial("You have to provdie license's serial number", context);
+          if (data == "" || data == "null") {
+            return;
+          }
+          bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(138, data, context);
+          if (is_valid) {
+            lcn.license_6_mobiles(context);
+
+            setState(() {});
+            checkifnextallowed(lcn);
+          } else {
+            Utils.showSnackBar(context, "Wrong serial number.");
+          }
+        },
       );
   license_gsm_modem_row(LicenseChangeNotifier lcn) => ListTile(
         title: Text("GSM Modem", style: Theme.of(context).textTheme.bodyText1!),
@@ -368,7 +410,11 @@ class _wpage_licenseState extends State<wpage_license> {
                 Divider(
                   height: 0,
                 ),
-                license_gsm_modem_row(lcn)
+                license_gsm_modem_row(lcn),
+                Divider(
+                  height: 0,
+                ),
+                license_6_mobile_row(lcn)
               ],
             );
           }),

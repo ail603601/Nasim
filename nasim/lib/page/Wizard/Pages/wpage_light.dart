@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:holding_gesture/holding_gesture.dart';
+import 'package:nasim/Widgets/MyTooltip.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -183,6 +184,7 @@ class _wpage_lightState extends State<wpage_light> {
                 title: "Confirm",
                 desc: "Current Page Settings will be restored to factory defaults",
                 btnOkOnPress: () async {
+                  await cmg.setRequest(128, '8');
                   refresh();
                 },
                 btnCancelOnPress: () {},
@@ -201,7 +203,7 @@ class _wpage_lightState extends State<wpage_light> {
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
-            Expanded(child: Text("Max Light")),
+            Expanded(child: MyTooltip(message: "example tooltip", child: Text("Max Light"))),
             Expanded(
               child: TextField(
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -221,7 +223,7 @@ class _wpage_lightState extends State<wpage_light> {
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
-            Expanded(child: Text("Min Light")),
+            Expanded(child: MyTooltip(message: "example tooltip", child: Text("Min Light"))),
             Expanded(
               child: TextField(
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],

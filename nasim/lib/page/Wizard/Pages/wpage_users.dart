@@ -95,9 +95,11 @@ class wpage_usersState extends State<wpage_users> {
                 title: "Confirm",
                 desc: ("this device is already set up, you wish to continue?"),
                 btnOkOnPress: () async {
+                  Utils.setTimeOut(100, IntroductionScreenState.force_next);
+                },
+                btnCancelOnPress: () {
                   Navigator.pop(context, true);
                 },
-                btnCancelOnPress: () {},
                 onDissmissCallback: (type) {},
               )..show();
             });

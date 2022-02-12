@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:bubble_tab_indicator/bubble_tab_indicator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -26,18 +27,35 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
   int real_output_fan_power = 0;
   late Timer soft_reftresh_timer;
 
+  bool is_minimum_set = false;
+  bool is_maximum_set = false;
+
   List<String> fan_power_licenses = ["600 W", "900 W", "1200 W", "1500 W", "1800 W", "2100 W"];
 
   late String current_license_selected;
+
+  String Old_Min_Valid_Output_Fan_Speed = "";
+  String Old_Max_Valid_Output_Fan_Speed = "";
+  bool MODIFIED = false;
+
+  bool check_modification() {
+    if (Old_Min_Valid_Output_Fan_Speed == minimum_negative_presure_fan_speed.toInt().toString() &&
+        Old_Max_Valid_Output_Fan_Speed == maximum_negative_presure_fan_speed.toInt().toString()) {
+      MODIFIED = false;
+    } else
+      MODIFIED = true;
+    return MODIFIED;
+  }
 
   void soft_refresh() async {
     ConnectionManager.Elevation = (int.tryParse(await cmg.getRequest(34, context)) ?? "0").toString();
     ConnectionManager.Pressure = (int.tryParse(await cmg.getRequest(35, context)) ?? "0").toString();
     ConnectionManager.Pressure_change = (int.tryParse(await cmg.getRequest(36, context)) ?? "0").toString();
+    ConnectionManager.Real_Output_Fan_Power = (int.tryParse(await cmg.getRequest(39, context)) ?? real_output_fan_power).toString();
 
     if (mounted)
       setState(() {
-        real_output_fan_power = (int.tryParse(ConnectionManager.Real_Output_Fan_Power) ?? real_output_fan_power).toInt();
+        real_output_fan_power = int.parse(ConnectionManager.Real_Output_Fan_Power);
       });
   }
 
@@ -79,6 +97,9 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
                   (int.tryParse(ConnectionManager.Min_Valid_Output_Fan_Speed) ?? minimum_negative_presure_fan_speed).toDouble();
               maximum_negative_presure_fan_speed =
                   (int.tryParse(ConnectionManager.Max_Valid_Output_Fan_Speed) ?? maximum_negative_presure_fan_speed).toDouble();
+
+              Old_Min_Valid_Output_Fan_Speed = minimum_negative_presure_fan_speed.toInt().toString();
+              Old_Max_Valid_Output_Fan_Speed = maximum_negative_presure_fan_speed.toInt().toString();
             });
         });
   }
@@ -178,31 +199,29 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
       );
 
   Future<void> set_air_speed_min_negative_pressure(double value) async {
-    try {
-      ConnectionManager.Min_Valid_Output_Fan_Speed = value.toInt().toString().padLeft(3, '0');
-      await cmg.setRequest(37, ConnectionManager.Min_Valid_Output_Fan_Speed, context);
-      if (maximum_negative_presure_fan_speed < value + 5) {
-        await set_air_speed_max_negative_pressure(value + 5);
-      }
-      wait_for_fan_power().then((value) async {
-        await refresh();
-      });
-    } catch (e) {}
+    ConnectionManager.Min_Valid_Output_Fan_Speed = value.toInt().toString().padLeft(3, '0');
+    await cmg.setRequest(37, ConnectionManager.Min_Valid_Output_Fan_Speed, context);
+    if (maximum_negative_presure_fan_speed < value + 5) {
+      await set_air_speed_max_negative_pressure(value + 5);
+    }
+    MODIFIED = false;
+    is_minimum_set = true;
   }
 
   Future<void> set_air_speed_max_negative_pressure(double value) async {
+    // if (!is_minimum_set) {
+    //   await Utils.alert(context, "", "please set minimum fan speed before setting maximum.");
+    //   return;
+    // }
+
     if (minimum_negative_presure_fan_speed + 5 > value) {
       await Utils.alert(context, "Error", "Maximum negative fan pressure must be at least 5 percent more than minimum.");
       return;
     }
     ConnectionManager.Max_Valid_Output_Fan_Speed = value.toInt().toString().padLeft(3, '0');
-    await cmg.setRequest(38, ConnectionManager.Max_Valid_Output_Fan_Speed, context);
-
-    if (value >= minimum_negative_presure_fan_speed + 5) {}
-
-    wait_for_fan_power().then((value) async {
-      await refresh();
-    });
+    cmg.setRequest(38, ConnectionManager.Max_Valid_Output_Fan_Speed, context);
+    is_maximum_set = true;
+    MODIFIED = false;
   }
 
   build_icon_btn(bool up, Function() clicked) {}
@@ -256,6 +275,7 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
                   onHold: () async {
                     setState(() {
                       minimum_negative_presure_fan_speed = min(minimum_negative_presure_fan_speed.roundToDouble() + 2.0, 95);
+                      check_modification();
                     });
                   },
                   holdTimeout: Duration(milliseconds: 1000),
@@ -267,6 +287,7 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
                     onPressed: () async {
                       setState(() {
                         minimum_negative_presure_fan_speed = min(minimum_negative_presure_fan_speed.roundToDouble() + 1.0, 95);
+                        check_modification();
                       });
                     },
                   ),
@@ -290,6 +311,7 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
                   onHold: () async {
                     setState(() {
                       minimum_negative_presure_fan_speed = max(minimum_negative_presure_fan_speed.roundToDouble() - 2.0, 0);
+                      check_modification();
                     });
                   },
                   holdTimeout: Duration(milliseconds: 1000),
@@ -301,6 +323,7 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
                     onPressed: () async {
                       setState(() {
                         minimum_negative_presure_fan_speed = max(minimum_negative_presure_fan_speed.roundToDouble() - 1.0, 0);
+                        check_modification();
                       });
                     },
                   ),
@@ -363,6 +386,7 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
                   onHold: () async {
                     setState(() {
                       maximum_negative_presure_fan_speed = min(maximum_negative_presure_fan_speed.roundToDouble() + 2.0, 100);
+                      check_modification();
                     });
                   },
                   holdTimeout: Duration(milliseconds: 1000),
@@ -374,6 +398,7 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
                     onPressed: () async {
                       setState(() {
                         maximum_negative_presure_fan_speed = min(maximum_negative_presure_fan_speed.roundToDouble() + 1.0, 100);
+                        check_modification();
                       });
                     },
                   ),
@@ -397,6 +422,7 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
                   onHold: () async {
                     setState(() {
                       maximum_negative_presure_fan_speed = max(maximum_negative_presure_fan_speed.roundToDouble() - 2.0, 0);
+                      check_modification();
                     });
                   },
                   holdTimeout: Duration(milliseconds: 1000),
@@ -408,6 +434,7 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
                     onPressed: () async {
                       setState(() {
                         maximum_negative_presure_fan_speed = max(maximum_negative_presure_fan_speed.roundToDouble() - 1.0, 0);
+                        check_modification();
                       });
                     },
                   ),
@@ -429,10 +456,10 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
           height: 50,
           padding: EdgeInsets.symmetric(horizontal: 8),
           child: OutlinedButton(
-            onPressed: click,
+            onPressed: MODIFIED ? click : null,
             style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
-                side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
+                padding: EdgeInsets.only(top: 10, bottom: 10, left: 28, right: 28),
+                side: BorderSide(width: 2, color: MODIFIED ? Theme.of(context).primaryColor : Colors.grey),
                 shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
             child: Text("Apply", style: Theme.of(context).textTheme.bodyText1),
           ),
@@ -447,13 +474,19 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
           padding: EdgeInsets.symmetric(horizontal: 8),
           child: OutlinedButton(
             onPressed: () async {
-              if (_tabController!.index == 0) {
-                cmg.setRequest(37, "000", context);
-              } else {
-                cmg.setRequest(38, "000", context);
-              }
-
-              refresh();
+              AwesomeDialog(
+                context: context,
+                useRootNavigator: true,
+                dialogType: DialogType.WARNING,
+                animType: AnimType.BOTTOMSLIDE,
+                title: "Confirm",
+                desc: "Current Page Settings will be restored to factory defaults",
+                btnOkOnPress: () async {
+                  await cmg.setRequest(128, '1');
+                  refresh();
+                },
+                btnCancelOnPress: () {},
+              )..show();
             },
             style: OutlinedButton.styleFrom(
                 padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
@@ -492,30 +525,24 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
         Container(
           color: Colors.black12,
           padding: EdgeInsets.symmetric(horizontal: 8),
-          child: Row(
+          child: Column(
             children: [
-              Text("Outlet Fan Speed", style: Theme.of(context).textTheme.bodyText1),
-              Expanded(
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: TabBar(
-                    isScrollable: false,
-                    unselectedLabelColor: Colors.grey,
-                    labelColor: Colors.white,
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    indicator: new BubbleTabIndicator(
-                      indicatorHeight: 25.0,
-                      indicatorColor: Colors.blueAccent,
-                      tabBarIndicatorSize: TabBarIndicatorSize.tab,
-                      // Other flags
-                      // indicatorRadius: 1,
-                      // insets: EdgeInsets.all(1),
-                      // padding: EdgeInsets.all(10)
-                    ),
-                    labelStyle: Theme.of(context).textTheme.bodyText1,
-                    tabs: tabs,
-                    controller: _tabController,
+              Text("Outlet Fan", style: Theme.of(context).textTheme.bodyText1!.copyWith(fontSize: 24)),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TabBar(
+                  isScrollable: false,
+                  unselectedLabelColor: Colors.grey,
+                  labelColor: Colors.white,
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  indicator: new BubbleTabIndicator(
+                    indicatorHeight: 25.0,
+                    indicatorColor: Colors.blueAccent,
+                    tabBarIndicatorSize: TabBarIndicatorSize.tab,
                   ),
+                  labelStyle: Theme.of(context).textTheme.bodyText1,
+                  tabs: tabs,
+                  controller: _tabController,
                 ),
               ),
             ],
@@ -525,30 +552,29 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
         Expanded(
           child: new TabBarView(controller: _tabController, physics: NeverScrollableScrollPhysics(), children: [
             Padding(
-              padding: const EdgeInsets.only(top: 8.0),
+              padding: const EdgeInsets.all(8.0),
               child: build_air_speed_min_negative_pressure(),
             ),
             Padding(
-              padding: const EdgeInsets.only(top: 8.0),
+              padding: const EdgeInsets.all(8.0),
               child: build_air_speed_max_negative_pressure(),
             )
           ]),
         ),
         build_apply_button(() async {
-          if (SavedDevicesChangeNotifier.getSelectedDevice()!.accessibility == DeviceAccessibility.AccessibleInternet) {
-            Utils.show_error_dialog(context, "Permission Denied.", "Chaning inlet fan speed is not allowed over internet connection.", null);
-            return;
-          }
-
           if (_tabController!.index == 0) {
             await set_air_speed_min_negative_pressure(minimum_negative_presure_fan_speed);
           } else {
             await set_air_speed_max_negative_pressure(maximum_negative_presure_fan_speed);
           }
-
-          // Utils.setTimeOut(100, IntroductionScreenState.force_next);
+          wait_for_fan_power().then((value) {
+            refresh();
+          });
         }),
         build_reset_button(),
+        SizedBox(
+          height: 64,
+        )
       ],
     ));
   }

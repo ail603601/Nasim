@@ -1,13 +1,14 @@
 import 'dart:async';
-import 'dart:ffi';
 import 'dart:math';
 
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:bubble_tab_indicator/bubble_tab_indicator.dart';
 import 'package:day_night_switcher/day_night_switcher.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:nasim/IntroductionScreen/introduction_screen.dart';
+import 'package:nasim/Widgets/MyTooltip.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -401,26 +402,13 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
           ],
         ),
       );
-  // Widget Tooltip({required String message, required Widget child}) {
-  //   return JustTheTooltip(
-  //     child: child,
-  //     content: Text(
-  //       message,
-  //       style: TextStyle(
-  //         color: Colors.black,
-  //         fontSize: 18,
-  //         decoration: TextDecoration.none,
-  //       ),
-  //     ),
-  //   );
-  // }
 
   Widget row_room_temp() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Row(
         children: [
-          Expanded(child: Tooltip(message: "example tooltip", child: Text("Desired Temperature:"))),
+          Expanded(child: MyTooltip(message: "example tooltip", child: Text("Desired Temperature:"))),
           Expanded(
             child: TextField(
               textInputAction: TextInputAction.done,
@@ -446,7 +434,7 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Row(
         children: [
-          Expanded(child: Tooltip(message: "example tooltip", child: Text("Desired Temp Sensitivity:"))),
+          Expanded(child: MyTooltip(message: "example tooltip", child: Text("Desired Temp Sensitivity:"))),
           Expanded(
             child: TextField(
               textInputAction: TextInputAction.done,
@@ -472,7 +460,7 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
-            Expanded(child: Tooltip(message: "example tooltip", child: Text("Cooler Start Temp: "))),
+            Expanded(child: MyTooltip(message: "example tooltip", child: Text("Cooler Start Temp: "))),
             Expanded(
               child: TextField(
                 textInputAction: TextInputAction.done,
@@ -496,7 +484,7 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
-            Expanded(child: Tooltip(message: "example tooltip", child: Text("Cooler Stop Temp: "))),
+            Expanded(child: MyTooltip(message: "example tooltip", child: Text("Cooler Stop Temp: "))),
             Expanded(
               child: TextField(
                 textInputAction: TextInputAction.done,
@@ -519,7 +507,7 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
-            Expanded(child: Tooltip(message: "example tooltip", child: Text("Heater Start Temp: "))),
+            Expanded(child: MyTooltip(message: "example tooltip", child: Text("Heater Start Temp: "))),
             Expanded(
               child: TextField(
                 textInputAction: TextInputAction.done,
@@ -543,7 +531,7 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
-            Expanded(child: Tooltip(message: "example tooltip", child: Text("Heater Stop Temp: "))),
+            Expanded(child: MyTooltip(message: "example tooltip", child: Text("Heater Stop Temp: "))),
             Expanded(
               child: TextField(
                 textInputAction: TextInputAction.done,
@@ -602,7 +590,21 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
           height: 50,
           padding: EdgeInsets.symmetric(horizontal: 8),
           child: OutlinedButton(
-            onPressed: () {},
+            onPressed: () async {
+              AwesomeDialog(
+                context: context,
+                useRootNavigator: true,
+                dialogType: DialogType.WARNING,
+                animType: AnimType.BOTTOMSLIDE,
+                title: "Confirm",
+                desc: "Current Page Settings will be restored to factory defaults",
+                btnOkOnPress: () async {
+                  await cmg.setRequest(128, '3');
+                  refresh();
+                },
+                btnCancelOnPress: () {},
+              )..show();
+            },
             style: OutlinedButton.styleFrom(
                 padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
                 side: BorderSide(width: 2, color: Theme.of(context).primaryColor),

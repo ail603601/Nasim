@@ -78,7 +78,11 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
       return true;
     };
     widget.Next = () {
-      if (MODIFIED) return false;
+      if (MODIFIED) {
+        Utils.alert(context, "", "Please apply.");
+        return false;
+      }
+
       if (_tabController!.index == 0) {
         _tabController!.animateTo(1);
         return false;
@@ -524,6 +528,7 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
                 title: "Confirm",
                 desc: "Current Page Settings will be restored to factory defaults",
                 btnOkOnPress: () async {
+                  await cmg.setRequest(128, '1');
                   refresh();
                 },
                 btnCancelOnPress: () {},
@@ -568,7 +573,7 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
           padding: EdgeInsets.symmetric(horizontal: 8),
           child: Column(
             children: [
-              Text("Outletfan Speed", style: Theme.of(context).textTheme.bodyText1!.copyWith(fontSize: 24)),
+              Text("Outlet Fan", style: Theme.of(context).textTheme.bodyText1!.copyWith(fontSize: 24)),
               Align(
                 alignment: Alignment.centerRight,
                 child: TabBar(

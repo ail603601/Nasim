@@ -130,7 +130,7 @@ class Utils {
     return completer.future;
   }
 
-  static Future<void> show_error_dialog(BuildContext context, title, msg, Function? done) async {
+  static Future<void> show_error_dialog(BuildContext context, title, msg, [Function? done]) async {
     // set up the button
     Completer<void> completer = new Completer<void>();
 
@@ -378,6 +378,7 @@ class Utils {
 
   static Future<void> show_loading_timed({context, String title = "Loading...", int duration = 5000, required Future<void> Function() done}) async {
     showDialog(
+      barrierColor: Color(0x01000000),
       context: context,
       barrierDismissible: false,
       useRootNavigator: true,

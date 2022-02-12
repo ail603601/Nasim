@@ -616,6 +616,7 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
                 title: "Confirm",
                 desc: "Current Page Settings will be restored to factory defaults",
                 btnOkOnPress: () async {
+                  await cmg.setRequest(128, '2');
                   refresh();
                 },
                 btnCancelOnPress: () {},
@@ -669,7 +670,7 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
                 padding: EdgeInsets.symmetric(horizontal: 8),
                 child: Column(
                   children: [
-                    Text("Inletfan Speed", style: Theme.of(context).textTheme.bodyText1!.copyWith(fontSize: 24)),
+                    Text("Inlet Fan ", style: Theme.of(context).textTheme.bodyText1!.copyWith(fontSize: 24)),
                     Align(
                       alignment: Alignment.centerRight,
                       child: TabBar(
