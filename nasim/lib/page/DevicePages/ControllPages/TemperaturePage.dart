@@ -126,32 +126,35 @@ class _TemperaturePageState extends State<TemperaturePage> with SingleTickerProv
     await Utils.show_loading_timed(
         context: context,
         done: () async {
-          ConnectionManager.Favourite_Room_Temp_Day_ = (int.tryParse(await cmg.getRequest(47, context)) ?? 0).toString();
-          ConnectionManager.Favourite_Room_Temp_Night = (int.tryParse(await cmg.getRequest(53, context)) ?? 0).toString();
-          ConnectionManager.Room_Temp_Sensitivity_Day = (double.tryParse(await cmg.getRequest(48, context)) ?? 0).toString();
-          ConnectionManager.Room_Temp_Sensitivity_Night = (double.tryParse(await cmg.getRequest(54, context)) ?? 0).toString();
-          ConnectionManager.Cooler_Start_Temp_Day = (int.tryParse(await cmg.getRequest(49, context)) ?? 0).toString();
-          ConnectionManager.Cooler_Start_Temp_Night = (int.tryParse(await cmg.getRequest(55, context)) ?? 0).toString();
-          ConnectionManager.Cooler_Stop_Temp_Day = (int.tryParse(await cmg.getRequest(50, context)) ?? 0).toString();
-          ConnectionManager.Cooler_Stop_Temp_Night = (int.tryParse(await cmg.getRequest(56, context)) ?? 0).toString();
-          ConnectionManager.Heater_Start_Temp_Day = (int.tryParse(await cmg.getRequest(51, context)) ?? 0).toString();
-          ConnectionManager.Heater_Start_Temp_Night = (int.tryParse(await cmg.getRequest(57, context)) ?? 0).toString();
-          ConnectionManager.Heater_Stop_Temp_Day = (int.tryParse(await cmg.getRequest(52, context)) ?? 0).toString();
-          ConnectionManager.Heater_Stop_Temp_Night = (int.tryParse(await cmg.getRequest(58, context)) ?? 0).toString();
+          if (is_night) {
+            ConnectionManager.Favourite_Room_Temp_Night = (int.tryParse(await cmg.getRequest(53, context)) ?? 0).toString();
+            ConnectionManager.Room_Temp_Sensitivity_Night = (double.tryParse(await cmg.getRequest(54, context)) ?? 0).toString();
+            ConnectionManager.Cooler_Start_Temp_Night = (int.tryParse(await cmg.getRequest(55, context)) ?? 0).toString();
+            ConnectionManager.Cooler_Stop_Temp_Night = (int.tryParse(await cmg.getRequest(56, context)) ?? 0).toString();
+            ConnectionManager.Heater_Start_Temp_Night = (int.tryParse(await cmg.getRequest(57, context)) ?? 0).toString();
+            ConnectionManager.Heater_Stop_Temp_Night = (int.tryParse(await cmg.getRequest(58, context)) ?? 0).toString();
+            Old_Favourite_Room_Temp_Night = ConnectionManager.Favourite_Room_Temp_Night;
 
-          Old_Favourite_Room_Temp_Day_ = ConnectionManager.Favourite_Room_Temp_Day_;
-          Old_Favourite_Room_Temp_Night = ConnectionManager.Favourite_Room_Temp_Night;
-          Old_Room_Temp_Sensitivity_Day = ConnectionManager.Room_Temp_Sensitivity_Day;
-          Old_Room_Temp_Sensitivity_Night = ConnectionManager.Room_Temp_Sensitivity_Night;
-          Old_Cooler_Start_Temp_Day = ConnectionManager.Cooler_Start_Temp_Day;
-          Old_Cooler_Start_Temp_Night = ConnectionManager.Cooler_Start_Temp_Night;
-          Old_Cooler_Stop_Temp_Day = ConnectionManager.Cooler_Stop_Temp_Day;
-          Old_Cooler_Stop_Temp_Night = ConnectionManager.Cooler_Stop_Temp_Night;
-          Old_Heater_Start_Temp_Day = ConnectionManager.Heater_Start_Temp_Day;
-          Old_Heater_Start_Temp_Night = ConnectionManager.Heater_Start_Temp_Night;
-          Old_Heater_Stop_Temp_Day = ConnectionManager.Heater_Stop_Temp_Day;
-          Old_Heater_Stop_Temp_Night = ConnectionManager.Heater_Stop_Temp_Night;
+            Old_Room_Temp_Sensitivity_Night = ConnectionManager.Room_Temp_Sensitivity_Night;
+            Old_Cooler_Start_Temp_Night = ConnectionManager.Cooler_Start_Temp_Night;
+            Old_Cooler_Stop_Temp_Night = ConnectionManager.Cooler_Stop_Temp_Night;
+            Old_Heater_Start_Temp_Night = ConnectionManager.Heater_Start_Temp_Night;
+            Old_Heater_Stop_Temp_Night = ConnectionManager.Heater_Stop_Temp_Night;
+          } else {
+            ConnectionManager.Favourite_Room_Temp_Day_ = (int.tryParse(await cmg.getRequest(47, context)) ?? 0).toString();
+            ConnectionManager.Room_Temp_Sensitivity_Day = (double.tryParse(await cmg.getRequest(48, context)) ?? 0).toString();
+            ConnectionManager.Cooler_Start_Temp_Day = (int.tryParse(await cmg.getRequest(49, context)) ?? 0).toString();
+            ConnectionManager.Cooler_Stop_Temp_Day = (int.tryParse(await cmg.getRequest(50, context)) ?? 0).toString();
+            ConnectionManager.Heater_Start_Temp_Day = (int.tryParse(await cmg.getRequest(51, context)) ?? 0).toString();
+            ConnectionManager.Heater_Stop_Temp_Day = (int.tryParse(await cmg.getRequest(52, context)) ?? 0).toString();
 
+            Old_Favourite_Room_Temp_Day_ = ConnectionManager.Favourite_Room_Temp_Day_;
+            Old_Room_Temp_Sensitivity_Day = ConnectionManager.Room_Temp_Sensitivity_Day;
+            Old_Cooler_Start_Temp_Day = ConnectionManager.Cooler_Start_Temp_Day;
+            Old_Cooler_Stop_Temp_Day = ConnectionManager.Cooler_Stop_Temp_Day;
+            Old_Heater_Start_Temp_Day = ConnectionManager.Heater_Start_Temp_Day;
+            Old_Heater_Stop_Temp_Day = ConnectionManager.Heater_Stop_Temp_Day;
+          }
           if (mounted)
             setState(() {
               if (is_night) {
@@ -218,58 +221,53 @@ class _TemperaturePageState extends State<TemperaturePage> with SingleTickerProv
         Utils.alert(context, "Error", "Heater stop temperature must be lower than Desired Temperature.");
         return;
       }
-      if (_tabController!.index == 0) {
-        ConnectionManager.Favourite_Room_Temp_Day_ = (int.tryParse(room_temp_controller.text) ?? 0).toString().padLeft(3, '0');
-        double val_f = (double.tryParse(room_temp_sensivity_controller.text) ?? 0.0);
-        ConnectionManager.Room_Temp_Sensitivity_Day = max(0, min((val_f), 2)).toString().padLeft(3, '0');
-        ConnectionManager.Cooler_Start_Temp_Day = (int.tryParse(cooler_start_temp_controller.text) ?? 0).toString().padLeft(3, '0');
-        ConnectionManager.Cooler_Stop_Temp_Day = (int.tryParse(cooler_stop_temp_controller.text) ?? 0).toString().padLeft(3, '0');
-        ConnectionManager.Heater_Start_Temp_Day = (int.tryParse(heater_start_temp_controller.text) ?? 0).toString().padLeft(3, '0');
-        ConnectionManager.Heater_Stop_Temp_Day = (int.tryParse(heater_stop_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+      await Utils.show_loading_timed(
+          context: context,
+          done: () async {
+            if (_tabController!.index == 0) {
+              ConnectionManager.Favourite_Room_Temp_Day_ = (int.tryParse(room_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+              double val_f = (double.tryParse(room_temp_sensivity_controller.text) ?? 0.0);
+              ConnectionManager.Room_Temp_Sensitivity_Day = max(0, min((val_f), 2)).toString().padLeft(3, '0');
+              ConnectionManager.Cooler_Start_Temp_Day = (int.tryParse(cooler_start_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+              ConnectionManager.Cooler_Stop_Temp_Day = (int.tryParse(cooler_stop_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+              ConnectionManager.Heater_Start_Temp_Day = (int.tryParse(heater_start_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+              ConnectionManager.Heater_Stop_Temp_Day = (int.tryParse(heater_stop_temp_controller.text) ?? 0).toString().padLeft(3, '0');
 
-        //Day Time
-        await cmg.setRequest(47, Utils.sign_int_100(ConnectionManager.Favourite_Room_Temp_Day_), context);
-        await cmg.setRequest(48, (ConnectionManager.Room_Temp_Sensitivity_Day), context);
-        await cmg.setRequest(49, Utils.sign_int_100(ConnectionManager.Cooler_Start_Temp_Day), context);
-        await cmg.setRequest(50, Utils.sign_int_100(ConnectionManager.Cooler_Stop_Temp_Day), context);
-        await cmg.setRequest(51, Utils.sign_int_100(ConnectionManager.Heater_Start_Temp_Day), context);
-        await cmg.setRequest(52, Utils.sign_int_100(ConnectionManager.Heater_Stop_Temp_Day), context);
-        // if (!is_night_set) {
-        //night same as day
-        await cmg.setRequest(53, Utils.sign_int_100(ConnectionManager.Favourite_Room_Temp_Day_), context);
-        await cmg.setRequest(54, (ConnectionManager.Room_Temp_Sensitivity_Day), context);
-        await cmg.setRequest(55, Utils.sign_int_100(ConnectionManager.Cooler_Start_Temp_Day), context);
-        await cmg.setRequest(56, Utils.sign_int_100(ConnectionManager.Cooler_Stop_Temp_Day), context);
-        await cmg.setRequest(57, Utils.sign_int_100(ConnectionManager.Heater_Start_Temp_Day), context);
-        await cmg.setRequest(58, Utils.sign_int_100(ConnectionManager.Heater_Stop_Temp_Day), context);
-        // }
-      } else {
-        ConnectionManager.Favourite_Room_Temp_Night = (int.tryParse(room_temp_controller.text) ?? 0).toString().padLeft(3, '0');
-        double val_f = (double.tryParse(room_temp_sensivity_controller.text) ?? 0.0);
-        ConnectionManager.Room_Temp_Sensitivity_Night = max(0, min((val_f), 2)).toString().padLeft(3, '0');
-        ConnectionManager.Cooler_Start_Temp_Night = (int.tryParse(cooler_start_temp_controller.text) ?? 0).toString().padLeft(3, '0');
-        ConnectionManager.Cooler_Stop_Temp_Night = (int.tryParse(cooler_stop_temp_controller.text) ?? 0).toString().padLeft(3, '0');
-        ConnectionManager.Heater_Start_Temp_Night = (int.tryParse(heater_start_temp_controller.text) ?? 0).toString().padLeft(3, '0');
-        ConnectionManager.Heater_Stop_Temp_Night = (int.tryParse(heater_stop_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+              //Day Time
+              await cmg.setRequest(47, Utils.sign_int_100(ConnectionManager.Favourite_Room_Temp_Day_), context);
+              await cmg.setRequest(48, (ConnectionManager.Room_Temp_Sensitivity_Day), context);
+              await cmg.setRequest(49, Utils.sign_int_100(ConnectionManager.Cooler_Start_Temp_Day), context);
+              await cmg.setRequest(50, Utils.sign_int_100(ConnectionManager.Cooler_Stop_Temp_Day), context);
+              await cmg.setRequest(51, Utils.sign_int_100(ConnectionManager.Heater_Start_Temp_Day), context);
+              await cmg.setRequest(52, Utils.sign_int_100(ConnectionManager.Heater_Stop_Temp_Day), context);
+            } else {
+              ConnectionManager.Favourite_Room_Temp_Night = (int.tryParse(room_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+              double val_f = (double.tryParse(room_temp_sensivity_controller.text) ?? 0.0);
+              ConnectionManager.Room_Temp_Sensitivity_Night = max(0, min((val_f), 2)).toString().padLeft(3, '0');
+              ConnectionManager.Cooler_Start_Temp_Night = (int.tryParse(cooler_start_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+              ConnectionManager.Cooler_Stop_Temp_Night = (int.tryParse(cooler_stop_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+              ConnectionManager.Heater_Start_Temp_Night = (int.tryParse(heater_start_temp_controller.text) ?? 0).toString().padLeft(3, '0');
+              ConnectionManager.Heater_Stop_Temp_Night = (int.tryParse(heater_stop_temp_controller.text) ?? 0).toString().padLeft(3, '0');
 
-        //Night Time
-        await cmg.setRequest(53, Utils.sign_int_100(ConnectionManager.Favourite_Room_Temp_Night), context);
-        await cmg.setRequest(54, (ConnectionManager.Room_Temp_Sensitivity_Night), context);
-        await cmg.setRequest(55, Utils.sign_int_100(ConnectionManager.Cooler_Start_Temp_Night), context);
-        await cmg.setRequest(56, Utils.sign_int_100(ConnectionManager.Cooler_Stop_Temp_Night), context);
-        await cmg.setRequest(57, Utils.sign_int_100(ConnectionManager.Heater_Start_Temp_Night), context);
-        await cmg.setRequest(58, Utils.sign_int_100(ConnectionManager.Heater_Stop_Temp_Night), context);
-      }
+              //Night Time
+              await cmg.setRequest(53, Utils.sign_int_100(ConnectionManager.Favourite_Room_Temp_Night), context);
+              await cmg.setRequest(54, (ConnectionManager.Room_Temp_Sensitivity_Night), context);
+              await cmg.setRequest(55, Utils.sign_int_100(ConnectionManager.Cooler_Start_Temp_Night), context);
+              await cmg.setRequest(56, Utils.sign_int_100(ConnectionManager.Cooler_Stop_Temp_Night), context);
+              await cmg.setRequest(57, Utils.sign_int_100(ConnectionManager.Heater_Start_Temp_Night), context);
+              await cmg.setRequest(58, Utils.sign_int_100(ConnectionManager.Heater_Stop_Temp_Night), context);
+            }
 
-      MODIFIED = false;
-      if (_tabController!.index == 0) {
-        Utils.showSnackBar(context, "Done.");
+            MODIFIED = false;
+            if (_tabController!.index == 0) {
+              Utils.showSnackBar(context, "Done.");
 
-        return;
-      } else if (_tabController!.index == 1) {
-        Utils.showSnackBar(context, "Done.");
-        return;
-      }
+              return;
+            } else if (_tabController!.index == 1) {
+              Utils.showSnackBar(context, "Done.");
+              return;
+            }
+          });
     } catch (e) {}
     await refresh();
   }
@@ -298,12 +296,6 @@ class _TemperaturePageState extends State<TemperaturePage> with SingleTickerProv
             await cmg.setRequest(52, Utils.sign_int_100(ConnectionManager.Heater_Stop_Temp_Day), context);
             // if (!is_night_set) {
             //night same as day
-            await cmg.setRequest(53, Utils.sign_int_100(ConnectionManager.Favourite_Room_Temp_Day_), context);
-            await cmg.setRequest(54, (ConnectionManager.Room_Temp_Sensitivity_Day), context);
-            await cmg.setRequest(55, Utils.sign_int_100(ConnectionManager.Cooler_Start_Temp_Day), context);
-            await cmg.setRequest(56, Utils.sign_int_100(ConnectionManager.Cooler_Stop_Temp_Day), context);
-            await cmg.setRequest(57, Utils.sign_int_100(ConnectionManager.Heater_Start_Temp_Day), context);
-            await cmg.setRequest(58, Utils.sign_int_100(ConnectionManager.Heater_Stop_Temp_Day), context);
             // }
           } else {
             ConnectionManager.Favourite_Room_Temp_Night = (int.tryParse(room_temp_controller.text) ?? 0).toString().padLeft(3, '0');
@@ -396,7 +388,7 @@ class _TemperaturePageState extends State<TemperaturePage> with SingleTickerProv
               onSubmitted: (value) {
                 on_keyboard_button();
               },
-              inputFormatters: [WhitelistingTextInputFormatter(RegExp(r"^\d+\.?\d{0,1}"))],
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r"^\d+\.?\d{0,1}"))],
               keyboardType: TextInputType.numberWithOptions(decimal: true, signed: false),
               maxLength: 4,
               style: Theme.of(context).textTheme.bodyText1,
@@ -644,9 +636,6 @@ class _TemperaturePageState extends State<TemperaturePage> with SingleTickerProv
           set_inprogress = false;
         }),
         build_reset_button(),
-        SizedBox(
-          height: 64,
-        )
       ]),
     );
   }

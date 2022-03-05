@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "352517991018",
+    "project_id": "nasim-f5b74",
+    "storage_bucket": "nasim-f5b74.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:352517991018:android:40ffcdd9f6d7579c8f7813",
+        "android_client_info": {
+          "package_name": "com.nasim"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "352517991018-m1if9ikrc7l2a3fg19doethlu8jspitb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDuRuj1oUocyd2pAAqz5chffIaUrPxkwEI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "352517991018-m1if9ikrc7l2a3fg19doethlu8jspitb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

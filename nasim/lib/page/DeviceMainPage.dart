@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:nasim/Model/Device.dart';
 import 'package:nasim/Model/menu_info.dart';
@@ -13,6 +14,7 @@ import 'package:nasim/utils.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../enums.dart';
+import '../provider/SavedevicesChangeNofiter.dart';
 import 'DevicePages/ControllPage.dart';
 import 'DevicePages/LicensesPage.dart';
 import 'DevicePages/OverviewPage.dart';
@@ -40,20 +42,25 @@ class _DeivceMainPageState extends State<DeivceMainPage> {
     });
 
     if (WizardPage.flag_ask_to_config_internet) {
-      AwesomeDialog(
-        context: context,
-        dialogType: DialogType.INFO_REVERSED,
-        animType: AnimType.BOTTOMSLIDE,
-        title: "Note",
-        desc: "Do you want to configure internet connection for this device?",
-        btnOkOnPress: () {
-          var menuInfo = Provider.of<MenuInfo>(context, listen: false);
-          setState(() {
-            menuInfo.updateMenu(MenuInfo(MenuType.Controll, title: AppLocalizations.of(context)!.controll, imageSource: Icons.fact_check));
-          });
-        },
-        btnCancelOnPress: () {},
-      )..show();
+      Utils.setTimeOut(0, () {
+        AwesomeDialog(
+          context: context,
+          dialogType: DialogType.INFO_REVERSED,
+          animType: AnimType.BOTTOMSLIDE,
+          title: "Note",
+          desc: "Do you want to configure internet connection for this device?",
+          btnCancelText: "No",
+          btnOkOnPress: () {
+            var menuInfo = Provider.of<MenuInfo>(context, listen: false);
+            setState(() {
+              menuInfo.updateMenu(MenuInfo(MenuType.Controll, title: AppLocalizations.of(context)!.controll, imageSource: Icons.fact_check));
+            });
+          },
+          btnCancelOnPress: () {
+            WizardPage.flag_ask_to_config_internet = false;
+          },
+        )..show();
+      });
     }
   }
 
@@ -93,10 +100,6 @@ class _DeivceMainPageState extends State<DeivceMainPage> {
                           future: lcn.loading_finished.future, // a Future<String> or null
                           builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
                             switch (snapshot.connectionState) {
-                              case ConnectionState.none:
-                                return Container();
-                              case ConnectionState.waiting:
-                                return Center();
                               default:
                                 if (snapshot.hasError)
                                   return new Text('Error: ${snapshot.error}');
@@ -133,9 +136,10 @@ class _DeivceMainPageState extends State<DeivceMainPage> {
                                         },
                                       ),
                                     );
-                                  } else {
-                                    return Container();
                                   }
+                                  return Center(
+                                    child: CircularProgressIndicator(),
+                                  );
                                 }
                             }
                           });

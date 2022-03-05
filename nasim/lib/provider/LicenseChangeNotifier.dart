@@ -102,11 +102,11 @@ class LicenseChangeNotifier extends ChangeNotifier {
     }
   }
 
-  license_gsm_modem(context) async {
+  license_gsm_modem(context, [bool notify = true]) async {
     if (is_locall_conntection(context)) {
       gsm_modem = true;
 
-      notifyListeners();
+      if (notify) notifyListeners();
     }
   }
 

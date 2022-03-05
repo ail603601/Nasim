@@ -47,13 +47,13 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
   bool expanded_min_day = true;
 
   UniqueKey? key_min_night = new UniqueKey();
-  bool expanded_min_night = false;
+  bool expanded_min_night = true;
 
   UniqueKey? key_max_day = new UniqueKey();
   bool expanded_max_day = true;
 
   UniqueKey? key_max_night = new UniqueKey();
-  bool expanded_max_night = false;
+  bool expanded_max_night = true;
 
   static bool is_inlet_fan_available = false;
 
@@ -143,6 +143,14 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
             });
           }
         });
+  }
+
+  bool is_locall_conntection(context) {
+    if (SavedDevicesChangeNotifier.getSelectedDevice()!.accessibility == DeviceAccessibility.AccessibleInternet) {
+      return false;
+    }
+
+    return true;
   }
 
   Future<void> start() async {
@@ -243,8 +251,6 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
         }
         is_minimum_day_set = true;
 
-        toggle_min_day();
-
         if (expanded_min_night) {
           await cmg.setRequest(42, ConnectionManager.Min_Valid_Input_Fan_Speed_Night, context);
           if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5)) {
@@ -254,20 +260,16 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
           }
           is_minimum_night_set = true;
 
-          Utils.showSnackBar(context, "Done.");
           await refresh();
-
-          _tabController!.animateTo(1);
-        } else {
-          toggle_min_night();
-        }
+        } else {}
 
         if (is_minimum_night_set) {
-          Utils.showSnackBar(context, "Done.");
           await refresh();
-          _tabController!.animateTo(1);
         }
         MODIFIED = false;
+
+        Utils.showSnackBar(context, "Done.");
+
         return;
       }
       if (expanded_min_night) {
@@ -279,16 +281,11 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
         }
         is_minimum_night_set = true;
 
-        toggle_min_night();
-
-        toggle_min_day();
-
         if (is_minimum_day_set) {
-          Utils.showSnackBar(context, "Done.");
           await refresh();
-          _tabController!.animateTo(1);
         }
         MODIFIED = false;
+        Utils.showSnackBar(context, "Done.");
 
         return;
       }
@@ -306,8 +303,6 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
 
         is_maximum_day_set = true;
 
-        toggle_max_day();
-
         if (expanded_max_night) {
           if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Night) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Night) + 5)) {
             await Utils.alert(context, "", "Night time maximum fan speed must at least be 5 more than minimum.");
@@ -316,18 +311,11 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
           await cmg.setRequest(44, ConnectionManager.Max_Valid_Input_Fan_Speed_Night, context);
 
           is_maximum_night_set = true;
-          Utils.showSnackBar(context, "Done.");
           MODIFIED = false;
-          return;
-        } else {
-          toggle_max_night();
-        }
-        MODIFIED = false;
+        } else {}
+        Utils.showSnackBar(context, "Done.");
 
-        if (is_maximum_night_set) {
-          Utils.showSnackBar(context, "Done.");
-          return;
-        }
+        MODIFIED = false;
 
         return;
       }
@@ -339,7 +327,6 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
         await cmg.setRequest(44, ConnectionManager.Max_Valid_Input_Fan_Speed_Night, context);
 
         is_maximum_night_set = true;
-        toggle_max_night();
 
         if (expanded_max_day) {
           if (!(int.parse(ConnectionManager.Max_Valid_Input_Fan_Speed_Day) >= int.parse(ConnectionManager.Min_Valid_Input_Fan_Speed_Day) + 5)) {
@@ -349,18 +336,11 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
           await cmg.setRequest(43, ConnectionManager.Max_Valid_Input_Fan_Speed_Day, context);
 
           is_maximum_day_set = true;
-          Utils.showSnackBar(context, "Done.");
           MODIFIED = false;
-          return;
-        } else {
-          toggle_max_day();
-        }
+        } else {}
         MODIFIED = false;
 
-        if (is_maximum_day_set) {
-          Utils.showSnackBar(context, "Done.");
-          return;
-        }
+        Utils.showSnackBar(context, "Done.");
 
         return;
       }
@@ -525,54 +505,78 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
 
   bool is_night = true;
 
-  build_apply_button(click) => Align(
-        alignment: Alignment.bottomCenter,
-        child: Container(
-          width: double.infinity,
-          margin: EdgeInsets.only(bottom: 15),
-          height: 50,
-          padding: EdgeInsets.symmetric(horizontal: 8),
-          child: OutlinedButton(
-            onPressed: MODIFIED ? click : null,
-            style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.only(top: 16, bottom: 10, left: 28, right: 28),
-                side: BorderSide(width: 2, color: MODIFIED ? Theme.of(context).primaryColor : Colors.grey),
-                shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
-            child: Text("Apply", style: Theme.of(context).textTheme.bodyText1),
-          ),
+  build_apply_button(_click) {
+    var click = MODIFIED ? _click : null;
+    String text = "Apply";
+    var color = MODIFIED ? Theme.of(context).primaryColor : Colors.grey;
+    if (!is_locall_conntection(context)) {
+      click = null;
+      text = "not allowed over internet";
+      color = Colors.red[300]!;
+    }
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        width: double.infinity,
+        margin: EdgeInsets.only(bottom: 15),
+        height: 50,
+        padding: EdgeInsets.symmetric(horizontal: 8),
+        child: OutlinedButton(
+          onPressed: click,
+          style: OutlinedButton.styleFrom(
+              padding: EdgeInsets.only(top: 16, bottom: 10, left: 28, right: 28),
+              side: BorderSide(width: 2, color: color),
+              shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
+          child: Text(text, style: Theme.of(context).textTheme.bodyText1),
         ),
-      );
-  build_reset_button() => Align(
-        alignment: Alignment.bottomCenter,
-        child: Container(
-          width: double.infinity,
-          margin: EdgeInsets.only(bottom: 15),
-          height: 50,
-          padding: EdgeInsets.symmetric(horizontal: 8),
-          child: OutlinedButton(
-            onPressed: () async {
-              AwesomeDialog(
-                context: context,
-                useRootNavigator: true,
-                dialogType: DialogType.WARNING,
-                animType: AnimType.BOTTOMSLIDE,
-                title: "Confirm",
-                desc: "Current Page Settings will be restored to factory defaults",
-                btnOkOnPress: () async {
-                  await cmg.setRequest(128, '2');
-                  refresh();
-                },
-                btnCancelOnPress: () {},
-              )..show();
-            },
-            style: OutlinedButton.styleFrom(
-                padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
-                side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
-                shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
-            child: Text("Restore To Factory Defaults", style: Theme.of(context).textTheme.bodyText1),
-          ),
+      ),
+    );
+  }
+
+  build_reset_button() {
+    var click;
+
+    click = () async {
+      AwesomeDialog(
+        context: context,
+        useRootNavigator: true,
+        dialogType: DialogType.WARNING,
+        animType: AnimType.BOTTOMSLIDE,
+        title: "Confirm",
+        desc: "Current Page Settings will be restored to factory defaults",
+        btnOkOnPress: () async {
+          await cmg.setRequest(128, '2');
+          refresh();
+        },
+        btnCancelOnPress: () {},
+      )..show();
+    };
+    String text = "Restore To Factory Defaults";
+    var color = MODIFIED ? Theme.of(context).primaryColor : Colors.grey;
+    if (!is_locall_conntection(context)) {
+      click = null;
+      text = "not allowed over internet";
+      color = Colors.red[300]!;
+    }
+
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        width: double.infinity,
+        margin: EdgeInsets.only(bottom: 15),
+        height: 50,
+        padding: EdgeInsets.symmetric(horizontal: 8),
+        child: OutlinedButton(
+          onPressed: click,
+          style: OutlinedButton.styleFrom(
+              padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
+              side: BorderSide(width: 2, color: color),
+              shape: new RoundedRectangleBorder(borderRadius: new BorderRadius.circular(8.0))),
+          child: Text(text, style: Theme.of(context).textTheme.bodyText1),
         ),
-      );
+      ),
+    );
+  }
 
   Widget build_elevation_presure() => Padding(
         padding: const EdgeInsets.all(8.0),
@@ -766,9 +770,6 @@ class _InletFanSpeedPageState extends State<InletFanSpeedPage> with SingleTicker
                 // IntroductionScreenState.force_next();
               }),
               build_reset_button(),
-              SizedBox(
-                height: 64,
-              )
             ],
           ))
         : Container(

@@ -76,7 +76,7 @@ class _wpage_lightState extends State<wpage_light> {
         Utils.alert(context, "", "Please apply.");
         return false;
       }
-      WizardPageState.wizardEnded(context);
+      // WizardPageState.wizardEnded(context);
 
       return true;
     };
@@ -203,7 +203,7 @@ class _wpage_lightState extends State<wpage_light> {
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
-            Expanded(child: MyTooltip(message: "example tooltip", child: Text("Max Light"))),
+            Expanded(child: MyTooltip(message: "example tooltip 13", child: Text("Max Light"))),
             Expanded(
               child: TextField(
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -223,7 +223,7 @@ class _wpage_lightState extends State<wpage_light> {
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
-            Expanded(child: MyTooltip(message: "example tooltip", child: Text("Min Light"))),
+            Expanded(child: MyTooltip(message: "example tooltip 14", child: Text("Min Light"))),
             Expanded(
               child: TextField(
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],

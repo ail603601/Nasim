@@ -201,7 +201,7 @@ class wpage_humidityState extends State<wpage_humidity> with SingleTickerProvide
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
-            Expanded(child: MyTooltip(message: "example tooltip", child: Text("Min: "))),
+            Expanded(child: MyTooltip(message: "example tooltip 9", child: Text("Min: "))),
             Expanded(
               child: TextField(
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -219,7 +219,7 @@ class wpage_humidityState extends State<wpage_humidity> with SingleTickerProvide
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
-            Expanded(child: MyTooltip(message: "example tooltip", child: Text("Max: "))),
+            Expanded(child: MyTooltip(message: "example tooltip 10", child: Text("Max: "))),
             Expanded(
               child: TextField(
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],

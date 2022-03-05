@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:ui';
 
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:nasim/Model/Device.dart';
@@ -10,10 +11,12 @@ import 'package:nasim/page/DevicePages/ControllPages/HumidityPage.dart';
 import 'package:nasim/page/DevicePages/ControllPages/InletFanSpeedPage.dart';
 import 'package:nasim/page/DevicePages/ControllPages/LightPage.dart';
 import 'package:nasim/page/DevicePages/ControllPages/TemperaturePage.dart';
+import 'package:nasim/utils.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'dart:math';
 
+import '../../provider/ConnectionManager.dart';
 import '../BarCodeScanPage.dart';
 import 'ControllPages/AirQualityPage.dart';
 import 'ControllPages/ControllersStatusPage.dart';
@@ -30,18 +33,17 @@ class ControllPage extends StatefulWidget {
 }
 
 class _ControllPageState extends State<ControllPage> with SingleTickerProviderStateMixin {
-  AnimationController? _controller;
   String initialroute = "";
   @override
   void initState() {
     super.initState();
 
-    _controller = AnimationController(vsync: this, duration: Duration(seconds: 2))..repeat();
+    initialroute = WizardPage.flag_ask_to_config_internet ? '/internet' : "/";
+    WizardPage.flag_ask_to_config_internet = false;
   }
 
   @override
   void dispose() {
-    _controller!.dispose();
     super.dispose();
   }
 
@@ -50,22 +52,6 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
     assert(navigator != null);
     return await navigator.maybePop();
   }
-
-  Widget make_animated_icon(tag, path, Color? color) => Hero(
-      tag: tag,
-      child: AnimatedBuilder(
-        animation: _controller!,
-        builder: (_, child) {
-          return Transform.rotate(
-            angle: _controller!.value * 2 * pi,
-            child: child,
-          );
-        },
-        child: Image.asset(
-          path,
-          color: color,
-        ),
-      ));
 
   List<Widget> row_detail(x, y, z) => [
         Padding(
@@ -104,7 +90,7 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15.0),
         ),
-        color: Colors.blue[200],
+        color: Color.fromARGB(255, 56, 165, 255),
         elevation: 10,
         child: InkWell(
           borderRadius: BorderRadius.circular(15.0),
@@ -135,7 +121,7 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15.0),
         ),
-        color: Colors.blueGrey[100],
+        color: Color.fromARGB(255, 96, 205, 255),
         elevation: 10,
         child: InkWell(
           borderRadius: BorderRadius.circular(15.0),
@@ -166,7 +152,7 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15.0),
         ),
-        color: Colors.orange[200],
+        color: Color.fromARGB(255, 255, 191, 95),
         elevation: 10,
         child: InkWell(
           borderRadius: BorderRadius.circular(15.0),
@@ -193,7 +179,7 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15.0),
         ),
-        color: Colors.purple[200],
+        color: Color.fromARGB(255, 213, 92, 235),
         elevation: 10,
         child: InkWell(
           borderRadius: BorderRadius.circular(15.0),
@@ -219,7 +205,7 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15.0),
         ),
-        color: Colors.green[400],
+        color: Color.fromARGB(255, 25, 224, 32),
         elevation: 10,
         child: InkWell(
           borderRadius: BorderRadius.circular(15.0),
@@ -246,7 +232,7 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15.0),
         ),
-        color: Colors.grey[800],
+        color: Colors.grey[50],
         elevation: 10,
         child: InkWell(
           borderRadius: BorderRadius.circular(15.0),
@@ -273,7 +259,7 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15.0),
         ),
-        color: Colors.pinkAccent[200],
+        color: Color.fromARGB(255, 255, 31, 106),
         elevation: 10,
         child: InkWell(
           borderRadius: BorderRadius.circular(15.0),
@@ -299,7 +285,7 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15.0),
         ),
-        color: Colors.brown[500],
+        color: Color.fromARGB(255, 228, 231, 33),
         elevation: 10,
         child: InkWell(
           borderRadius: BorderRadius.circular(15.0),
@@ -313,6 +299,46 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
               children: <Widget>[
                 ListTile(
                   title: Text('Internet', style: Theme.of(context).textTheme.bodyText1),
+                  trailing: Icon(Icons.arrow_forward_ios),
+                  // subtitle: Text('TWICE', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+  Widget build_Reset_card(context) => Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15.0),
+        ),
+        color: Color.fromARGB(255, 212, 49, 82),
+        elevation: 10,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(15.0),
+          onTap: () {
+            AwesomeDialog(
+              context: context,
+              useRootNavigator: true,
+              dialogType: DialogType.WARNING,
+              animType: AnimType.BOTTOMSLIDE,
+              title: "Confirm",
+              desc: "Current Page Settings will be restored to factory defaults",
+              btnOkOnPress: () async {
+                await Provider.of<ConnectionManager>(context, listen: false).setRequest(128, '8');
+                Utils.showSnackBar(context, "Your device will restart.");
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              },
+              btnCancelOnPress: () {},
+            )..show();
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                ListTile(
+                  title: Text('Reset All Settings To Factory Defaults', style: Theme.of(context).textTheme.bodyText1),
                   trailing: Icon(Icons.arrow_forward_ios),
                   // subtitle: Text('TWICE', style: TextStyle(color: Colors.white)),
                 ),
@@ -378,18 +404,12 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    initialroute = WizardPage.flag_ask_to_config_internet ? '/internet' : "/";
-    WizardPage.flag_ask_to_config_internet = false;
-
     return WillPopScope(
       onWillPop: () async {
         return !await didPopRoute();
       },
       child: SafeArea(
           child: Navigator(
-        observers: [
-          HeroController(),
-        ],
         key: widget.navigatorKey,
         initialRoute: initialroute,
         onGenerateRoute: (settings) {
@@ -407,6 +427,7 @@ class _ControllPageState extends State<ControllPage> with SingleTickerProviderSt
                         build_internet_card(context),
                         build_conterollers_status_card(context),
                         build_users_status_card(context),
+                        build_Reset_card(context)
                       ],
                     ));
           }

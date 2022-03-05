@@ -84,6 +84,7 @@ class _DeviceInfoPageState extends State<DeviceInfoPage> {
 
   @override
   Widget build(BuildContext context) {
+    bg_dark = true;
     return Container(
         color: Colors.transparent,
         child: SafeArea(
@@ -94,12 +95,15 @@ class _DeviceInfoPageState extends State<DeviceInfoPage> {
             build_text_row(title: "Model", value: ConnectionManager.Device_Model),
             build_text_row(title: "Device Fan Power", value: device_fan_power.toString() + " W"),
             build_text_row(title: "Application Version", value: "0.16"),
+            SizedBox(height: 50),
             Center(
               child: Text("more information at:", style: Theme.of(context).textTheme.bodyText1),
             ),
-            Center(
+            SizedBox(height: 10),
+            Container(
+              width: double.infinity,
               child: Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
                 child: OutlinedButton(
                   onPressed: () async {
                     // const url = "https://Fotrousi.com";
@@ -107,8 +111,8 @@ class _DeviceInfoPageState extends State<DeviceInfoPage> {
                   },
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.only(top: 16, bottom: 16, left: 28, right: 28),
-                    side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
-                    shape: BeveledRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    // side: BorderSide(width: 2, color: Theme.of(context).primaryColor),
+                    // shape: BeveledRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     primary: Theme.of(context).primaryColor,
                   ),
                   child: Text("Fotrousi.com", style: Theme.of(context).textTheme.headline4!.copyWith(color: Colors.white)),

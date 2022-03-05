@@ -33,6 +33,18 @@ class _LicensesPageState extends State<LicensesPage> {
 
   late ConnectionManager cmg;
   String parsed_fan_power = "loading...";
+  bool is_locall_conntection(context) {
+    if (SavedDevicesChangeNotifier.getSelectedDevice()!.accessibility == DeviceAccessibility.AccessibleInternet) {
+      Utils.setTimeOut(
+          0,
+          () => Utils.show_error_dialog(context, "Not Available", "users can't set licenses via internt.", () {}).then((value) {
+                // Navigator.pop(context);
+              }));
+      return false;
+    }
+
+    return true;
+  }
 
   @override
   void initState() {
@@ -99,6 +111,7 @@ class _LicensesPageState extends State<LicensesPage> {
           color: Theme.of(context).accentColor,
         ),
         onTap: () async {
+          if (!is_locall_conntection(context)) return;
           if (lcn.six_mobiles && !await ask_re_enter_serial()) {
             return;
           }
@@ -140,6 +153,8 @@ class _LicensesPageState extends State<LicensesPage> {
           color: Theme.of(context).accentColor,
         ),
         onTap: () async {
+          if (!is_locall_conntection(context)) return;
+
           if (lcn.gsm_modem && !await ask_re_enter_serial()) {
             return;
           }
@@ -179,6 +194,8 @@ class _LicensesPageState extends State<LicensesPage> {
           color: Theme.of(context).accentColor,
         ),
         onTap: () async {
+          if (!is_locall_conntection(context)) return;
+
           if (lcn.outdoor_temp && !await ask_re_enter_serial()) {
             return;
           }
@@ -220,6 +237,8 @@ class _LicensesPageState extends State<LicensesPage> {
           color: Theme.of(context).accentColor,
         ),
         onTap: () async {
+          if (!is_locall_conntection(context)) return;
+
           if (lcn.power_box && !await ask_re_enter_serial(is_for_powerbox: true)) {
             return;
           }
@@ -310,6 +329,8 @@ class _LicensesPageState extends State<LicensesPage> {
           color: Theme.of(context).accentColor,
         ),
         onTap: () async {
+          if (!is_locall_conntection(context)) return;
+
           if (lcn.room_temp_0 && !await ask_re_enter_serial()) {
             return;
           }
@@ -352,6 +373,8 @@ class _LicensesPageState extends State<LicensesPage> {
           color: Theme.of(context).accentColor,
         ),
         onTap: () async {
+          if (!is_locall_conntection(context)) return;
+
           if (checked && !await ask_re_enter_serial()) {
             return;
           }

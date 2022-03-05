@@ -14,6 +14,7 @@ import 'package:nasim/utils.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
+import '../../../Widgets/MyTooltip.dart';
 import '../Wizardpage.dart';
 
 class wpage_outlet_fan extends StatefulWidget {
@@ -278,7 +279,7 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Row(
           children: [
-            Text("Outlet Fan Speed: ", style: Theme.of(context).textTheme.bodyText1),
+            MyTooltip(message: "example tooltip 2", child: Text("Outlet Fan Speed: ", style: Theme.of(context).textTheme.bodyText1)),
             Text(minimum_negative_presure_fan_speed.toString() + " %", style: Theme.of(context).textTheme.bodyText1),
           ],
         ),
@@ -389,7 +390,7 @@ class wpage_outlet_fanState extends State<wpage_outlet_fan> with SingleTickerPro
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Row(
           children: [
-            Text("Outlet Fan Speed: ", style: Theme.of(context).textTheme.bodyText1),
+            MyTooltip(message: "example tooltip 1", child: Text("Outlet Fan Speed: ", style: Theme.of(context).textTheme.bodyText1)),
             Text(maximum_negative_presure_fan_speed.toString() + " %", style: Theme.of(context).textTheme.bodyText1),
           ],
         ),

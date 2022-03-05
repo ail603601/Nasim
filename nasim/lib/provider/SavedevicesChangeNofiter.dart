@@ -5,6 +5,7 @@ import 'package:nasim/enums.dart';
 import 'package:nasim/provider/ConnectionManager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:nasim/utils.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class SavedDevicesChangeNotifier extends ChangeNotifier {
   // List<Device> saved_devices = [Device(name: "Nasim N4", ip: "192.168.1.110")];
@@ -47,6 +48,8 @@ class SavedDevicesChangeNotifier extends ChangeNotifier {
     prefs.commit();
 
     notifyListeners();
+    // subscribe to  device serian nubmer topic
+    FirebaseMessaging.instance.subscribeToTopic(d.serial);
   }
 
   removeDevice(Device d) async {
@@ -64,6 +67,7 @@ class SavedDevicesChangeNotifier extends ChangeNotifier {
     prefs.commit();
 
     notifyListeners();
+    FirebaseMessaging.instance.unsubscribeFromTopic(d.serial);
   }
 
   static Device? _selected_device;
@@ -83,6 +87,8 @@ class SavedDevicesChangeNotifier extends ChangeNotifier {
     } else {
       _selected_device = d;
     }
+    // subscribe to  device serian nubmer topic
+    FirebaseMessaging.instance.subscribeToTopic(d.serial);
   }
 
   static Device? getSelectedDevice() {

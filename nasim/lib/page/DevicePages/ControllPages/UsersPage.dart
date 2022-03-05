@@ -137,7 +137,7 @@ class _UsersPageState extends State<UsersPage> {
           return AlertDialog(
             title: Text('Choose a name ', style: Theme.of(context).textTheme.bodyText1),
             content: TextField(
-              inputFormatters: [WhitelistingTextInputFormatter(RegExp(r"[a-zA-Z0-9]+|\s"))],
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z0-9]+|\s"))],
               maxLength: 9,
               style: Theme.of(context).textTheme.bodyText1,
               onChanged: (value) {

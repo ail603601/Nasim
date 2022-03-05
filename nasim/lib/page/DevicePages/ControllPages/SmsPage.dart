@@ -11,6 +11,9 @@ import 'package:nasim/provider/LicenseChangeNotifier.dart';
 import 'package:nasim/utils.dart';
 import 'package:provider/provider.dart';
 
+import '../../../enums.dart';
+import '../../../provider/SavedevicesChangeNofiter.dart';
+
 class SmsPage extends StatefulWidget {
   @override
   _SmsPageState createState() => _SmsPageState();
@@ -30,6 +33,18 @@ class _SmsPageState extends State<SmsPage> {
     PhoneNumber(isoCode: 'IR'),
     PhoneNumber(isoCode: 'IR')
   ];
+  bool is_locall_conntection(context) {
+    if (SavedDevicesChangeNotifier.getSelectedDevice()!.accessibility == DeviceAccessibility.AccessibleInternet) {
+      Utils.setTimeOut(
+          0,
+          () => Utils.show_error_dialog(context, "Not Available", "This action is not allowed over internt.", () {}).then((value) {
+                // Navigator.pop(context);
+              }));
+      return false;
+    }
+
+    return true;
+  }
 
   bool is_allowed = true;
 
@@ -824,14 +839,15 @@ class _SmsPageState extends State<SmsPage> {
                 ))
           ]);
 
-  Widget not_allowed_box() {
+  Widget not_allowed_box(context) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text("Gsm licence not provided, you can safely skip this page."),
+          Text("Gsm licence not provided"),
           TextButton(
             onPressed: () async {
+              if (!is_locall_conntection(context)) return;
               var lcn = Provider.of<LicenseChangeNotifier>(context, listen: false);
               if (lcn.gsm_modem) {
                 return;
@@ -842,9 +858,11 @@ class _SmsPageState extends State<SmsPage> {
               }
               bool is_valid = await Provider.of<ConnectionManager>(context, listen: false).setRequest(5, data, context);
               if (is_valid) {
-                lcn.license_gsm_modem(context);
+                lcn.license_gsm_modem(context, false);
                 is_allowed = true;
+                // Utils.setTimeOut(100, () {
                 refresh();
+                // });
               } else {
                 Utils.showSnackBar(
                   context,
@@ -890,11 +908,8 @@ class _SmsPageState extends State<SmsPage> {
               ))),
               build_apply_button(),
               build_reset_button(),
-              SizedBox(
-                height: 56,
-              )
             ],
           ))
-        : not_allowed_box();
+        : not_allowed_box(context);
   }
 }

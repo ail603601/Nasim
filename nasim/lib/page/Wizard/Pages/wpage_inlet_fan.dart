@@ -12,6 +12,7 @@ import 'package:nasim/provider/ConnectionManager.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../Widgets/MyTooltip.dart';
 import '../../../utils.dart';
 
 class wpage_inlet_fan extends StatefulWidget {
@@ -509,12 +510,13 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
     return true;
   }
 
-  Widget build_fan_speed_row(String title, double value, Function() up_fun, Function() down_fun, {bool is_max95 = false}) => build_boxed_titlebox(
+  Widget build_fan_speed_row(String title, String tooltip, double value, Function() up_fun, Function() down_fun, {bool is_max95 = false}) =>
+      build_boxed_titlebox(
         title: title,
         child: Column(children: [
           Row(
             children: [
-              Text("Inlet Fan Speed: ", style: Theme.of(context).textTheme.bodyText1),
+              MyTooltip(message: tooltip, child: Text("Inlet Fan Speed: ", style: Theme.of(context).textTheme.bodyText1)),
               Text(value.toString() + " %", style: Theme.of(context).textTheme.bodyText1),
               Expanded(
                 child: CupertinoSlider(
@@ -714,7 +716,7 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
                             children: [
                               Padding(
                                 padding: const EdgeInsets.all(16.0),
-                                child: build_fan_speed_row("Minimum", minimum_inlet_fan_speed_day, () {
+                                child: build_fan_speed_row("Minimum", "example tooltip 15", minimum_inlet_fan_speed_day, () {
                                   inc_min_inlet_fan(false);
                                 }, () {
                                   dec_min_inlet_fan(false);
@@ -741,7 +743,7 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
                             children: [
                               Padding(
                                 padding: const EdgeInsets.all(16.0),
-                                child: build_fan_speed_row("Minimum", minimum_inlet_fan_speed_night, () {
+                                child: build_fan_speed_row("Minimum", "example tooltip 16", minimum_inlet_fan_speed_night, () {
                                   inc_min_inlet_fan(true);
                                 }, () {
                                   dec_min_inlet_fan(true);
@@ -771,7 +773,7 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
                             children: [
                               Padding(
                                 padding: const EdgeInsets.all(16.0),
-                                child: build_fan_speed_row("Maximum", maximum_inlet_fan_speed_day, () {
+                                child: build_fan_speed_row("Maximum", "example tooltip 18", maximum_inlet_fan_speed_day, () {
                                   inc_max_inlet_fan(false);
                                 }, () {
                                   dec_max_inlet_fan(false);
@@ -798,7 +800,7 @@ class wpage_inlet_fanState extends State<wpage_inlet_fan> with SingleTickerProvi
                             children: [
                               Padding(
                                 padding: const EdgeInsets.all(16.0),
-                                child: build_fan_speed_row("Maximum", maximum_inlet_fan_speed_night, () {
+                                child: build_fan_speed_row("Maximum", "example tooltip 18", maximum_inlet_fan_speed_night, () {
                                   inc_max_inlet_fan(true);
                                 }, () {
                                   dec_max_inlet_fan(true);

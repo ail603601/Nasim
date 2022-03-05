@@ -33,7 +33,7 @@ class _OverviePageState extends State<OverviePage> with SingleTickerProviderStat
     super.initState();
     last_updated_time = "loading...";
     _controller = AnimationController(vsync: this, duration: Duration(seconds: 2))..repeat();
-
+    int refresh_rate = is_locall_conntection(context) ? 2000 : 5000;
     // runs every 1 second
     refresher = Timer.periodic(new Duration(milliseconds: 2000), (timer) {
       refresh();
@@ -416,6 +416,14 @@ class _OverviePageState extends State<OverviePage> with SingleTickerProviderStat
     );
   }
 
+  bool is_locall_conntection(context) {
+    if (SavedDevicesChangeNotifier.getSelectedDevice()!.accessibility == DeviceAccessibility.AccessibleInternet) {
+      return false;
+    }
+
+    return true;
+  }
+
   Widget build_time_card(context) => Theme(
         data: ThemeData().copyWith(dividerColor: Colors.transparent),
         child: Card(
@@ -538,6 +546,9 @@ class _OverviePageState extends State<OverviePage> with SingleTickerProviderStat
           // ...build_text_row(title: "Inlet Fan Power", value: ConnectionManager.Input_Fan_Power, suffix: 'W'),
 
           build_time_card(context),
+          SizedBox(
+            height: 20,
+          )
         ]),
       ),
     ));

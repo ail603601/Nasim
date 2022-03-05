@@ -1,0 +1,9 @@
+restore all to default DONE
+inlet fan tooltip 10min DONE
+2 box search page 20min DONE
+apply contreller button off after set 15min MAYBE
+server ask everything MAYBE
+account WAITING
+notification topic MAYBE
+BCK
+                                                                                                

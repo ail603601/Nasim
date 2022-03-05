@@ -263,43 +263,43 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
   bool is_night = false;
 
   apply_humidity() async {
-    try {
-      int humidity_min = (int.tryParse(humidity_min_controller.text) ?? 0);
-      int humidity_max = (int.tryParse(humidity_max_controller.text) ?? 0);
+    int humidity_min = (int.tryParse(humidity_min_controller.text) ?? 0);
+    int humidity_max = (int.tryParse(humidity_max_controller.text) ?? 0);
 
-      if ((humidity_min) + 5 > (humidity_max)) {
-        Utils.alert(context, "Error", "Humidity max must be 5 percent more than min.");
-        return;
-      }
+    if ((humidity_min) + 5 > (humidity_max)) {
+      Utils.alert(context, "Error", "Humidity max must be 5 percent more than min.");
+      return;
+    }
 
-      await cmg.setRequest(59, (ConnectionManager.Humidity_Controller).padLeft(1), context);
+    await Utils.show_loading_timed(
+        context: context,
+        done: () async {
+          try {
+            await cmg.setRequest(59, (ConnectionManager.Humidity_Controller).padLeft(1), context);
 
-      if (_tabController!.index == 0) {
-        ConnectionManager.Min_Day_Humidity = (int.tryParse(humidity_min_controller.text) ?? 0).toString();
-        ConnectionManager.Max_Day_Humidity = (int.tryParse(humidity_max_controller.text) ?? 0).toString();
+            if (_tabController!.index == 0) {
+              ConnectionManager.Min_Day_Humidity = (int.tryParse(humidity_min_controller.text) ?? 0).toString();
+              ConnectionManager.Max_Day_Humidity = (int.tryParse(humidity_max_controller.text) ?? 0).toString();
 
-        await cmg.setRequest(61, Utils.lim_0_100(ConnectionManager.Min_Day_Humidity), context);
-        await cmg.setRequest(60, Utils.lim_0_100(ConnectionManager.Max_Day_Humidity), context);
+              await cmg.setRequest(61, Utils.lim_0_100(ConnectionManager.Min_Day_Humidity), context);
+              await cmg.setRequest(60, Utils.lim_0_100(ConnectionManager.Max_Day_Humidity), context);
+            } else {
+              ConnectionManager.Min_Night_Humidity = (int.tryParse(humidity_min_controller.text) ?? 0).toString();
+              ConnectionManager.Max_Night_Humidity = (int.tryParse(humidity_max_controller.text) ?? 0).toString();
+              await cmg.setRequest(63, Utils.lim_0_100(ConnectionManager.Min_Night_Humidity), context);
+              await cmg.setRequest(62, Utils.lim_0_100(ConnectionManager.Max_Night_Humidity), context);
+            }
 
-        //night same as day
-        await cmg.setRequest(63, Utils.lim_0_100(ConnectionManager.Min_Day_Humidity), context);
-        await cmg.setRequest(62, Utils.lim_0_100(ConnectionManager.Max_Day_Humidity), context);
-      } else {
-        ConnectionManager.Min_Night_Humidity = (int.tryParse(humidity_min_controller.text) ?? 0).toString();
-        ConnectionManager.Max_Night_Humidity = (int.tryParse(humidity_max_controller.text) ?? 0).toString();
-        await cmg.setRequest(63, Utils.lim_0_100(ConnectionManager.Min_Night_Humidity), context);
-        await cmg.setRequest(62, Utils.lim_0_100(ConnectionManager.Max_Night_Humidity), context);
-      }
+            MODIFIED = false;
+            if (_tabController!.index == 0) {
+              Utils.showSnackBar(context, "Done.");
 
-      MODIFIED = false;
-      if (_tabController!.index == 0) {
-        Utils.showSnackBar(context, "Done.");
-
-        return;
-      } else if (_tabController!.index == 1) {
-        Utils.showSnackBar(context, "Done.");
-      }
-    } catch (e) {}
+              return;
+            } else if (_tabController!.index == 1) {
+              Utils.showSnackBar(context, "Done.");
+            }
+          } catch (e) {}
+        });
   }
 
   Widget controller_selector() {
@@ -424,9 +424,6 @@ class _HumidityPageState extends State<HumidityPage> with SingleTickerProviderSt
             apply_humidity();
           }),
           build_reset_button(),
-          SizedBox(
-            height: 64,
-          )
         ]));
   }
 }

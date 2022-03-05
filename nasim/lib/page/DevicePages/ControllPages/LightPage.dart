@@ -93,14 +93,17 @@ class _LightPageState extends State<LightPage> {
         Utils.alert(context, "", "Maximum must be 50Lux higher than maximum.");
         return false;
       }
+      await Utils.show_loading_timed(
+          context: context,
+          done: () async {
+            await cmg.setRequest(74, Utils.lim_0_9999(ConnectionManager.Min_Day_Lux), context);
 
-      await cmg.setRequest(74, Utils.lim_0_9999(ConnectionManager.Min_Day_Lux), context);
+            await cmg.setRequest(75, Utils.lim_0_9999(ConnectionManager.Max_Night_Lux), context);
+            is_applied = true;
+            Utils.showSnackBar(context, "Done.");
 
-      await cmg.setRequest(75, Utils.lim_0_9999(ConnectionManager.Max_Night_Lux), context);
-      is_applied = true;
-      Utils.showSnackBar(context, "Done.");
-
-      await refresh();
+            await refresh();
+          });
     } catch (e) {
       // if (!(e is FormatException)) Utils.alert(context, "Error", "please check your input and try again.");
     }
@@ -239,7 +242,7 @@ class _LightPageState extends State<LightPage> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 64),
+      padding: const EdgeInsets.only(bottom: 0),
       child: Container(
           padding: EdgeInsets.only(top: 0),
           color: Theme.of(context).canvasColor,

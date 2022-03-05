@@ -408,7 +408,7 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Row(
         children: [
-          Expanded(child: MyTooltip(message: "example tooltip", child: Text("Desired Temperature:"))),
+          Expanded(child: MyTooltip(message: "example tooltip 4", child: Text("Desired Temperature:"))),
           Expanded(
             child: TextField(
               textInputAction: TextInputAction.done,
@@ -434,14 +434,14 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Row(
         children: [
-          Expanded(child: MyTooltip(message: "example tooltip", child: Text("Desired Temp Sensitivity:"))),
+          Expanded(child: MyTooltip(message: "example tooltip 5", child: Text("Desired Temp Sensitivity:"))),
           Expanded(
             child: TextField(
               textInputAction: TextInputAction.done,
               onSubmitted: (value) {
                 on_keyboard_button();
               },
-              inputFormatters: [WhitelistingTextInputFormatter(RegExp(r"^\d+\.?\d{0,1}"))],
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r"^\d+\.?\d{0,1}"))],
               keyboardType: TextInputType.numberWithOptions(decimal: true, signed: false),
               maxLength: 4,
               style: Theme.of(context).textTheme.bodyText1,
@@ -460,7 +460,7 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
-            Expanded(child: MyTooltip(message: "example tooltip", child: Text("Cooler Start Temp: "))),
+            Expanded(child: MyTooltip(message: "example tooltip 6", child: Text("Cooler Start Temp: "))),
             Expanded(
               child: TextField(
                 textInputAction: TextInputAction.done,
@@ -484,7 +484,7 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
-            Expanded(child: MyTooltip(message: "example tooltip", child: Text("Cooler Stop Temp: "))),
+            Expanded(child: MyTooltip(message: "example tooltip 7", child: Text("Cooler Stop Temp: "))),
             Expanded(
               child: TextField(
                 textInputAction: TextInputAction.done,
@@ -507,7 +507,7 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
-            Expanded(child: MyTooltip(message: "example tooltip", child: Text("Heater Start Temp: "))),
+            Expanded(child: MyTooltip(message: "example tooltip 8", child: Text("Heater Start Temp: "))),
             Expanded(
               child: TextField(
                 textInputAction: TextInputAction.done,
@@ -531,7 +531,7 @@ class wpage_temperatureState extends State<wpage_temperature> with SingleTickerP
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           children: [
-            Expanded(child: MyTooltip(message: "example tooltip", child: Text("Heater Stop Temp: "))),
+            Expanded(child: MyTooltip(message: "example tooltip 3", child: Text("Heater Stop Temp: "))),
             Expanded(
               child: TextField(
                 textInputAction: TextInputAction.done,

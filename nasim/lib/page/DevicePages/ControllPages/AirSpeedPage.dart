@@ -15,6 +15,8 @@ import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'dart:math';
 
+import '../../../Widgets/MyTooltip.dart';
+
 class AirSpeedPage extends StatefulWidget {
   @override
   _AirSpeedPageState createState() => _AirSpeedPageState();
@@ -104,6 +106,21 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
         });
   }
 
+  bool is_locall_conntection(context) {
+    if (SavedDevicesChangeNotifier.getSelectedDevice()!.accessibility == DeviceAccessibility.AccessibleInternet) {
+      Utils.setTimeOut(
+          0,
+          () => Utils.show_error_dialog(context, "Not Available",
+                      "You must provide license in order to increase your fan power, but users can't set licenses via internt.", () {})
+                  .then((value) {
+                // Navigator.pop(context);
+              }));
+      return false;
+    }
+
+    return true;
+  }
+
   int parse_device_fan(int i) {
     if (i == 0) return 300;
     if (i == 1) return 600;
@@ -116,7 +133,7 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
     return 0;
   }
 
-  Future<bool> wait_for_fan_power() async {
+  Future<void> wait_for_fan_power() async {
     await Utils.show_loading(context, () async {
       await Utils.waitMsec(10 * 1000);
     }, title: "Intializing Fan Speed...");
@@ -128,6 +145,7 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
     device_fan_power = parse_device_fan(device_fan_power);
 
     if (device_fan_power < output_fan_power) {
+      if (!is_locall_conntection(context)) return;
       await Utils.ask_license_type_serial(
           context,
           "You must provide license in order to increase your fan power,\nPower limit: ${device_fan_power}W\nOutlet fan power: ${output_fan_power}W for Outlet fan speed: ${fan_speed}%",
@@ -153,7 +171,7 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
     } else
       Utils.showSnackBar(context, "Done.");
 
-    return false;
+    return;
   }
 
   List<Widget> make_title(titile) {
@@ -232,7 +250,7 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Row(
           children: [
-            Text("Outlet Fan Speed: ", style: Theme.of(context).textTheme.bodyText1),
+            MyTooltip(message: "example tooltip", child: Text("Outlet Fan Speed: ", style: Theme.of(context).textTheme.bodyText1)),
             Text(minimum_negative_presure_fan_speed.toString() + " %", style: Theme.of(context).textTheme.bodyText1),
           ],
         ),
@@ -343,7 +361,7 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         Row(
           children: [
-            Text("Outlet Fan Speed: ", style: Theme.of(context).textTheme.bodyText1),
+            MyTooltip(message: "example tooltip", child: Text("Outlet Fan Speed: ", style: Theme.of(context).textTheme.bodyText1)),
             Text(maximum_negative_presure_fan_speed.toString() + " %", style: Theme.of(context).textTheme.bodyText1),
           ],
         ),
@@ -572,9 +590,6 @@ class _AirSpeedPageState extends State<AirSpeedPage> with SingleTickerProviderSt
           });
         }),
         build_reset_button(),
-        SizedBox(
-          height: 64,
-        )
       ],
     ));
   }

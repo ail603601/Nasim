@@ -154,7 +154,7 @@ class _InternetPageState extends State<InternetPage> {
                 ),
                 Center(
                     child: build_boxed_titlebox(
-                        title: "Notes:",
+                        title: "Notes",
                         child: Text(
                             "● This Action will Restart your device.\n\n● Changing device settings is limited via internet.\n\n● In case of fail, the device will create its own wifi like before.",
                             style: TextStyle(

@@ -169,7 +169,7 @@ class wpage_usersState extends State<wpage_users> {
           return AlertDialog(
             title: Text('Choose a name ', style: Theme.of(context).textTheme.bodyText1),
             content: TextField(
-              inputFormatters: [WhitelistingTextInputFormatter(RegExp(r"[a-zA-Z0-9]+|\s"))],
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z0-9]+|\s"))],
               maxLength: 9,
               style: Theme.of(context).textTheme.bodyText1,
               onChanged: (value) {
@@ -227,7 +227,7 @@ class wpage_usersState extends State<wpage_users> {
   }
 
   Widget buildTitleBox(context) => Container(
-        padding: EdgeInsets.fromLTRB(7, 7, 7, 7),
+        padding: EdgeInsets.fromLTRB(12, 7, 12, 7),
         color: Theme.of(context).hintColor,
         child: Text(AppLocalizations.of(context)!.usersPageDescription, style: Theme.of(context).textTheme.bodyText1!.copyWith(color: Colors.white)),
       );

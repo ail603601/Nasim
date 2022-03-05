@@ -153,7 +153,7 @@ class _SearchDevicesState extends State<SearchDevices> {
           return AlertDialog(
             title: Text('Set Device Name', style: Theme.of(context).textTheme.bodyText1),
             content: TextField(
-              inputFormatters: [WhitelistingTextInputFormatter(RegExp(r"[a-zA-Z0-9]+|\s"))],
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r"[a-zA-Z0-9]+|\s"))],
               maxLength: 10,
               style: Theme.of(context).textTheme.bodyText1,
               onChanged: (value) {
@@ -244,6 +244,12 @@ class _SearchDevicesState extends State<SearchDevices> {
                 color: Colors.black12,
                 padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16),
                 child: Text(AppLocalizations.of(context)!.searchingUserHint, style: Theme.of(context).textTheme.bodyText2!)),
+            Container(
+                color: Color.fromARGB(255, 23, 230, 181),
+                padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 16),
+                child: Text(
+                    "For Internet Connection: firt you must conncet to the device locally , then you can access it via interet if you provide wifi user name and password to the device",
+                    style: Theme.of(context).textTheme.bodyText2!)),
             Expanded(
                 child: found_devices.length > 0
                     ? Padding(

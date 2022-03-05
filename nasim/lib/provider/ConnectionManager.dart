@@ -450,12 +450,13 @@ class ConnectionManager extends ChangeNotifier {
   }
 
   //internet
-  static const String server_url = "http://103.215.221.180:3000";
+  static const String server_url = "https://post.breezeserver.com";
+  static var client = http.Client();
   static Future<void> internet_http_request(int request_type, String data, String serial) async {
     //returns exception if fails
     AsciiCodec().encode(data);
 
-    String stringReceived = (await http.post(Uri.parse(server_url),
+    String stringReceived = (await client.post(Uri.parse(server_url),
             headers: <String, String>{'Content-Type': 'application/json; charset=UTF-8', 'Request-Type': request_type.toString(), 'Device-Serial': serial},
             body: data))
         .body;

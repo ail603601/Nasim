@@ -167,28 +167,32 @@ class _AirQualityPageState extends State<AirQualityPage> with SingleTickerProvid
         }
       }
       MODIFIED = false;
-      if (_tabController!.index == 0) {
-        await cmg.setRequest(65, Utils.lim_0_9999(ConnectionManager.Max_Day_IAQ), context);
-        await cmg.setRequest(66, Utils.lim_0_9999(ConnectionManager.Min_Day_IAQ), context);
-        await cmg.setRequest(70, Utils.lim_0_9999(ConnectionManager.Max_Day_CO2), context);
-        await cmg.setRequest(71, Utils.lim_0_9999(ConnectionManager.Min_Day_CO2), context);
-      } else {
-        await cmg.setRequest(67, Utils.lim_0_9999(ConnectionManager.Max_Night_IAQ), context);
-        await cmg.setRequest(68, Utils.lim_0_9999(ConnectionManager.Min_Night_IAQ), context);
-        await cmg.setRequest(72, Utils.lim_0_9999(ConnectionManager.Max_Night_CO2), context);
-        await cmg.setRequest(73, Utils.lim_0_9999(ConnectionManager.Min_Night_CO2), context);
-      }
+      await Utils.show_loading_timed(
+          context: context,
+          done: () async {
+            if (_tabController!.index == 0) {
+              await cmg.setRequest(65, Utils.lim_0_9999(ConnectionManager.Max_Day_IAQ), context);
+              await cmg.setRequest(66, Utils.lim_0_9999(ConnectionManager.Min_Day_IAQ), context);
+              await cmg.setRequest(70, Utils.lim_0_9999(ConnectionManager.Max_Day_CO2), context);
+              await cmg.setRequest(71, Utils.lim_0_9999(ConnectionManager.Min_Day_CO2), context);
+            } else {
+              await cmg.setRequest(67, Utils.lim_0_9999(ConnectionManager.Max_Night_IAQ), context);
+              await cmg.setRequest(68, Utils.lim_0_9999(ConnectionManager.Min_Night_IAQ), context);
+              await cmg.setRequest(72, Utils.lim_0_9999(ConnectionManager.Max_Night_CO2), context);
+              await cmg.setRequest(73, Utils.lim_0_9999(ConnectionManager.Min_Night_CO2), context);
+            }
 
-      await cmg.setRequest(64, iaq_1_co2_0 == 1 ? "1" : "0", context);
-      await cmg.setRequest(69, iaq_1_co2_0 == 0 ? "1" : "0", context);
+            await cmg.setRequest(64, iaq_1_co2_0 == 1 ? "1" : "0", context);
+            await cmg.setRequest(69, iaq_1_co2_0 == 0 ? "1" : "0", context);
 
-      if (_tabController!.index == 0) {
-        Utils.showSnackBar(context, "Done.");
-      } else if (_tabController!.index == 1) {
-        is_night_set = true;
-        Utils.showSnackBar(context, "Done.");
-        return;
-      }
+            if (_tabController!.index == 0) {
+              Utils.showSnackBar(context, "Done.");
+            } else if (_tabController!.index == 1) {
+              is_night_set = true;
+              Utils.showSnackBar(context, "Done.");
+              return;
+            }
+          });
     } catch (e) {
       // if (!(e is FormatException)) Utils.alert(context, "Error", "please check your input and try again.");
     }
@@ -506,9 +510,6 @@ class _AirQualityPageState extends State<AirQualityPage> with SingleTickerProvid
               children: [build_apply_button(), build_reset_button()],
             ),
           )),
-          SizedBox(
-            height: 64,
-          )
         ]));
   }
 }
